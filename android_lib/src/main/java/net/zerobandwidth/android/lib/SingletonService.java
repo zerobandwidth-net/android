@@ -10,7 +10,13 @@ import android.util.Log;
 import java.util.HashMap;
 
 /**
- * Provides access to "singleton" instances of any class.
+ * This service provides "singleton" instances of any specified class. This is
+ * done as an Android {@link Service}, instead of the normal Java singleton
+ * model, because Android tends to assign multiple class loaders during the life
+ * cycle of a single app, and thus static values (like singletons) set in one
+ * {@link android.app.Activity Activity} might not be visible in another. By
+ * registering singletons with a {@code Service}, multiple {@code Activity}s
+ * can be more confident about getting their singletons from the same source.
  */
 public class SingletonService
 extends Service
@@ -58,19 +64,19 @@ implements SingletonServiceInterface
         }
 
         @Override
-        public <T> T get( Class<T> cls )
+        public synchronized <T> T get( Class<T> cls )
         { return m_srv.get(cls) ; }
 
         @Override
-        public <T> T put( Class<T> cls, T oInstance )
+        public synchronized <T> T put( Class<T> cls, T oInstance )
         { return m_srv.put(cls, oInstance) ; }
 
         @Override
-        public <T> T getOrPut( Class<T> cls, T oFallback )
+        public synchronized <T> T getOrPut( Class<T> cls, T oFallback )
         { return m_srv.getOrPut( cls, oFallback ) ; }
 
         @Override
-        public <T> boolean hasInstanceFor( Class<T> cls )
+        public synchronized <T> boolean hasInstanceFor( Class<T> cls )
         { return m_srv.hasInstanceFor(cls) ; }
 
         public boolean isBound()
@@ -96,7 +102,7 @@ implements SingletonServiceInterface
 
     @Override
     @SuppressWarnings("unchecked") // We explicitly catch ClassCastException.
-    public <T> T get( Class<T> cls )
+    public synchronized <T> T get( Class<T> cls )
     {
         T oInstance = null ;
         try { oInstance = (T)(this.m_mapSingletons.get(cls)) ; }
@@ -107,7 +113,7 @@ implements SingletonServiceInterface
 
     @Override
     @SuppressWarnings("unchecked") // We explicitly catch ClassCastException.
-    public <T> T put( Class<T> cls, T oInstance )
+    public synchronized <T> T put( Class<T> cls, T oInstance )
     {
         T oPrevious = null ;
         try { oPrevious = (T)(this.m_mapSingletons.put(cls, oInstance)) ; }
@@ -117,7 +123,7 @@ implements SingletonServiceInterface
     }
 
     @Override
-    public <T> T getOrPut( Class<T> cls, T oFallback )
+    public synchronized <T> T getOrPut( Class<T> cls, T oFallback )
     {
         if( m_mapSingletons.containsKey(cls) )
             return this.get(cls) ;
@@ -129,6 +135,6 @@ implements SingletonServiceInterface
     }
 
     @Override
-    public <T> boolean hasInstanceFor( Class<T> cls )
+    public synchronized <T> boolean hasInstanceFor( Class<T> cls )
     { return m_mapSingletons.containsKey(cls) ; }
 }
