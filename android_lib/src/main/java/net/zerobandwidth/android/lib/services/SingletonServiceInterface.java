@@ -1,9 +1,11 @@
-package net.zerobandwidth.android.lib;
+package net.zerobandwidth.android.lib.services;
+
+import net.zerobandwidth.android.lib.services.SingletonService;
 
 /**
  * Defines the public API of the {@link SingletonService} class. This interface
  * is defined separately because the inner
- * {@link SingletonService.Passthrough Passthrough}
+ * {@link SingletonService.Connection}
  * class also provides it; comments about the methods of the interface can thus
  * be defined and shared by all implementations.
  */

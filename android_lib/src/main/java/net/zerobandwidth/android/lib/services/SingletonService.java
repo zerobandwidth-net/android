@@ -1,7 +1,6 @@
-package net.zerobandwidth.android.lib ;
+package net.zerobandwidth.android.lib.services;
 
 import android.app.Service ;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
@@ -17,6 +16,7 @@ import java.util.HashMap;
  * {@link android.app.Activity Activity} might not be visible in another. By
  * registering singletons with a {@code Service}, multiple {@code Activity}s
  * can be more confident about getting their singletons from the same source.
+ * @since issue 1
  */
 public class SingletonService
 extends Service
@@ -29,10 +29,14 @@ implements SingletonServiceInterface
     /**
      * An implementation of the {@link android.os.Binder} class which simply
      * returns this instance of the service.
+     * @since issue 1
      */
+    @SuppressWarnings("unchecked") // SingletonService will satisfy return type.
     public class Binder extends android.os.Binder
+    implements SimpleServiceConnection.InstanceBinder
     {
-        public SingletonService getService()
+        @Override
+        public SingletonService getServiceInstance()
         { return SingletonService.this ; }
     }
 
@@ -42,45 +46,30 @@ implements SingletonServiceInterface
      * itself. A consumer of the service does not have to implement its own
      * {@code ServiceConnection}; instead, it may store this one and interact
      * with it directly as if it were the service instance itself.
+     * @since issue 1
      */
-    public class Passthrough
+    public static class Connection
+    extends SimpleServiceConnection<SingletonService>
     implements ServiceConnection, SingletonServiceInterface
     {
-        private SingletonService m_srv = null ;
-        private boolean m_bBound = false ;
-
-        @Override
-        public void onServiceConnected( ComponentName cn, IBinder bind )
-        {
-            m_srv = ((Binder)bind).getService() ;
-            m_bBound = true ;
-        }
-
-        @Override
-        public void onServiceDisconnected( ComponentName cn )
-        {
-            m_srv = null ;
-            m_bBound = false ;
-        }
+        public Connection()
+        { super( SingletonService.class ) ; }
 
         @Override
         public synchronized <T> T get( Class<T> cls )
-        { return m_srv.get(cls) ; }
+        { return m_srvInstance.get(cls) ; }
 
         @Override
         public synchronized <T> T put( Class<T> cls, T oInstance )
-        { return m_srv.put(cls, oInstance) ; }
+        { return m_srvInstance.put(cls, oInstance) ; }
 
         @Override
         public synchronized <T> T getOrPut( Class<T> cls, T oFallback )
-        { return m_srv.getOrPut( cls, oFallback ) ; }
+        { return m_srvInstance.getOrPut( cls, oFallback ) ; }
 
         @Override
         public synchronized <T> boolean hasInstanceFor( Class<T> cls )
-        { return m_srv.hasInstanceFor(cls) ; }
-
-        public boolean isBound()
-        { return m_bBound ; }
+        { return m_srvInstance.hasInstanceFor(cls) ; }
     }
 
     /** The mapping of classes to singleton instances of those classes. */
