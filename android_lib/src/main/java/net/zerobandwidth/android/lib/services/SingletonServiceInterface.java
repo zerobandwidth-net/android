@@ -1,7 +1,5 @@
 package net.zerobandwidth.android.lib.services;
 
-import net.zerobandwidth.android.lib.services.SingletonService;
-
 /**
  * Defines the public API of the {@link SingletonService} class. This interface
  * is defined separately because the inner

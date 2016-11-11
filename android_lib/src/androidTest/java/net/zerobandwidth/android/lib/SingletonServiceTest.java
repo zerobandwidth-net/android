@@ -26,6 +26,7 @@ import java.util.concurrent.Semaphore;
  * Exercises {@link SingletonService}.
  * @since issue 1
  */
+@SuppressWarnings("WeakerAccess")
 @RunWith(AndroidJUnit4.class)
 public class SingletonServiceTest
 extends ServiceTestCase<SingletonService>
