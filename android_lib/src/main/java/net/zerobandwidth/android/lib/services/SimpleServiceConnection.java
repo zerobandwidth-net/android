@@ -175,6 +175,7 @@ implements ServiceConnection
      * only that the connection is bound, but also that the persistent reference
      * to the service is not null.
      * @return an indication that the connection is, indeed, connected
+     * @since zerobandwidth-net/android 0.0.1 (#5)
      */
     public synchronized boolean isConnected()
     { return ( m_bBound && m_srvInstance != null ) ; }
