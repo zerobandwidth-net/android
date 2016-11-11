@@ -3,9 +3,10 @@ package net.zerobandwidth.android.lib.services;
 /**
  * Defines the public API of the {@link SingletonService} class. This interface
  * is defined separately because the inner
- * {@link SingletonService.Connection}
- * class also provides it; comments about the methods of the interface can thus
- * be defined and shared by all implementations.
+ * {@link SingletonService.Connection} class also provides it; comments about
+ * the methods of the interface can thus be defined and shared by all
+ * implementations.
+ * @since zerobandwidth-net/android 0.0.1 (#1)
  */
 public interface SingletonServiceInterface
 {

@@ -16,7 +16,7 @@ import java.util.HashMap;
  * {@link android.app.Activity Activity} might not be visible in another. By
  * registering singletons with a {@code Service}, multiple {@code Activity}s
  * can be more confident about getting their singletons from the same source.
- * @since issue 1
+ * @since zerobandwidth-net/android 0.0.1 (#1)
  */
 public class SingletonService
 extends Service
@@ -29,7 +29,7 @@ implements SingletonServiceInterface
     /**
      * An implementation of the {@link android.os.Binder} class which simply
      * returns this instance of the service.
-     * @since issue 1
+     * @since zerobandwidth-net/android 0.0.1 (#1)
      */
     @SuppressWarnings("unchecked") // SingletonService will satisfy return type.
     public class Binder extends android.os.Binder
@@ -46,7 +46,7 @@ implements SingletonServiceInterface
      * itself. A consumer of the service does not have to implement its own
      * {@code ServiceConnection}; instead, it may store this one and interact
      * with it directly as if it were the service instance itself.
-     * @since issue 1
+     * @since zerobandwidth-net/android 0.0.1 (#1)
      */
     public static class Connection
     extends SimpleServiceConnection<SingletonService>

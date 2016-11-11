@@ -16,7 +16,7 @@ import java.util.Vector;
  * have its own implementation. The class provides basic methods to bind to, and
  * unbind from, the service; get the bound instance of the service; bind as a
  * listener to the connection itself.
- * @since issue 1
+ * @since zerobandwidth-net/android 0.0.1 (#1)
  */
 @SuppressWarnings("unused") // because it's a library
 public class SimpleServiceConnection<S extends Service>
@@ -35,7 +35,7 @@ implements ServiceConnection
      * Because connections can take a while, the object that is waiting for the
      * connection to be completed should implement this interface to receive a
      * signal when the connection is established.
-     * @since issue 1
+     * @since zerobandwidth-net/android 0.0.1 (#1)
      */
     @SuppressWarnings("unused") // because it's still a library
     public interface Listener
@@ -53,7 +53,7 @@ implements ServiceConnection
      * The binder provided by the service needs to implement this interface,
      * which provides us with a standard way to reach into the service's own
      * public methods.
-     * @since issue 1
+     * @since zerobandwidth-net/android 0.0.1 (#1)
      */
     public interface InstanceBinder
     {
@@ -90,7 +90,6 @@ implements ServiceConnection
     /**
      * Initializes a simple connection for a specified service class.
      * @param cls the service class
-     * @since issue 1
      */
     public SimpleServiceConnection( Class<S> cls )
     {

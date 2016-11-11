@@ -24,7 +24,8 @@ import java.util.concurrent.Semaphore;
 
 /**
  * Exercises {@link SingletonService}.
- * @since issue 1
+ * <b>NOTE: Unit testing of services is currently broken. (#3)</b>
+ * @since zerobandwidth-net/android 0.0.1 (#1)
  */
 @SuppressWarnings("WeakerAccess")
 @RunWith(AndroidJUnit4.class)

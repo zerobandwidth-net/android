@@ -16,7 +16,8 @@ import java.util.concurrent.TimeoutException;
  * Extends {@link SimpleServiceConnection} to provide connectivity to services
  * within an Android test case. This is not a test suite in itself; rather, it
  * provides a feature which may be used in tests.
- * @since issue 1
+ * <b>NOTE: Unit testing of services is currently broken. (#3)</b>
+ * @since zerobandwidth-net/android 0.0.1 (#1)
  */
 @SuppressWarnings("unused")
 public class SimpleTestServiceConnection<S extends Service>
