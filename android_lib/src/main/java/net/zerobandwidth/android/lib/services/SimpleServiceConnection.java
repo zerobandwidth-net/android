@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -56,6 +57,7 @@ implements ServiceConnection
      * @since zerobandwidth-net/android 0.0.1 (#1)
      */
     public interface InstanceBinder
+    extends IBinder
     {
         /** Provides the bound instance of the service. */
         <BT extends Service> BT getServiceInstance() ;
@@ -169,6 +171,15 @@ implements ServiceConnection
     { return m_bBound ; }
 
     /**
+     * Perhaps more useful than {@link #isBound}, this function verifies not
+     * only that the connection is bound, but also that the persistent reference
+     * to the service is not null.
+     * @return an indication that the connection is, indeed, connected
+     */
+    public synchronized boolean isConnected()
+    { return ( m_bBound && m_srvInstance != null ) ; }
+
+    /**
      * Accessor for the service instance, if the connection is bound.
      * @return the bound instance of the service, if any
      */
@@ -193,8 +204,13 @@ implements ServiceConnection
             throw new IllegalArgumentException(
                     "Cannot bind to service from a null context." ) ;
         }
-        Intent sig = new Intent( ctx, m_clsService ) ;
-        ctx.bindService( sig, this, bmFlags ) ;
+        if( this.isConnected() )
+        { Log.d( this.getLogTag(), "Already connected." ) ; }
+        else
+        { // Bind this connection to the service.
+            Intent sig = new Intent( ctx, m_clsService ) ;
+            ctx.bindService( sig, this, bmFlags ) ;
+        }
         return this ;
     }
 
@@ -234,7 +250,7 @@ implements ServiceConnection
                 );
             return this ;
         }
-        if( !m_bBound || m_srvInstance == null ) return this ; // trivially
+        if( ! this.isConnected() ) return this ; // trivially
         try { ctx.unbindService(this) ; }
         catch( RuntimeException x ) // includes IllegalArgumentException
         { Log.i( this.getLogTag(), "Service was already unbound." ) ; }
