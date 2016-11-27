@@ -244,7 +244,7 @@ public class AppUtils
     @SuppressWarnings("ConstantConditions") // Exception is caught.
     public static void initBackButtonForActivity( AppCompatActivity act )
     {
-        try { act.getActionBar().setDisplayHomeAsUpEnabled(true) ; }
+        try { act.getSupportActionBar().setDisplayHomeAsUpEnabled(true) ; }
         catch( Exception x )
         { Log.d( LOG_TAG, "Could not initialize back button.", x ) ; }
     }
