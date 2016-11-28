@@ -4,10 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutCompat;
 import android.util.Log;
-import android.view.Surface;
-import android.widget.LinearLayout;
 
 /**
  * Provides utilities for dealing with common Android app tasks.
@@ -77,114 +74,6 @@ public class AppUtils
             return ctx.getString( resFormat, sAppName, sAppVersion ) ;
         else
             return sAppName ;
-    }
-
-    /**
-     * Adjusts a linear layout's orientation based on the orientation of the
-     * screen.
-     * The layout's long dimension will be matched to the long dimension of the
-     * screen.
-     * @param act the activity containing the layout to be adjusted
-     * @param w the layout group to be adjusted
-     * @see #setLinearOrientation(LinearLayout, int)
-     */
-    public static void setLinearOrientation( Activity act, LinearLayout w )
-    {
-        AppUtils.setLinearOrientation( w,
-                act.getWindowManager().getDefaultDisplay().getRotation() ) ;
-    }
-
-    /**
-     * Adjusts a linear layout's orientation based on the orientation of the
-     * screen.
-     * The layout's long dimension will be matched to the long dimension of the
-     * screen.
-     * @param act the activity containing the layout to be adjusted
-     * @param w the layout group to be adjusted
-     * @see #setLinearOrientation(LinearLayout, int)
-     */
-    public static void setLinearOrientation( AppCompatActivity act, LinearLayout w )
-    {
-        AppUtils.setLinearOrientation( w,
-                act.getWindowManager().getDefaultDisplay().getRotation() ) ;
-    }
-
-    /**
-     * Adjusts a linear layout's orientation based on the orientation of the
-     * screen.
-     * The layout's long dimension will be matched to the long dimension of the
-     * screen.
-     * @param act the activity containing the layout to be adjusted
-     * @param w the layout group to be adjusted
-     * @see #setLinearOrientation(LinearLayoutCompat, int)
-     */
-    public static void setLinearOrientation( Activity act, LinearLayoutCompat w )
-    {
-        AppUtils.setLinearOrientation( w,
-                act.getWindowManager().getDefaultDisplay().getRotation() ) ;
-    }
-
-    /**
-     * Adjusts a linear layout's orientation based on the orientation of the
-     * screen.
-     * The layout's long dimension will be matched to the long dimension of the
-     * screen.
-     * @param act the activity containing the layout to be adjusted
-     * @param w the layout group to be adjusted
-     * @see #setLinearOrientation(LinearLayoutCompat, int)
-     */
-    public static void setLinearOrientation( AppCompatActivity act, LinearLayoutCompat w )
-    {
-        AppUtils.setLinearOrientation( w,
-                act.getWindowManager().getDefaultDisplay().getRotation() ) ;
-    }
-
-    /**
-     * Adjusts a linear layout's orientation based on the orientation of the
-     * screen.
-     * The layout's long dimension will be matched to the long dimension of the
-     * screen.
-     * @param w the layout to be adjusted
-     * @param nRotation the window's current rotation
-     */
-    public static void setLinearOrientation( LinearLayout w, int nRotation )
-    {
-        switch( nRotation )
-        {
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-                w.setOrientation( LinearLayout.HORIZONTAL ) ;
-                break ;
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-            default:
-                w.setOrientation( LinearLayout.VERTICAL ) ;
-                break ;
-        }
-    }
-
-    /**
-     * Adjusts a linear layout's orientation based on the orientation of the
-     * screen.
-     * The layout's long dimension will be matched to the long dimension of the
-     * screen.
-     * @param w the layout to be adjusted
-     * @param nRotation the window's current rotation
-     */
-    public static void setLinearOrientation( LinearLayoutCompat w, int nRotation )
-    {
-        switch( nRotation )
-        {
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-                w.setOrientation( LinearLayoutCompat.HORIZONTAL ) ;
-                break ;
-            case Surface.ROTATION_0:
-            case Surface.ROTATION_180:
-            default:
-                w.setOrientation( LinearLayoutCompat.VERTICAL ) ;
-                break ;
-        }
     }
 
     /**
