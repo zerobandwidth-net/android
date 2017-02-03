@@ -1,23 +1,14 @@
-package net.zerobandwidth.android.lib;
+package net.zerobandwidth.android.lib.services;
 
-import android.app.Activity;
 import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ServiceTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.ServiceTestCase;
 import android.util.Log;
 
-import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
-import net.zerobandwidth.android.lib.services.SingletonService;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.lang.ref.WeakReference;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;

@@ -2,7 +2,40 @@
 <resources>
 
     <string-array name="asNonsenseNouns">
+        <item>abandonment</item>
+        <item>an abbot</item>
+        <item>the abdomen</item>
+        <item>an aberration</item>
+        <item>an abode</item>
+        <item>the absentee</item>
         <item>abstraction</item>
+        <item>the absurdity</item>
+        <item>abuse</item>
+        <item>an acacia</item>
+        <item>academia</item>
+        <item>acceleration</item>
+        <item>acceptance</item>
+        <item>the accomplice</item>
+        <item>an accomplishment</item>
+        <item>acceptance</item>
+        <item>an accordion</item>
+        <item>an account</item>
+        <item>an accident</item>
+        <item>an ace</item>
+        <item>the ace of clubs</item>
+        <item>the ace of diamonds</item>
+        <item>the ace of hearts</item>
+        <item>the ace of spades</item>
+        <item>an ache</item>
+        <item>acid</item>
+        <item>acidity</item>
+        <item>an acolyte</item>
+        <item>an acquaintance</item>
+        <item>acquiescence</item>
+        <item>an acre</item>
+        <item>an acrobat</item>
+        <item>adventure</item>
+        <item>the adversssssssssssssssssssss</item>
         <item>an apple</item>
         <item>art</item>
         <item>Alessandro Botticelli</item>
@@ -11,6 +44,7 @@
         <item>charity</item>
         <item>the Church of the Subgenius</item>
         <item>determination</item>
+        <item>Discordianism</item>
         <item>a dog</item>
         <item>evanescence</item>
         <item>a fox</item>
@@ -18,24 +52,28 @@
         <item>hubris</item>
         <item>an idea</item>
         <item>ignorance</item>
+        <item>the Internet</item>
+        <item>the Internet of Things</item>
         <item>justice</item>
+        <item>a kangaroo</item>
         <item>a knife</item>
         <item>a knight</item>
-        <item>the Knights of the Lambda Calculus</item>
+        <item>the Knighthood of the Lambda Calculus</item>
         <item>the kitchen</item>
         <item>laughter</item>
         <item>a lightpole</item>
         <item>manslaughter</item>
         <item>memory</item>
+        <item>nihilism</item>
         <item>a nymph</item>
         <item>originality</item>
         <item>persistence</item>
-        <item>the President of the United States</item>
-        <item>the Queen of England</item>
         <item>rarity</item>
         <item>a rhubarb pie</item>
+        <item>the Singularity</item>
         <item>a star</item>
         <item>a tattletale</item>
+        <item>the TimeCube</item>
         <item>a Tyrannosaurus rex</item>
         <item>the Underworld</item>
         <item>a wallaby</item>
@@ -160,6 +198,8 @@
         <item>after all this time</item>
         <item>after midnight</item>
         <item>after the rain</item>
+        <item>against all odds</item>
+        <item>against the grain</item>
         <item>as long as it takes</item>
         <item>at the Court of Silence</item>
         <item>at a crossroads</item>

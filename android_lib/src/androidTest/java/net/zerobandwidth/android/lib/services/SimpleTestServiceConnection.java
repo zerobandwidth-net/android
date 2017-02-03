@@ -1,4 +1,4 @@
-package net.zerobandwidth.android.lib;
+package net.zerobandwidth.android.lib.services;
 
 import android.app.Service;
 import android.content.Context;
@@ -7,8 +7,6 @@ import android.os.IBinder;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ServiceTestRule;
 import android.util.Log;
-
-import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
 
 import java.util.concurrent.TimeoutException;
 

@@ -9,13 +9,27 @@ import java.util.Random;
 /**
  * The canonical implementation of {@link NonsenseGenerator}.
  *
- * The builder will assemble a sentence of the following form: <i>adjective</i>
- * <b>subject</b> <i>adverb</i> <b>verb</b> <i>adjective</i> <b>object</b>
- * <i>phrase</i>. The terms listed in bold (subject, verb, object) will always
- * be rendered, while the terms in italics (adjectives, adverbs, additional
- * phrases) will be added randomly based on the builder's configuration, which
- * can be tuned by creating a custom instance of the
- * {@link NonsenseBuilder.Configuration} inner class.
+ * <p>The builder will assemble a sentence of the following form:
+ * <i>adjective</i> <b>subject</b> <i>adverb</i> <b>verb</b> <i>adjective</i>
+ * <b>object</b> <i>phrase</i>. The terms listed in bold (subject, verb, object)
+ * will always be rendered, while the terms in italics (adjectives, adverbs,
+ * additional phrases) will be added randomly based on the builder's
+ * configuration, which can be tuned by creating a custom instance of the
+ * {@link NonsenseBuilder.Configuration} inner class.</p>
+ *
+ * <p>The class uses the following string resources to get its random words:</p>
+ *
+ * <ul>
+ *     <li>{@link R.array#asNonsenseNouns}</li>
+ *     <li>{@link R.array#asNonsenseVerbs}</li>
+ *     <li>{@link R.array#asNonsenseAdjectives}</li>
+ *     <li>{@link R.array#asNonsenseAdverbs}</li>
+ *     <li>{@link R.array#asNonsensePhrases}</li>
+ * </ul>
+ *
+ * <p>Applications using this class may choose to have overrides for any or all
+ * of these string resources, in order to customize the text that might be
+ * rendered in the randomized sentences.</p>
  *
  * @since zerobandwidth-net/android 0.0.1 (#7)
  */
@@ -26,15 +40,36 @@ implements NonsenseGenerator
 	/**
 	 * This class controls aspects of a {@link NonsenseBuilder} related to the
 	 * probability of certain random features.
+	 *
+	 * To set non-default values, construct an instance of the class, and then
+	 * use its {@code set*()} methods to change any or all of the desired
+	 * settings. This may be done inline as follows:
+	 *
+	 * <pre>
+	 *     NonsenseBuilder xyzzy = new NonsenseBuilder( ctx,
+	 *             (new NonsenseBuilder.Configuration())
+	 *                 .setSubjectAdjectiveChance(25)
+	 *                 .setAdverbChance( NonsenseBuilder.Configuration.ALWAYS )
+	 *                 .setObjectAdjectiveChance(42)
+	 *                 .setObjectPhraseChance( NonsenseBuilder.Configuration.NEVER )
+	 *         );
+	 * </pre>
+	 *
 	 * @since zerobandwidth-net/android 0.0.1 (#7)
 	 */
 	public static class Configuration
 	{
 		/**
 		 * When specifying a probability, this constant indicates that a word
-		 * should always be added to the sentence.
+		 * should <i>always</i> be added to the sentence.
 		 */
 		public static final int ALWAYS = 100 ;
+
+		/**
+		 * When specifying a probability, this constant indicates that a word
+		 * should <i>never</i> be added to the sentence.
+		 */
+		public static final int NEVER = 0 ;
 
 		/**
 		 * The percentage chance that an adjective will be added to modify the
@@ -343,7 +378,7 @@ implements NonsenseGenerator
 			);
 
 		if( sAdj == null )
-		{ // Just append the subject as-is and move on.
+		{ // Just capitalize and append the subject as-is and move on.
 			sb.append( sSubject.substring(0,1).toUpperCase() )
 			  .append( sSubject.substring(1) )
 			  ;
@@ -351,11 +386,24 @@ implements NonsenseGenerator
 		else if( hasArticle( sSubject ) )
 		{ // Split the article from the subject string and insert the adjective.
 			String[] asTokens = sSubject.split( " ", 2 ) ;
-			sb.append( asTokens[0].substring(0,1).toUpperCase() )
-			  .append(( asTokens[0].length() > 1 ?
-					  asTokens[0].substring(1) : "" ))
-			  .append( ' ' )
-			  .append( sAdj )
+			switch( asTokens[0] )
+			{
+				case "a":
+				case "an":
+					sb.append( whichIndefiniteArticle( sAdj, true ) )
+					  .append( ' ' )
+					  ;
+					break ;
+				case "the":
+					sb.append( "The " ) ;
+					break ;
+				default:
+					sb.append( asTokens[0].substring(0,1).toUpperCase() )
+					  .append( asTokens[0].substring(1) )
+					  .append( ' ' )
+					  ;
+			}
+			sb.append( sAdj )
 			  .append( ' ' )
 			  .append( asTokens[1] )
 			  ;
@@ -430,9 +478,18 @@ implements NonsenseGenerator
 		else if( hasArticle( sObject ) )
 		{
 			String[] asTokens = sObject.split( " ", 2 ) ;
-			sb.append( asTokens[0] )
-			  .append( ' ' )
-			  .append( sAdj )
+			switch( asTokens[0] )
+			{
+				case "a":
+				case "an":
+					sb.append( whichIndefiniteArticle( sAdj, false ) )
+					  .append( ' ' )
+					  ;
+					break ;
+				default:
+					sb.append( asTokens[0] ).append( ' ' ) ;
+			}
+			sb.append( sAdj )
 			  .append( ' ' )
 			  .append( asTokens[1] )
 			  ;
@@ -450,7 +507,8 @@ implements NonsenseGenerator
 	/**
 	 * Randomly selects a string resource from the selected string array.
 	 * @param resStrings the resource ID of a string array
-	 * @param nChance chance that we should return anything
+	 * @param nChance chance that we should return anything at all, expressed as
+	 *                a percentage (expected range [0,100])
 	 * @return a random string from that array of strings
 	 */
 	public String getRandomNonsense( int resStrings, int nChance )
@@ -478,5 +536,29 @@ implements NonsenseGenerator
 		     || sNoun.startsWith( "an " )
 		     || sNoun.startsWith( "the " )
 		    );
+	}
+
+	/**
+	 * Used to re-evaluate which indefinite article should be appended to the
+	 * sentence, given a new "next word" which must be inserted.
+	 * @param sNextWord the new "next word" in the sentence, which wasn't the
+	 *                  noun we thought we were going to get
+	 * @param bCapitalize indicates whether the article should be capitalized
+	 * @return "a" or "an"
+	 */
+	protected static String whichIndefiniteArticle( String sNextWord, boolean bCapitalize )
+	{
+		final String sLowered = sNextWord.toLowerCase() ;
+		if( sNextWord.startsWith( "a" )
+		 || sNextWord.startsWith( "e" )
+		 || sNextWord.startsWith( "i" )
+		 || sNextWord.startsWith( "o" )
+		 || sNextWord.startsWith( "u" )
+		  )
+		{
+			return ( bCapitalize ? "An" : "an" ) ;
+		}
+		else
+			return ( bCapitalize ? "A" : "a" ) ;
 	}
 }
