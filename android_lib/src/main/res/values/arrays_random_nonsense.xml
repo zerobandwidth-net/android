@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="asNonsenseNouns">
+        <item>abstraction</item>
+        <item>an apple</item>
+        <item>art</item>
+        <item>Alessandro Botticelli</item>
+        <item>a boat</item>
+        <item>a car</item>
+        <item>charity</item>
+        <item>the Church of the Subgenius</item>
+        <item>determination</item>
+        <item>a dog</item>
+        <item>evanescence</item>
+        <item>a fox</item>
+        <item>gravity</item>
+        <item>hubris</item>
+        <item>an idea</item>
+        <item>ignorance</item>
+        <item>justice</item>
+        <item>a knife</item>
+        <item>a knight</item>
+        <item>the Knights of the Lambda Calculus</item>
+        <item>the kitchen</item>
+        <item>laughter</item>
+        <item>a lightpole</item>
+        <item>manslaughter</item>
+        <item>memory</item>
+        <item>a nymph</item>
+        <item>originality</item>
+        <item>persistence</item>
+        <item>the President of the United States</item>
+        <item>the Queen of England</item>
+        <item>rarity</item>
+        <item>a rhubarb pie</item>
+        <item>a star</item>
+        <item>a tattletale</item>
+        <item>a Tyrannosaurus rex</item>
+        <item>the Underworld</item>
+        <item>a wallaby</item>
+        <item>wetness</item>
+        <item>the World-Wide Web</item>
+        <item>a xylophone</item>
+        <item>a yak</item>
+        <item>a zither</item>
+    </string-array>
+
+    <string-array name="asNonsenseVerbs">
+        <item>addles</item>
+        <item>adjusts</item>
+        <item>attacks</item>
+        <item>beats</item>
+        <item>betrays</item>
+        <item>calls</item>
+        <item>covers</item>
+        <item>dangles</item>
+        <item>drives</item>
+        <item>eats</item>
+        <item>exhales</item>
+        <item>expands</item>
+        <item>exposes</item>
+        <item>follows</item>
+        <item>gathers</item>
+        <item>helps</item>
+        <item>hinders</item>
+        <item>imagines</item>
+        <item>jingles</item>
+        <item>jokes with</item>
+        <item>kicks</item>
+        <item>laughs at</item>
+        <item>matches</item>
+        <item>mingles with</item>
+        <item>offers</item>
+        <item>oscillates</item>
+        <item>prefers</item>
+        <item>questions</item>
+        <item>quickens</item>
+        <item>rattles</item>
+        <item>resolves</item>
+        <item>reveals</item>
+        <item>revolves</item>
+        <item>sequesters</item>
+        <item>staggers</item>
+        <item>takes</item>
+        <item>touches</item>
+        <item>uncovers</item>
+        <item>undersells</item>
+        <item>understands</item>
+        <item>villifies</item>
+        <item>waters</item>
+        <item>wishes for</item>
+        <item>yells at</item>
+    </string-array>
+
+    <string-array name="asNonsenseAdjectives">
+        <item>angular</item>
+        <item>beautiful</item>
+        <item>brittle</item>
+        <item>colossal</item>
+        <item>comfortable</item>
+        <item>divine</item>
+        <item>elegant</item>
+        <item>fabulous</item>
+        <item>frenzied</item>
+        <item>gregarious</item>
+        <item>hearty</item>
+        <item>healthy</item>
+        <item>hilarious</item>
+        <item>ignorant</item>
+        <item>jocular</item>
+        <item>kinetic</item>
+        <item>long</item>
+        <item>minuscule</item>
+        <item>nefarious</item>
+        <item>occasional</item>
+        <item>preferred</item>
+        <item>quixotic</item>
+        <item>ribald</item>
+        <item>spectacular</item>
+        <item>spicy</item>
+        <item>titillating</item>
+        <item>unnerving</item>
+        <item>unwavering</item>
+        <item>vexing</item>
+        <item>vehicular</item>
+        <item>wet</item>
+        <item>witty</item>
+        <item>yucky</item>
+    </string-array>
+
+    <string-array name="asNonsenseAdverbs">
+        <item>architecturally</item>
+        <item>badly</item>
+        <item>comfortably</item>
+        <item>doubly</item>
+        <item>especially</item>
+        <item>frantically</item>
+        <item>graciously</item>
+        <item>happily</item>
+        <item>ignorantly</item>
+        <item>icily</item>
+        <item>jestfully</item>
+        <item>luckily</item>
+        <item>meaningfully</item>
+        <item>nicely</item>
+        <item>obviously</item>
+        <item>perennially</item>
+        <item>quickly</item>
+        <item>rashly</item>
+        <item>sneakily</item>
+        <item>tactfully</item>
+        <item>unusually</item>
+        <item>voraciously</item>
+        <item>wisely</item>
+        <item>zestfully</item>
+    </string-array>
+
+    <string-array name="asNonsensePhrases">
+        <item>after all this time</item>
+        <item>after midnight</item>
+        <item>after the rain</item>
+        <item>as long as it takes</item>
+        <item>at the Court of Silence</item>
+        <item>at a crossroads</item>
+        <item>at the height of the Great Depression</item>
+        <item>at midnight</item>
+        <item>at Tanagra</item>
+        <item>before the fall</item>
+        <item>before the walls fell</item>
+        <item>before you wreck yourself</item>
+        <item>beneath the waves</item>
+        <item>in the afternoon</item>
+        <item>in the midst of everything else</item>
+        <item>in the nick of time</item>
+        <item>in winter</item>
+        <item>on the ocean</item>
+        <item>through the years</item>
+        <item>through thick and thin</item>
+        <item>under the sun</item>
+        <item>under the moon</item>
+        <item>under two moons</item>
+        <item>when the sun rises</item>
+        <item>with a hair drier</item>
+        <item>with all the time in the world</item>
+        <item>with arms wide</item>
+        <item>with eyes closed</item>
+        <item>with eyes open</item>
+        <item>with faces wet</item>
+        <item>with fists closed</item>
+        <item>with hands open</item>
+        <item>without hesitation</item>
+        <item>without remorse</item>
+    </string-array>
+
+    <string-array name="asMaleFirstNames">
+        <item>Alistair</item>
+        <item>Bob</item>
+        <item>Charles</item>
+        <item>David</item>
+        <item>Edgar</item>
+        <item>Frank</item>
+        <item>George</item>
+        <item>Harold</item>
+        <item>Ivan</item>
+        <item>Jack</item>
+        <item>Karl</item>
+        <item>Liam</item>
+        <item>Martin</item>
+        <item>Neville</item>
+        <item>Oscar</item>
+        <item>Patrick</item>
+        <item>Quincy</item>
+        <item>Richard</item>
+        <item>Stanley</item>
+        <item>Thomas</item>
+        <item>Ulrich</item>
+        <item>Victor</item>
+        <item>Wesley</item>
+        <item>Xander</item>
+        <item>Yousef</item>
+        <item>Zephram</item>
+    </string-array>
+
+    <string-array name="asFemaleFirstNames">
+        <item>Alice</item>
+        <item>Beatrice</item>
+        <item>Carol</item>
+        <item>Diana</item>
+        <item>Eve</item>
+        <item>Frances</item>
+        <item>Gertrude</item>
+        <item>Hilda</item>
+        <item>Ingrid</item>
+        <item>Jill</item>
+        <item>Karen</item>
+        <item>Lydia</item>
+        <item>Margo</item>
+        <item>Nancy</item>
+        <item>Ophelia</item>
+        <item>Phyllis</item>
+        <item>Qadira</item>
+        <item>Renee</item>
+        <item>Sophia</item>
+        <item>Theresa</item>
+        <item>Ursula</item>
+        <item>Vanessa</item>
+        <item>Wendy</item>
+        <item>Xandra</item>
+        <item>Yolanda</item>
+        <item>Zelda</item>
+    </string-array>
+
+</resources>
