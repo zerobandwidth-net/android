@@ -1,5 +1,21 @@
 apply plugin: 'com.android.library'
 
+/*
+ * This file contains a desperate effort to get jUnit output to show up in
+ * Android Studio's test results panes, with little success.
+ *
+ * Research so far:
+ *  - https://github.com/kelemen/netbeans-gradle-project/issues/126
+ *  - http://stackoverflow.com/questions/33850781/how-to-get-android-logging-output-displayed-with-junit-tests-using-native-junit
+ *  - http://stackoverflow.com/questions/3963708/gradle-how-to-display-test-results-in-the-console-in-real-time
+ *  - http://stackoverflow.com/questions/9356543/logging-while-testing-through-gradle
+ *
+ * Unfortunately none of it has worked yet. ;_;
+ */
+
+import org.gradle.api.tasks.testing.logging.TestLogEvent ;
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat ;
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
@@ -15,6 +31,21 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    testOptions.unitTests.all {
+        testLogging {
+            events TestLogEvent.PASSED,
+                    TestLogEvent.FAILED,
+                    TestLogEvent.SKIPPED,
+                    TestLogEvent.STANDARD_OUT,
+                    TestLogEvent.STANDARD_ERROR
+            exceptionFormat TestExceptionFormat.FULL
+            showCauses true
+            showExceptions true
+            showStackTraces true
+            showStandardStreams true
         }
     }
 }
