@@ -123,7 +123,6 @@ extends AndroidTestCase
 		       ;
 		final String sOutput = m_xyzzy.getString() ;
 		Log.d( LOG_TAG, sOutput ) ;
-		System.out.println( sOutput ) ;
 		assertEquals(
 				"The quick brown fox always jumps over the lazy dog in the proverb.",
 				sOutput ) ;
@@ -139,12 +138,11 @@ extends AndroidTestCase
 	 */
 	public void testRandomOutputs()
 	{
-		final int ITERATIONS = 20 ;
+		final int ITERATIONS = 25 ;
 		for( int i = 0 ; i < ITERATIONS ; i++ )
 		{
-			final String sOutput = m_xyzzy.getString();
-			Log.d( LOG_TAG, sOutput );
-			System.out.println( sOutput );
+			final String sOutput = m_xyzzy.getString() ;
+			Log.d( LOG_TAG, sOutput ) ;
 		}
 		assertTrue(true) ;
 	}
