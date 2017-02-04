@@ -1,0 +1,1605 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Special thanks to:
+        http://http://www.catb.org/~esr/jargon/html/go01.html - The Jargon File
+
+        Each list should be kept in alphabetical order by first significant
+        word (this discounts a/an/the for nouns).
+    -->
+
+    <!--
+        Additional inputs for nouns:
+        http://noun1.com/start-X/ where X is any letter
+
+        Abstract or uncountable nouns should be listed alone. Countable nouns
+        should appear in the singular and should come with an article. If an
+        indefinite article is used, then the NonsenseBuilder will be smart
+        enough to adjust use of "a" or "an" whenever an adjective is inserted.
+    -->
+    <string-array name="asNonsenseNouns">
+        <item>abandonment</item>
+        <item>an abbot</item>
+        <item>the abdomen</item>
+        <item>an aberration</item>
+        <item>an abode</item>
+        <item>the absentee</item>
+        <item>abstraction</item>
+        <item>the absurdity</item>
+        <item>abuse</item>
+        <item>an acacia</item>
+        <item>academia</item>
+        <item>acceleration</item>
+        <item>acceptance</item>
+        <item>the accomplice</item>
+        <item>an accomplishment</item>
+        <item>acceptance</item>
+        <item>an accordion</item>
+        <item>an account</item>
+        <item>an accident</item>
+        <item>an ace</item>
+        <item>the ace of clubs</item>
+        <item>the ace of diamonds</item>
+        <item>the ace of hearts</item>
+        <item>the ace of spades</item>
+        <item>an ache</item>
+        <item>acid</item>
+        <item>acidity</item>
+        <item>an acolyte</item>
+        <item>an acquaintance</item>
+        <item>acquiescence</item>
+        <item>an acre</item>
+        <item>an acrobat</item>
+        <item>adulthood</item>
+        <item>advancement</item>
+        <item>advantage</item>
+        <item>adventure</item>
+        <item>the adversary</item>
+        <item>an advisor</item>
+        <item>the advocate</item>
+        <item>aesthetics</item>
+        <item>an affair</item>
+        <item>affection</item>
+        <item>an affiliation</item>
+        <item>an affirmation</item>
+        <item>an affliction</item>
+        <item>affluence</item>
+        <item>an affront</item>
+        <item>an aficionado</item>
+        <item>the aftermath</item>
+        <item>one afternoon</item>
+        <item>age</item>
+        <item>an agency</item>
+        <item>an agenda</item>
+        <item>an agent</item>
+        <item>the aggregate</item>
+        <item>aggression</item>
+        <item>an aggressor</item>
+        <item>agility</item>
+        <item>agony</item>
+        <item>an agreement</item>
+        <item>agriculture</item>
+        <item>aid</item>
+        <item>an aide</item>
+        <item>an ailment</item>
+        <item>an aircraft</item>
+        <item>alabaster</item>
+        <item>an alarm</item>
+        <item>an album</item>
+        <item>alcohol</item>
+        <item>alcoholism</item>
+        <item>an alderman</item>
+        <item>ale</item>
+        <item>an alert</item>
+        <item>Alessandro Botticelli</item>
+        <item>an algal bloom</item>
+        <item>algebra</item>
+        <item>the algorithm</item>
+        <item>an alien</item>
+        <item>alienation</item>
+        <item>alignment</item>
+        <item>alimony</item>
+        <item>an allegiance</item>
+        <item>an allergy</item>
+        <item>an alligator</item>
+        <item>allocation</item>
+        <item>an allowance</item>
+        <item>the allure</item>
+        <item>an allusion</item>
+        <item>an ally</item>
+        <item>an almond</item>
+        <item>the alphabet</item>
+        <item>the altar</item>
+        <item>an alteration</item>
+        <item>an altercation</item>
+        <item>the alternative</item>
+        <item>altitude</item>
+        <item>altruism</item>
+        <item>aluminium</item>
+        <item>an alumnus</item>
+        <item>amalgamation</item>
+        <item>the amateur</item>
+        <item>amazement</item>
+        <item>the ambassador</item>
+        <item>ambiance</item>
+        <item>an amino acid</item>
+        <item>ammonia</item>
+        <item>ammunition</item>
+        <item>an amplifier</item>
+        <item>amplitude</item>
+        <item>the Amulet of Yendor</item>
+        <item>amusement</item>
+        <item>anachronism</item>
+        <item>an anaconda</item>
+        <item>anaesthesia</item>
+        <item>an anagram</item>
+        <item>an analogy</item>
+        <item>the analyst</item>
+        <item>an anarchist</item>
+        <item>anarchy</item>
+        <item>anatomy</item>
+        <item>an ancestor</item>
+        <item>ancestry</item>
+        <item>the anchor</item>
+        <item>an anchorage</item>
+        <item>an anchovy</item>
+        <item>an android</item>
+        <item>Android</item>
+        <item>the anecdote</item>
+        <item>an angel</item>
+        <item>anger</item>
+        <item>angle</item>
+        <item>angle bracket</item>
+        <item>anguish</item>
+        <item>an animal</item>
+        <item>animation</item>
+        <item>animism</item>
+        <item>animosity</item>
+        <item>anise</item>
+        <item>annihilation</item>
+        <item>the anniversary</item>
+        <item>an announcement</item>
+        <item>the announcer</item>
+        <item>annoyance</item>
+        <item>an anomaly</item>
+        <item>anorexia</item>
+        <item>the answer</item>
+        <item>an ant colony</item>
+        <item>antagonism</item>
+        <item>an anteater</item>
+        <item>the antecedent</item>
+        <item>an antelope</item>
+        <item>an antenna</item>
+        <item>an anthology</item>
+        <item>the anthropologist</item>
+        <item>anthropology</item>
+        <item>anticipation</item>
+        <item>antidisestablishmentarianism</item>
+        <item>the antidote</item>
+        <item>the antigen</item>
+        <item>an antique</item>
+        <item>antiquity</item>
+        <item>an anvil</item>
+        <item>anxiety</item>
+        <item>the aorta</item>
+        <item>Apartheid</item>
+        <item>the apartment</item>
+        <item>apathy</item>
+        <item>an ape</item>
+        <item>the aperture</item>
+        <item>the apocalypse</item>
+        <item>an apologist</item>
+        <item>an apology</item>
+        <item>an apostle</item>
+        <item>the apothecary</item>
+        <item>apparel</item>
+        <item>the apparition</item>
+        <item>the appeal</item>
+        <item>the appearance</item>
+        <item>appeasement</item>
+        <item>appetite</item>
+        <item>applause</item>
+        <item>an apple</item>
+        <item>an appliance</item>
+        <item>the applicant</item>
+        <item>an appointment</item>
+        <item>appreciation</item>
+        <item>apprehension</item>
+        <item>the apprentice</item>
+        <item>an apprenticeship</item>
+        <item>the approach</item>
+        <item>appropriation</item>
+        <item>approval</item>
+        <item>an approximation</item>
+        <item>an apricot</item>
+        <item>an apron</item>
+        <item>aptitude</item>
+        <item>an arabesque</item>
+        <item>the arbiter</item>
+        <item>arbitration</item>
+        <item>an arc</item>
+        <item>the arcade</item>
+        <item>an arch</item>
+        <item>archaeology</item>
+        <item>the archibishop</item>
+        <item>an archenemy</item>
+        <item>archery</item>
+        <item>an archetype</item>
+        <item>the archipelago</item>
+        <item>the architect</item>
+        <item>architecture</item>
+        <item>ardor</item>
+        <item>the area</item>
+        <item>an arena</item>
+        <item>argon</item>
+        <item>an argument</item>
+        <item>the aristocracy</item>
+        <item>arithmetic</item>
+        <item>the arm</item>
+        <item>an armadillo</item>
+        <item>an armchair</item>
+        <item>an armful</item>
+        <item>the armistice</item>
+        <item>an armload</item>
+        <item>the arrangement</item>
+        <item>an array</item>
+        <item>the arrest</item>
+        <item>the arrival</item>
+        <item>arrogance</item>
+        <item>an arrow</item>
+        <item>arsenic</item>
+        <item>art</item>
+        <item>an artery</item>
+        <item>artifice</item>
+        <item>the artist</item>
+        <item>the ascent</item>
+        <item>an ascetic</item>
+        <item>asceticism</item>
+        <item>ash</item>
+        <item>asphalt</item>
+        <item>aspiration</item>
+        <item>aspirin</item>
+        <item>an assailant</item>
+        <item>the assassin</item>
+        <item>the assault</item>
+        <item>the assemblage</item>
+        <item>assent</item>
+        <item>the assertion</item>
+        <item>an assessment</item>
+        <item>the asset</item>
+        <item>the assignee</item>
+        <item>an assignment</item>
+        <item>assimilation</item>
+        <item>assonance</item>
+        <item>an assortment</item>
+        <item>an assumption</item>
+        <item>assurance</item>
+        <item>an asteroid</item>
+        <item>asthma</item>
+        <item>the astronaut</item>
+        <item>an astronomer</item>
+        <item>astronomy</item>
+        <item>asymmetry</item>
+        <item>an athlete</item>
+        <item>the atmosphere</item>
+        <item>an atom</item>
+        <item>atonement</item>
+        <item>atrophy</item>
+        <item>an attachment</item>
+        <item>the attack</item>
+        <item>the attacker</item>
+        <item>the attempt</item>
+        <item>the attendance</item>
+        <item>an attendant</item>
+        <item>attention</item>
+        <item>the attic</item>
+        <item>attire</item>
+        <item>attitude</item>
+        <item>an attorney</item>
+        <item>attraction</item>
+        <item>attrition</item>
+        <item>an auction</item>
+        <item>audacity</item>
+        <item>the audience</item>
+        <item>an audit</item>
+        <item>an audition</item>
+        <item>the auditorium</item>
+        <item>an aura</item>
+        <item>austerity</item>
+        <item>authenticity</item>
+        <item>the author</item>
+        <item>authoritarianism</item>
+        <item>authorization</item>
+        <item>autism</item>
+        <item>an autograph</item>
+        <item>automation</item>
+        <item>an automobile</item>
+        <item>autonomy</item>
+        <item>the autopsy</item>
+        <item>autumn</item>
+        <item>availability</item>
+        <item>the avalanche</item>
+        <item>avarice</item>
+        <item>an avatar</item>
+        <item>the average</item>
+        <item>aversion</item>
+        <item>an aviary</item>
+        <item>aviation</item>
+        <item>an avocado</item>
+        <item>avoidance</item>
+        <item>an awakening</item>
+        <item>an award</item>
+        <item>awe</item>
+        <item>an axe</item>
+        <item>the axiom</item>
+        <item>an axle</item>
+        <item>an azalea</item>
+        <item>the back door</item>
+        <item>the backbone</item>
+        <item>backgammon</item>
+        <item>the background</item>
+        <item>a backronym</item>
+        <item>backward-compatibility</item>
+        <item>a Bad Thing</item>
+        <item>a bag on the side</item>
+        <item>a bagbiter</item>
+        <item>a balloon</item>
+        <item>a banana</item>
+        <item>bandwidth</item>
+        <item>a bang</item>
+        <item>a banner</item>
+        <item>a bar</item>
+        <item>barf</item>
+        <item>a barfulation</item>
+        <item>the barn</item>
+        <item>Bat-Belt</item>
+        <item>the batch</item>
+        <item>the bazaar</item>
+        <item>the beep</item>
+        <item>a beige toaster</item>
+        <item>the benchmark</item>
+        <item>the beta</item>
+        <item>Big Iron</item>
+        <item>the Big Red Switch</item>
+        <item>a Big Win</item>
+        <item>a bigot</item>
+        <item>the bit bucket</item>
+        <item>bitrot</item>
+        <item>black magic</item>
+        <item>the Black Screen of Death</item>
+        <item>the blackboard</item>
+        <item>blinkenlight</item>
+        <item>bloatware</item>
+        <item>the Blogosphere</item>
+        <item>the Blue Screen of Death</item>
+        <item>Bacchus Normal Form</item>
+        <item>a boa constrictor</item>
+        <item>a board</item>
+        <item>a boat</item>
+        <item>a boat anchor</item>
+        <item>a bogometer</item>
+        <item>a bogon</item>
+        <item>bogosity</item>
+        <item>a boot</item>
+        <item>the Borg</item>
+        <item>a bottom-feeder</item>
+        <item>a boustrophedon</item>
+        <item>a box</item>
+        <item>boxology</item>
+        <item>a brain-fart</item>
+        <item>a breadcrumb</item>
+        <item>the break-even point</item>
+        <item>a breath-of-life packet</item>
+        <item>a brick</item>
+        <item>the Bronze Age</item>
+        <item>Brooks\'s Law</item>
+        <item>a browser</item>
+        <item>brute force</item>
+        <item>the Bubble Sort</item>
+        <item>a buffalo</item>
+        <item>a buffer</item>
+        <item>a bug</item>
+        <item>a bump</item>
+        <item>a burble</item>
+        <item>a buzz</item>
+        <item>C++</item>
+        <item>a calculator</item>
+        <item>a cancelbot</item>
+        <item>candygrammar</item>
+        <item>a car</item>
+        <item>a cargo cult</item>
+        <item>a cascade</item>
+        <item>the cathedral</item>
+        <item>a chad</item>
+        <item>a chain</item>
+        <item>a channel</item>
+        <item>charity</item>
+        <item>a check</item>
+        <item>a chemist</item>
+        <item>a chicken</item>
+        <item>a choad</item>
+        <item>the chopper</item>
+        <item>the Church of the Sub-Genius</item>
+        <item>the Click of Death</item>
+        <item>a clique</item>
+        <item>a clock</item>
+        <item>a clone</item>
+        <item>the clover key</item>
+        <item>a coaster</item>
+        <item>COBOL</item>
+        <item>code</item>
+        <item>a code monkey</item>
+        <item>the Code Police</item>
+        <item>a command</item>
+        <item>the command line</item>
+        <item>a comment</item>
+        <item>communication</item>
+        <item>a computer</item>
+        <item>confetti</item>
+        <item>the condition</item>
+        <item>the Connector Conspiracy</item>
+        <item>the console</item>
+        <item>control</item>
+        <item>Conway\'s Game of Life</item>
+        <item>Conway\'s Law</item>
+        <item>a cookbook</item>
+        <item>a cookie</item>
+        <item>the cookie jar</item>
+        <item>the Cookie Monster</item>
+        <item>copious free time</item>
+        <item>copper</item>
+        <item>copy protection</item>
+        <item>the core</item>
+        <item>a core dump</item>
+        <item>a courier</item>
+        <item>a co-worker</item>
+        <item>a cowboy</item>
+        <item>a cracker</item>
+        <item>craftsmanship</item>
+        <item>a crawling horror</item>
+        <item>creationism</item>
+        <item>a creep</item>
+        <item>a cretin</item>
+        <item>critical mass</item>
+        <item>a critique</item>
+        <item>cruft</item>
+        <item>a crumb</item>
+        <item>Cthulhu</item>
+        <item>a cube</item>
+        <item>a cubicle</item>
+        <item>the Cycle of Rebirth</item>
+        <item>a daemon</item>
+        <item>the daily grind</item>
+        <item>a dancing frog</item>
+        <item>a dangling pointer</item>
+        <item>dead code</item>
+        <item>a deadlock</item>
+        <item>the Death Star</item>
+        <item>decay</item>
+        <item>deep magic</item>
+        <item>deep space</item>
+        <item>defenestration</item>
+        <item>the Demo Effect</item>
+        <item>a demon</item>
+        <item>the demoscene</item>
+        <item>a demonstration</item>
+        <item>determination</item>
+        <item>the dictionary</item>
+        <item>a dinosaur</item>
+        <item>a disclaimer</item>
+        <item>Discordianism</item>
+        <item>a disk farm</item>
+        <item>the Dissociated Press</item>
+        <item>a distribution</item>
+        <item>a dog</item>
+        <item>dog food</item>
+        <item>d&#246;ner kebap</item>
+        <item>a dongle</item>
+        <item>the door</item>
+        <item>a doorstop</item>
+        <item>a dragon</item>
+        <item>the drain</item>
+        <item>the droid</item>
+        <item>a drug</item>
+        <item>a drum</item>
+        <item>a dumb terminal</item>
+        <item>an Easter egg</item>   <!-- Oh, look, you found me! Here I am! -->
+        <item>the ecology</item>
+        <item>the economy</item>
+        <item>the egg</item>
+        <item>egotism</item>
+        <item>an electron</item>
+        <item>elegance</item>
+        <item>an elevator</item>
+        <item>elevator music</item>
+        <item>email</item>
+        <item>the Empire</item>
+        <item>an engine</item>
+        <item>an engineer</item>
+        <item>an enhancement</item>
+        <item>the environment</item>
+        <item>the Eric Conspiracy</item>
+        <item>Eris</item>
+        <item>Error 33</item>
+        <item>evanescence</item>
+        <item>eye candy</item>
+        <item>face time</item>
+        <item>a farm</item>
+        <item>fear</item>
+        <item>a feature</item>
+        <item>feature creep</item>  <!-- Like the time spent on this file... -->
+        <item>a fence</item>
+        <item>a fencepost error</item>
+        <item>the field</item>
+        <item>a file</item>
+        <item>the filesystem</item>
+        <item>a filter</item>
+        <item>Finagle\'s Law</item>
+        <item>a finger</item>
+        <item>firefighting</item>
+        <item>the firewall</item>
+        <item>the firmware</item>
+        <item>a fish</item>
+        <item>a fix</item>
+        <item>the flag</item>
+        <item>a flag day</item>
+        <item>a flash</item>
+        <item>The Flash</item>
+        <item>the flavor</item>
+        <item>a flower</item>
+        <item>a fool</item>
+        <item>a foot</item>
+        <item>a foothold</item>
+        <item>a footprint</item>
+        <item>a fork</item>
+        <item>Formosa\'s Law</item>
+        <item>FORTRAN</item>
+        <item>a fortune cookie</item>
+        <item>a fossil</item>
+        <item>the fossil record</item>
+        <item>a four-color glossy</item>
+        <item>a fox</item>
+        <item>Frankenstein\'s monster</item>
+        <item>fudge</item>
+        <item>fuel</item>
+        <item>fun</item>
+        <item>the funk</item>
+        <item>the gang</item>
+        <item>the garbage collector</item>
+        <item>gasoline</item>
+        <item>Gates\'s Law</item>
+        <item>the geek nature</item>
+        <item>gender</item>
+        <item>the Genius from Mars Technique</item>
+        <item>a gerbil</item>
+        <item>a glider</item>
+        <item>a glitch</item>
+        <item>glue</item>
+        <item>a GNUbie</item>
+        <item>go-faster stripes</item>
+        <item>a goat</item>
+        <item>Godwin\'s Law</item>
+        <item>a Good Thing</item>
+        <item>a gopher</item>
+        <item>a Gosper glider gun</item>
+        <item>gravity</item>
+        <item>the Great Worm</item>
+        <item>grunge</item>
+        <item>a guru meditation</item>
+        <item>a hack</item>
+        <item>hacker humor</item>
+        <item>hairy</item>
+        <item>the Halloween Documents</item>
+        <item>ham</item>
+        <item>a hammer</item>
+        <item>a hamster</item>
+        <item>a hand</item>
+        <item>a hanger</item>
+        <item>Hanlon\'s Razor</item>
+        <item>happiness</item>
+        <item>hardware</item>
+        <item>hate</item>
+        <item>a heartbeat</item>
+        <item>history</item>
+        <item>a hole</item>
+        <item>a holy war</item>
+        <item>a hook</item>
+        <item>a hotfix</item>
+        <item>hubris</item>
+        <item>humor</item>
+        <item>hyperspace</item>
+        <item>ice</item>
+        <item>an idea</item>
+        <item>ignorance</item>
+        <item>an incantation</item>
+        <item>an infinite loop</item>
+        <item>infinity</item>
+        <item>the Internet</item>
+        <item>the Internet of Things</item>
+        <item>the Iron Age</item>
+        <item>an ISO standard cup of tea</item>
+        <item>J. Random Hacker</item>
+        <item>Java</item>
+        <item>job security</item>
+        <item>John Q. Public</item>
+        <item>joy</item>
+        <item>juice</item>
+        <item>justice</item>
+        <item>a kangaroo</item>
+        <item>the next killer app</item>
+        <item>the kitchen</item>    <!-- use only if canHandleHeat() == true -->
+        <item>a kludge</item>
+        <item>a knife</item>
+        <item>a knight</item>
+        <item>the Knighthood of the Lambda Calculus</item>
+        <item>a koan</item>
+        <item>lag</item>
+        <item>language</item>
+        <item>laughter</item>
+        <item>the larval stage</item>
+        <item>a laser</item>
+        <item>a leak</item>
+        <item>a leech</item>
+        <item>a legacy</item>
+        <item>legalese</item>
+        <item>the legend</item>
+        <item>the Legend of Zelda</item>
+        <item>life</item>
+        <item>a lightpole</item>
+        <item>line noise</item>
+        <item>Linux</item>
+        <item>a lion</item>
+        <item>literature</item>
+        <item>lithium</item>
+        <item>a lobotomy</item>
+        <item>a loop</item>
+        <item>a loser</item>
+        <item>love</item>
+        <item>mail</item>
+        <item>the mainframe</item>
+        <item>malware</item>
+        <item>management</item>
+        <item>mange</item>
+        <item>manslaughter</item>
+        <item>a marble</item>                    <!-- the pretty glass thing -->
+        <item>marble</item>                                    <!-- the rock -->
+        <item>a massage</item>
+        <item>the McQuary limit</item>
+        <item>meatspace</item>
+        <item>a meltdown</item>
+        <item>memetics</item>
+        <item>memory</item>
+        <item>a memory leak</item>
+        <item>a metasyntactic variable</item>
+        <item>a minor detail</item>
+        <item>a mockingbird</item>
+        <item>money</item>
+        <item>the Mongolian Hordes Technique</item>
+        <item>a monstrosity</item>
+        <item>Moore\'s Law</item>
+        <item>a moose</item>
+        <item>a mouse</item>
+        <item>Murphy\'s Law</item>
+        <item>nasal demons</item>
+        <item>nature</item>
+        <item>neophilia</item>
+        <item>nihilism</item>
+        <item>a non-Newtonian fluid</item>
+        <item>a non-optimal solution</item>
+        <item>a number</item>
+        <item>a nymph</item>
+        <item>oobleck</item>
+        <item>the operating system</item>
+        <item>the operator</item>
+        <item>originality</item>
+        <item>an orphan</item>
+        <item>pain</item>
+        <item>paper</item>
+        <item>parity</item>
+        <item>a patch</item>
+        <item>peanut butter</item>
+        <item>persistence</item>
+        <item>philosophy</item>
+        <item>a phreaker</item>
+        <item>the Ping of Death</item>
+        <item>a pipe</item>
+        <item>a pistol</item>
+        <item>pizza</item>
+        <item>Plan 9 from Outer Space</item>
+        <item>a platypus</item>
+        <item>a playpen</item>
+        <item>plumbing</item>
+        <item>politics</item>
+        <item>a ponytail</item>
+        <item>power</item>
+        <item>precedence</item>
+        <item>prestidigitation</item>
+        <item>prestidigitization</item>
+        <item>the priesthood</item>
+        <item>the problem</item>
+        <item>programming</item>
+        <item>the protocol</item>
+        <item>the quad</item>
+        <item>a quantifier</item>
+        <item>one quarter</item>
+        <item>the question</item>
+        <item>the queue</item>
+        <item>a quine</item>
+        <item>the quotient</item>
+        <item>a rabbit</item>
+        <item>a raccoon</item>
+        <item>rarity</item>
+        <item>a rat</item>
+        <item>a rave</item>
+        <item>the real world</item>
+        <item>real estate</item>
+        <item>a reality check</item>
+        <item>a reality-distortion field</item>
+        <item>a rectangle</item>
+        <item>recursion</item>
+        <item>the register</item>
+        <item>religion</item>
+        <item>a replicator</item>
+        <item>a reply</item>
+        <item>a restriction</item>
+        <item>a rhubarb pie</item>
+        <item>a roach</item>
+        <item>a robot</item>
+        <item>a rogue</item>
+        <item>Rogue</item>
+        <item>rubber-hose cryptanalysis</item>
+        <item>the saga</item>
+        <item>salt</item>
+        <item>a samurai</item>
+        <item>sand</item>
+        <item>the Scary Devil Monastery</item>
+        <item>science fiction</item>
+        <item>a scratch</item>
+        <item>the screen</item>
+        <item>a screw</item>
+        <item>a segment</item>
+        <item>seniority</item>
+        <item>the server</item>
+        <item>sex</item>
+        <item>a shotgun</item>
+        <item>a showstopper</item>
+        <item>the sign</item>
+        <item>the Singularity</item>
+        <item>a skunk</item>
+        <item>a skunkworks</item>
+        <item>the slab</item>
+        <item>sleep</item>
+        <item>slop</item>
+        <item>smoke</item>
+        <item>a snail</item>
+        <item>softness</item>
+        <item>software</item>
+        <item>the Sorceror\'s Apprentice</item>
+        <item>sorrow</item>
+        <item>the source</item>
+        <item>the Space Age</item>
+        <item>a spaceship</item>
+        <item>spaghetti</item>
+        <item>spaghetti code</item>
+        <item>spam</item>
+        <item>a special case</item>
+        <item>a spider</item>
+        <item>the Spinning Pizza of Death</item>
+        <item>a squirrel</item>
+        <item>the stack</item>
+        <item>a star</item>
+        <item>a starship</item>
+        <item>stealth</item>
+        <item>the Stone Age</item>
+        <item>stoppage of play</item>
+        <item>Sturgeon\'s Revelation</item>        <!-- applies to this file -->
+        <item>the sun</item>
+        <item>a support system</item>
+        <item>surgery</item>
+        <item>swap space</item>
+        <item>synchronicity</item>
+        <item>syntax</item>
+        <item>a syntax error</item>
+        <item>the system</item>
+        <item>a tail</item>
+        <item>the talk</item>
+        <item>a tank</item>
+        <item>the tape</item>
+        <item>taste</item>
+        <item>a tattletale</item>
+        <item>a teergrube</item>
+        <item>tension</item>
+        <item>a tentacle</item>
+        <item>the terminal</item>
+        <item>a test</item>
+        <item>the theory</item>
+        <item>a thread</item>
+        <item>the Three-Fingered Salute</item>
+        <item>a tick</item>
+        <item>a tiger</item>
+        <item>time</item>
+        <item>the TimeCube</item>
+        <item>the timeline</item>
+        <item>timesharing</item>
+        <item>toast</item>
+        <item>a toaster</item>
+        <item>a tool</item>
+        <item>the tool</item>
+        <item>the topic</item>
+        <item>a tourist</item>
+        <item>a toy</item>
+        <item>a trampoline</item>
+        <item>a trap</item>
+        <item>trash</item>
+        <item>a traversal</item>
+        <item>a tree</item>
+        <item>a troglodyte</item>
+        <item>the Trojan horse</item>
+        <item>a troll</item>
+        <item>a tweak</item>
+        <item>a Tyrannosaurus rex</item>
+        <item>the Uncanny Valley</item>
+        <item>the Underworld</item>
+        <item>uptime</item>
+        <item>the user</item>
+        <item>vanilla</item>
+        <item>vaporware</item>
+        <item>a virus</item>
+        <item>a voice</item>
+        <item>voodoo</item>
+        <item>a vulture</item>
+        <item>a waffle</item>
+        <item>a walk</item>
+        <item>the walk</item>
+        <item>a wallaby</item>
+        <item>a wallflower</item>
+        <item>a wart</item>
+        <item>a weasel</item>
+        <item>a wedge</item>
+        <item>a wedgie</item>
+        <item>a weed</item>
+        <item>wetness</item>
+        <item>a whale</item>
+        <item>a wheel</item>
+        <item>the wheel</item>
+        <item>a widget</item>
+        <item>a window</item>
+        <item>a winner</item>
+        <item>the winner</item>
+        <item>a wish list</item>
+        <item>a wizard</item>
+        <item>a wombat</item>
+        <item>a workstation</item>
+        <item>the World-Wide Web</item>
+        <item>a wormhole</item>
+        <item>a wound</item>
+        <item>a xylophone</item>
+        <item>a yak</item>
+        <item>Zen</item>
+        <item>zero</item>
+        <item>a ziggurat</item>
+        <item>the zipper</item>
+        <item>a zither</item>
+    </string-array>
+
+    <!--
+        As all the nouns above are singular, each entry in the verbs array
+        should be singular. Since each sentence has an object, each entry in
+        this array should also be a transitive verb (which has an object) or an
+        existential verb. By convention, each transitive verb entry is also in
+        the present tense, but these may be duplicated to other tenses to create
+        more choices in the list. Some of these entries may end with
+        prepositions ("into", "over", etc.) which link the verb more
+        meaningfully with the object, which follows immediately afterward.
+    -->
+    <string-array name="asNonsenseVerbs">
+        <item>addles</item>
+        <item>adjusts</item>
+        <item>anticipates</item>
+        <item>appends</item>
+        <item>attacks</item>
+        <item>beats</item>
+        <item>betrays</item>
+        <item>blasts</item>
+        <item>blocks</item>
+        <item>blogs</item>
+        <item>blows</item>
+        <item>bodges</item>
+        <item>boinks</item>
+        <item>borks</item>
+        <item>bounces</item>
+        <item>breaks</item>
+        <item>buffalos</item>
+        <item>bumps</item>
+        <item>burbles</item>
+        <item>burns</item>
+        <item>bursts</item>
+        <item>buzzes</item>
+        <item>calls</item>
+        <item>casts</item>
+        <item>channels</item>
+        <item>channel-hops</item>
+        <item>chases</item>
+        <item>checks</item>
+        <item>cheers</item>
+        <item>chokes</item>
+        <item>chomps</item>
+        <item>chugs</item>
+        <item>cleans</item>
+        <item>clicks</item>
+        <item>clobbers</item>
+        <item>clocks</item>
+        <item>clones</item>
+        <item>coasts</item>
+        <item>collects</item>
+        <item>commands</item>
+        <item>communicates</item>
+        <item>compresses</item>
+        <item>confuses</item>
+        <item>considers</item>
+        <item>consoles</item>
+        <item>controls</item>
+        <item>cooks</item>
+        <item>could be</item>
+        <item>could have been</item>
+        <item>covers</item>
+        <item>cracks</item>
+        <item>cranks</item>
+        <item>crashes</item>
+        <item>cripples</item>
+        <item>critiques</item>
+        <item>crosses</item>
+        <item>cross-posts</item>
+        <item>crumbles</item>
+        <item>dangles</item>
+        <item>is defined as</item>
+        <item>demonstrates</item>
+        <item>deprecates</item>
+        <item>deserves</item>
+        <item>downloads</item>
+        <item>dragons</item>                              <!-- see: Ray Wert -->
+        <item>drags</item>
+        <item>drains</item>
+        <item>dreads</item>
+        <item>drives</item>
+        <item>drops into</item>
+        <item>dumps</item>
+        <item>eats</item>
+        <item>encodes</item>
+        <item>engenders</item>
+        <item>engineers</item>
+        <item>enhances</item>
+        <item>examines</item>
+        <item>exhales</item>
+        <item>expands</item>
+        <item>exploits</item>
+        <item>exposes</item>
+        <item>falls</item>
+        <item>faradizes</item>                                     <!-- Zap! -->
+        <item>fears</item>
+        <item>filters</item>
+        <item>fixes</item>
+        <item>flaps</item>
+        <item>flashes</item>
+        <item>flattens</item>
+        <item>flavors</item>
+        <item>floods</item>
+        <item>flushes</item>
+        <item>follows</item>
+        <item>freezes</item>
+        <item>fries</item>
+        <item>frobnicates</item>
+        <item>generates</item>
+        <item>gathers</item>
+        <item>gobbles</item>
+        <item>grinds</item>
+        <item>grovels before</item>
+        <item>hacks</item>
+        <item>handles</item>
+        <item>hardens</item>
+        <item>has</item>
+        <item>has been</item>
+        <item>helps</item>
+        <item>hinders</item>
+        <item>hoards</item>
+        <item>imagines</item>
+        <item>includes</item>
+        <item>inflates</item>
+        <item>initializes</item>
+        <item>interrupts</item>
+        <item>introduces</item>
+        <item>is</item>
+        <item>jingles</item>
+        <item>jokes with</item>
+        <item>kicks</item>
+        <item>laughs at</item>
+        <item>licks</item>
+        <item>loses</item>
+        <item>manages</item>
+        <item>mangles</item>
+        <item>marches</item>
+        <item>matches</item>
+        <item>mingles with</item>
+        <item>needs</item>
+        <item>offers</item>
+        <item>oscillates</item>
+        <item>parses</item>
+        <item>patches</item>
+        <item>peeks at</item>
+        <item>pings</item>
+        <item>plays with</item>
+        <item>pokes</item>
+        <item>prefers</item>
+        <item>prepends</item>
+        <item>punts</item>
+        <item>pushes</item>
+        <item>questions</item>
+        <item>quickens</item>
+        <item>quotes</item>
+        <item>reads</item>
+        <item>replaces</item>
+        <item>rattles</item>
+        <item>reinvents</item>
+        <item>resolves</item>
+        <item>restricts</item>
+        <item>returns</item>
+        <item>returns from</item>
+        <item>reveals</item>
+        <item>revolves</item>
+        <item>rips</item>
+        <item>rips off</item>
+        <item>runs</item>
+        <item>runs from</item>
+        <item>runs to</item>
+        <item>runs through</item>
+        <item>scratches</item>
+        <item>screams at</item>
+        <item>scribbles on</item>
+        <item>sequesters</item>
+        <item>shrieks at</item>
+        <item>signs</item>
+        <item>softens</item>
+        <item>spins around</item>
+        <item>staggers</item>
+        <item>takes</item>
+        <item>terminates</item>
+        <item>tests</item>
+        <item>tickles</item>
+        <item>toggles</item>
+        <item>touches</item>
+        <item>turns</item>
+        <item>tweaks</item>
+        <item>twiddles</item>
+        <item>twists</item>
+        <item>uncovers</item>
+        <item>undersells</item>
+        <item>understands</item>
+        <item>unwinds</item>
+        <item>uploads</item>
+        <item>villifies</item>
+        <item>wants</item>
+        <item>was</item>
+        <item>washes</item>
+        <item>waters</item>
+        <item>wiggles</item>
+        <item>will be</item>
+        <item>winds</item>
+        <item>wishes for</item>
+        <item>would have been</item>
+        <item>wraps</item>
+        <item>yells at</item>
+    </string-array>
+
+    <!--
+        Entries for the normal, comparative, and superlative forms of a given
+        adjective are listed on the same line. Easy opposites (un-, -ful/-less,
+        etc.) are also listed on the same line.
+    -->
+    <string-array name="asNonsenseAdjectives">
+        <item>1337</item>
+        <item>actual</item>
+        <item>almighty</item>
+        <item>ambidexterous</item>
+        <item>anal-retentive</item>
+        <item>ancestral</item>
+        <item>anticipated</item>
+        <item>angular</item>
+        <item>armor-plated</item>
+        <item>asleep</item>
+        <item>asynchronous</item>
+        <item>automagical</item>
+        <item>automatic</item> <item>semi-automatic</item>
+        <item>awake</item>
+        <item>baby-proof</item>
+        <item>bad</item> <item>worse</item> <item>worst</item>
+        <item>barfulous</item>
+        <item>baroque</item>
+        <item>beautiful</item>
+        <item>big-endian</item>
+        <item>biological</item>
+        <item>bletcherous</item>
+        <item>blind</item>
+        <item>bodacious</item>
+        <item>bogus</item>
+        <item>borked</item>
+        <item>bozotic</item>
+        <item>bright</item> <item>brighter</item> <item>brightest</item>
+        <item>brisk</item>
+        <item>brittle</item>
+        <item>broken</item> <item>unbroken</item>
+        <item>Buffalo</item>
+        <item>bulletproof</item>
+        <item>buzzword-compliant</item>
+        <item>canonical</item>
+        <item>catatonic</item>
+        <item>charred</item>
+        <item>cheerful</item>
+        <item>circuitous</item>
+        <item>civilized</item> <item>uncivilized</item>
+        <item>clean</item> <item>cleaner</item> <item>cleanest</item>
+        <item>clockwise</item> <item>anticlockwise</item> <item>counter-clockwise</item>
+        <item>closed</item>
+        <item>cold</item> <item>colder</item> <item>coldest</item>
+        <item>colossal</item>
+        <item>comfortable</item> <item>uncomfortable</item>
+        <item>common</item> <item>uncommon</item>
+        <item>compact</item>
+        <item>complete</item> <item>incomplete</item>
+        <item>comprehensible</item> <item>incomprehensible</item>
+        <item>comprehensive</item>
+        <item>compulsive</item>
+        <item>compulsory</item>
+        <item>confused</item>
+        <item>content-free</item>
+        <item>contiguous</item> <item>discontiguous</item>
+        <item>continuous</item> <item>discontinuous</item>
+        <item>cooked</item> <item>uncooked</item>
+        <item>copyrighted</item>
+        <item>countable</item> <item>uncountable</item>
+        <item>cracked</item>
+        <item>crackling</item>
+        <item>cretinous</item>
+        <item>critical</item>
+        <item>crufty</item>
+        <item>crumbled</item>
+        <item>Cthulhoid</item>
+        <item>cubic</item>
+        <item>cuspy</item>
+        <item>cybernetic</item>
+        <item>dark</item> <item>darker</item> <item>darkest</item>
+        <item>dark-side</item>
+        <item>dead</item> <item>undead</item>
+        <item>deaf</item>
+        <item>defined</item> <item>undefined</item>
+        <item>demented</item>
+        <item>deprecated</item>
+        <item>deserved</item> <item>undeserved</item>
+        <item>deterministic</item> <item>non-deterministic</item>
+        <item>disjoint</item>
+        <item>divine</item>
+        <item>documented</item> <item>undocumented</item>
+        <item>downstream</item>
+        <item>dreaded</item>
+        <item>drool-proof</item>
+        <item>dumbed-down</item>
+        <item>early</item> <item>earlier</item> <item>earliest</item>
+        <item>ecological</item>
+        <item>elegant</item>
+        <item>elephantine</item>
+        <item>elite</item>
+        <item>elvish</item>
+        <item>encoded</item> <item>decoded</item>
+        <item>enhanced</item>
+        <item>entomological</item>
+        <item>etymological</item>
+        <item>evil</item>
+        <item>fabulous</item>
+        <item>false</item>
+        <item>far</item> <item>farther</item> <item>farthest</item>
+        <item>fast</item> <item>faster</item> <item>fastest</item>
+        <item>fat</item> <item>fatter</item> <item>fattest</item>
+        <item>fattening</item>
+        <item>faulty</item> <item>faultless</item>
+        <item>featherweight</item>
+        <item>fecund</item>
+        <item>ferocious</item>
+        <item>fetid</item>
+        <item>fine</item>
+        <item>flaky</item>
+        <item>flavorful</item> <item>flavorless</item>
+        <item>flooded</item>
+        <item>floral</item>
+        <item>follow-up</item>
+        <item>found</item>
+        <item>full-scale</item>
+        <item>fragile</item>
+        <item>free</item>
+        <item>frenzied</item>
+        <item>fresh</item> <item>fresher</item> <item>freshest</item>
+        <item>fried</item>
+        <item>frozen</item> <item>unfrozen</item>
+        <item>funky</item>
+        <item>funny</item>
+        <item>gangrenous</item>
+        <item>garbled</item>
+        <item>geometric</item>
+        <item>geological</item>
+        <item>gnarly</item>
+        <item>golden</item>
+        <item>good</item> <item>better</item> <item>best</item>
+        <item>gregarious</item>
+        <item>happy</item> <item>happier</item> <item>happiest</item>
+        <item>harmful</item> <item>harmless</item>
+        <item>hazardous</item>
+        <item>heads-down</item>
+        <item>healthy</item> <item>unhealthy</item>
+        <item>hearty</item>
+        <item>heat-seeking</item>
+        <item>heavy</item> <item>heavier</item> <item>heaviest</item>
+        <item>heavyweight</item>
+        <item>hidden</item>
+        <item>high</item> <item>higher</item> <item>highest</item>
+        <item>hilarious</item>
+        <item>hirsute</item>
+        <item>historical</item>
+        <item>holy</item> <item>holier</item> <item>holiest</item> <item>unholy</item>
+        <item>hot</item> <item>hotter</item> <item>hottest</item>
+        <item>hysterical</item>
+        <item>idempotent</item>
+        <item>ignorant</item>
+        <item>imaginary</item>
+        <item>imaginative</item> <item>unimaginative</item>
+        <item>imminent</item>
+        <item>imperial</item>
+        <item>in-band</item>
+        <item>in-house</item>
+        <item>inferior</item>
+        <item>infinite</item>
+        <item>interesting</item> <item>uninteresting</item>
+        <item>jocular</item>
+        <item>jovial</item>
+        <item>junior</item>
+        <item>kind</item> <item>unkind</item>
+        <item>kinetic</item>
+        <item>large</item> <item>larger</item> <item>largest</item>
+        <item>late</item> <item>later</item> <item>latest</item>
+        <item>legal</item> <item>illegal</item>
+        <item>lethal</item> <item>non-lethal</item>
+        <item>light</item> <item>lighter</item> <item>lightest</item>
+        <item>lightweight</item>
+        <item>light-side</item>
+        <item>linear</item> <item>non-linear</item>
+        <item>locked</item> <item>unlocked</item>
+        <item>long</item> <item>longer</item> <item>longest</item>
+        <item>lost</item>
+        <item>low</item> <item>lower</item> <item>lowest</item>
+        <item>macroscopic</item>
+        <item>magical</item>
+        <item>major</item>
+        <item>marginal</item>
+        <item>mental</item>
+        <item>messy</item>
+        <item>microscopic</item>
+        <item>minor</item>
+        <item>minuscule</item>
+        <item>moby</item>
+        <item>moribund</item>
+        <item>morose</item>
+        <item>mundane</item>
+        <item>mystical</item>
+        <item>na&#239;ve</item>
+        <item>neat</item>
+        <item>nearby</item> <item>nearer</item> <item>nearest</item>
+        <item>nefarious</item>
+        <item>new</item> <item>newer</item> <item>newest</item>
+        <item>nude</item>
+        <item>obscure</item>
+        <item>obvious</item>
+        <item>occasional</item>
+        <item>offline</item>
+        <item>old</item> <item>older</item> <item>oldest</item>
+        <item>online</item>
+        <item>open</item>
+        <item>open-source</item>
+        <item>optical</item>
+        <item>original</item> <item>unoriginal</item>
+        <item>orthogonal</item>
+        <item>out-of-band</item>
+        <item>overcooked</item> <item>undercooked</item>
+        <item>padded</item>
+        <item>parallel</item>
+        <item>parental</item>
+        <item>partial</item> <item>impartial</item>
+        <item>patched</item>
+        <item>periodic</item>
+        <item>perpendicular</item>
+        <item>pharmacological</item>
+        <item>philosophical</item>
+        <item>physical</item>
+        <item>piece-meal</item>
+        <item>plain</item>
+        <item>practical</item> <item>impractical</item>
+        <item>preceding</item>
+        <item>preferred</item>
+        <item>private</item>
+        <item>protected</item>
+        <item>psychological</item>
+        <item>psychosomatic</item>
+        <item>public</item>
+        <item>quick</item> <item>quicker</item> <item>quickest</item>
+        <item>quick-and-dirty</item>
+        <item>quixotic</item>
+        <item>radical</item>
+        <item>random</item> <item>pseudorandom</item>
+        <item>rare</item>
+        <item>raw</item>
+        <item>read-only</item>
+        <item>ready</item>
+        <item>real</item> <item>unreal</item>
+        <item>real-time</item>
+        <item>recursive</item>
+        <item>redundant</item>
+        <item>repetitive</item>
+        <item>ribald</item>
+        <item>righteous</item>
+        <item>robust</item>
+        <item>rogue</item>
+        <item>room-temperature</item>
+        <item>rough</item>
+        <item>rude</item>
+        <item>rusty</item>
+        <item>sacred</item>
+        <item>safe</item> <item>unsafe</item>
+        <item>savage</item>
+        <item>scatological</item>
+        <item>screaming</item>
+        <item>scruffy</item>
+        <item>self-referential</item>
+        <item>senior</item>
+        <item>serious</item>
+        <item>short</item> <item>shorter</item> <item>shortest</item>
+        <item>silly</item> <item>sillier</item> <item>silliest</item>
+        <item>sinister</item>
+        <item>sinusoidal</item>
+        <item>slow</item> <item>slower</item> <item>slowest</item>
+        <item>small</item> <item>smaller</item> <item>smallest</item>
+        <item>smart</item> <item>smarter</item> <item>smartest</item>
+        <item>smooth</item>
+        <item>social</item> <item>antisocial</item>
+        <item>special</item>
+        <item>spectacular</item>
+        <item>spicy</item>
+        <item>stale</item>
+        <item>stepwise</item>
+        <item>stir-fried</item>
+        <item>stormy</item>
+        <item>sudden</item>
+        <item>superior</item>
+        <item>tame</item> <item>untamed</item>
+        <item>terminal</item>
+        <item>throwaway</item>
+        <item>titillating</item>
+        <item>trigonometric</item>
+        <item>trivial</item> <item>non-trivial</item>
+        <item>true</item> <item>untrue</item>
+        <item>tubular</item>
+        <item>understood</item> <item>misunderstood</item>
+        <item>unnerving</item>
+        <item>unwavering</item>
+        <item>upstream</item>
+        <item>vanilla</item>
+        <item>vexing</item>
+        <item>vehicular</item>
+        <item>virtual</item>
+        <item>vorpal</item>
+        <item>well-advised</item> <item>ill-advised</item>
+        <item>well-behaved</item> <item>ill-behaved</item>
+        <item>wet</item>
+        <item>whole</item>
+        <item>wild</item>
+        <item>witty</item> <item>witless</item>
+        <item>wounded</item> <item>unwounded</item>
+        <item>young</item> <item>younger</item> <item>youngest</item>
+        <item>yucky</item>
+    </string-array>
+
+    <string-array name="asNonsenseAdverbs">
+        <item>architecturally</item>
+        <item>asynchronously</item>
+        <item>badly</item>
+        <item>cheerfully</item>
+        <item>comfortably</item>
+        <item>completely</item>
+        <item>doubly</item>
+        <item>especially</item>
+        <item>frantically</item>
+        <item>generally</item>
+        <item>graciously</item>
+        <item>happily</item>
+        <item>heavily</item>
+        <item>highly</item>
+        <item>ignorantly</item>
+        <item>icily</item>
+        <item>insanely</item>
+        <item>jestfully</item>
+        <item>jovially</item>
+        <item>lightly</item>
+        <item>loudly</item>
+        <item>luckily</item>
+        <item>magically</item>
+        <item>manually</item>
+        <item>marginally</item>
+        <item>meaningfully</item>
+        <item>nicely</item>
+        <item>obviously</item>
+        <item>perennially</item>
+        <item>quickly</item>
+        <item>quietly</item>
+        <item>quizzically</item>
+        <item>rashly</item>
+        <item>recklessly</item>
+        <item>rudely</item>
+        <item>seriously</item>
+        <item>silently</item>
+        <item>sneakily</item>
+        <item>speciously</item>
+        <item>suddenly</item>
+        <item>sufficiently</item>
+        <item>surrepititiously</item>
+        <item>tactfully</item>
+        <item>unusually</item>
+        <item>voraciously</item>
+        <item>wisely</item>
+        <item>zestfully</item>
+    </string-array>
+
+    <!--
+        These are prepositional phrases acting on the sentence overall, or any
+        phrase which can modify the noun that serves as the object of the
+        sentence. A significant number of these are common idioms, or references
+        to the "Star Trek: the Next Generation" episode entitled "Darmok".
+    -->
+    <string-array name="asNonsensePhrases">
+        <item>according to eyewitness accounts</item>
+        <item>according to protocol</item>
+        <item>after all this time</item>
+        <item>after midnight</item>
+        <item>after the rain</item>
+        <item>against all odds</item>
+        <item>against the grain</item>
+        <item>any minute now</item>
+        <item>as long as it takes</item>
+        <item>at the Court of Silence</item>
+        <item>at a crossroads</item>
+        <item>at the edge</item>
+        <item>at hand</item>
+        <item>at the height of the Great Depression</item>
+        <item>at midnight</item>
+        <item>at the moment</item>
+        <item>at Tanagra</item>
+        <item>before the fall</item>
+        <item>before the walls fell</item>
+        <item>before you wreck yourself</item>
+        <item>beneath the waves</item>
+        <item>by the dawn\'s early light</item>
+        <item>during the day</item>
+        <item>for all time</item>
+        <item>for free</item>
+        <item>for old time\'s sake</item>
+        <item>for the love of the game</item>
+        <item>for the rest of us</item>
+        <item>in a jiffy</item>
+        <item>in the afternoon</item>
+        <item>in the background</item>
+        <item>in the blink of an eye</item>
+        <item>in the foreground</item>
+        <item>in the margins</item>
+        <item>in the midst of everything else</item>
+        <item>in the nick of time</item>
+        <item>in winter</item>
+        <item>like kicking dead whales down the beach</item>
+        <item>like Mom used to make</item>
+        <item>like nailing jelly to a tree</item>
+        <item>not for lack of trying</item>
+        <item>of discussion</item>
+        <item>of no account</item>
+        <item>of which dreams are made</item>
+        <item>of your life</item>
+        <item>of your dreams</item>
+        <item>off the trolley</item>
+        <item>on the edge</item>
+        <item>on the fringe</item>
+        <item>on the ocean</item>
+        <item>on the precipice of darkness</item>
+        <item>over hill and dale</item>
+        <item>over the line</item>
+        <item>that dreams are made of</item>
+        <item>that you are looking for</item>
+        <item>through the looking glass</item>
+        <item>through the years</item>
+        <item>through thick and thin</item>
+        <item>to the ends of the Earth</item>
+        <item>to whom it may concern</item>
+        <item>under cover of darkness</item>
+        <item>under the sun</item>
+        <item>under the moon</item>
+        <item>under two moons</item>
+        <item>up the down staircase</item>
+        <item>when the sun rises</item>
+        <item>which is left as an exercise for the reader</item>
+        <item>with a clue-by-four</item>
+        <item>with a hair drier</item>
+        <item>with a two-by-four</item>
+        <item>with all the time in the world</item>
+        <item>with arms wide</item>
+        <item>with eyes closed</item>
+        <item>with eyes open</item>
+        <item>with faces wet</item>
+        <item>with fists closed</item>
+        <item>with hands open</item>
+        <item>without a care in the world</item>
+        <item>without hesitation</item>
+        <item>without regard for precedent or propriety</item>
+        <item>without remorse</item>
+    </string-array>
+
+    <string-array name="asMaleFirstNames">
+        <item>Alistair</item>
+        <item>Bob</item>
+        <item>Charles</item>
+        <item>David</item>
+        <item>Edgar</item>
+        <item>Frank</item>
+        <item>George</item>
+        <item>Harold</item>
+        <item>Ivan</item>
+        <item>Jack</item>
+        <item>Karl</item>
+        <item>Liam</item>
+        <item>Martin</item>
+        <item>Neville</item>
+        <item>Oscar</item>
+        <item>Patrick</item>
+        <item>Quincy</item>
+        <item>Richard</item>
+        <item>Stanley</item>
+        <item>Thomas</item>
+        <item>Ulrich</item>
+        <item>Victor</item>
+        <item>Wesley</item>
+        <item>Xander</item>
+        <item>Yousef</item>
+        <item>Zephram</item>
+    </string-array>
+
+    <string-array name="asFemaleFirstNames">
+        <item>Alice</item>
+        <item>Beatrice</item>
+        <item>Carol</item>
+        <item>Diana</item>
+        <item>Eve</item>
+        <item>Frances</item>
+        <item>Gertrude</item>
+        <item>Hilda</item>
+        <item>Ingrid</item>
+        <item>Jill</item>
+        <item>Karen</item>
+        <item>Lydia</item>
+        <item>Margo</item>
+        <item>Nancy</item>
+        <item>Ophelia</item>
+        <item>Phyllis</item>
+        <item>Qadira</item>
+        <item>Renee</item>
+        <item>Sophia</item>
+        <item>Theresa</item>
+        <item>Ursula</item>
+        <item>Vanessa</item>
+        <item>Wendy</item>
+        <item>Xandra</item>
+        <item>Yolanda</item>
+        <item>Zelda</item>
+    </string-array>
+
+</resources>
