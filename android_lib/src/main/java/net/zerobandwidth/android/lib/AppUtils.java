@@ -79,7 +79,8 @@ public class AppUtils
     /**
      * Initializes a back button for the activity.
      *
-     * In the activity's
+     * Call this method in your activity's {@link Activity#onCreate onCreate}
+     * method. Then, in the activity's
      * {@link Activity#onOptionsItemSelected onOptionsItemSelected} method,
      * remember to set a handler for this button.
      *
@@ -88,7 +89,7 @@ public class AppUtils
      *     {
      *         switch( item.getItemId() )
      *         {
-     *             case android.R.item.home:
+     *             case android.R.id.home:
      *                 this.onBackPressed() ;
      *                 break ;
      *             // (other items...)
@@ -110,7 +111,8 @@ public class AppUtils
     /**
      * Initializes a back button for the activity.
      *
-     * In the activity's
+     * Call this method in your activity's
+     * {@link AppCompatActivity#onCreate onCreate} method. Then, in the activity's
      * {@link AppCompatActivity#onOptionsItemSelected onOptionsItemSelected}
      * method, remember to set a handler for this button.
      *
@@ -119,7 +121,7 @@ public class AppUtils
      *     {
      *         switch( item.getItemId() )
      *         {
-     *             case android.R.item.home:
+     *             case android.R.id.home:
      *                 this.onBackPressed() ;
      *                 break ;
      *             // (other items...)
