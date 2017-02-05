@@ -3,8 +3,15 @@ package net.zerobandwidth.android.lib;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
+import android.os.Build;
+import android.support.v4.text.TextUtilsCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+
+import java.util.Locale;
 
 /**
  * Provides utilities for dealing with common Android app tasks.
@@ -138,5 +145,40 @@ public class AppUtils
         try { act.getSupportActionBar().setDisplayHomeAsUpEnabled(true) ; }
         catch( Exception x )
         { Log.d( LOG_TAG, "Could not initialize back button.", x ) ; }
+    }
+
+	/**
+     * (in AppCompat context) Determines whether the current text layout is
+     * right-to-left.
+     * @param ctx the context in which to evaluate text directionality
+     * @return {@code true} if text layout is right-to-left
+     * @see TextUtilsCompat#getLayoutDirectionFromLocale
+     * @see <a href="http://stackoverflow.com/a/14389640">Stack Overflow answer #14389640</a>
+     * @see <a href="http://stackoverflow.com/a/23203698">Stack Overflow answer #23203698</a>
+     * @since zerobandwidth-net/android 0.0.2 (#8)
+     */
+    public static boolean isTextCompatRTL( Context ctx )
+    {
+        return TextUtilsCompat.getLayoutDirectionFromLocale(
+                ctx.getResources().getConfiguration().locale )
+                    != ViewCompat.LAYOUT_DIRECTION_LTR ;
+    }
+
+	/**
+     * (in non-compat context) Determines whether the current text layout is
+     * right-to-left.
+     * @param ctx the context in which to evaluate text directionality
+     * @return {@code true} if text layout is right-to-left
+     * @see TextUtils#getLayoutDirectionFromLocale
+     * @see <a href="http://stackoverflow.com/a/14389640">Stack Overflow answer #14389640</a>
+     * @see <a href="http://stackoverflow.com/a/23203698">Stack Overflow answer #23203698</a>
+     * @since zerobandwidth-net/android 0.0.2 (#8)
+     */
+    @android.support.annotation.RequiresApi( api = Build.VERSION_CODES.JELLY_BEAN_MR1 )
+    public static boolean isTextRTL( Context ctx )
+    {
+        return TextUtils.getLayoutDirectionFromLocale(
+                ctx.getResources().getConfiguration().locale )
+                    != View.LAYOUT_DIRECTION_LTR ;
     }
 }
