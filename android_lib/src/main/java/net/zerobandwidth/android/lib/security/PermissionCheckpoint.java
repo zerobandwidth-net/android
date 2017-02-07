@@ -329,13 +329,20 @@ implements ActivityCompat.OnRequestPermissionsResultCallback
 	 * @param zCode the request code (we are interested in
 	 *              {@link #DANGER_REQUEST_CODE})
 	 * @param asDangers an array of permissions that were requested
-	 * @param azResults an array of result indicators
+	 * @param azStatus an array of result indicators
 	 */
 	@Override
 	public void onRequestPermissionsResult( int zCode,
-        @NonNull String[] asDangers, @NonNull int[] azResults )
+        @NonNull String[] asDangers, @NonNull int[] azStatus )
 	{
 		m_bDialogVisible = false ;
+		for( int i = 0 ; i < asDangers.length ; i++ )
+		{ // Update our map of permissions to grant status.
+			if( azStatus[i] == PackageManager.PERMISSION_GRANTED )
+				m_mapGranted.put( asDangers[i], true ) ;
+			else if( azStatus[i] == PackageManager.PERMISSION_DENIED )
+				m_mapGranted.put( asDangers[i], false ) ;
+		}
 		this.performChecks() ;    // Keep insisting until everything is granted.
 	}
 }
