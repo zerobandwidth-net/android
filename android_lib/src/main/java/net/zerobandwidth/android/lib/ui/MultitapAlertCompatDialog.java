@@ -7,7 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import net.zerobandwidth.android.lib.AppUtils;
+import net.zerobandwidth.android.lib.app.AppUtils;
 import net.zerobandwidth.android.lib.R;
 
 /**
