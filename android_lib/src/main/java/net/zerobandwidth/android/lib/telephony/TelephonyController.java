@@ -167,7 +167,8 @@ public class TelephonyController
 	{
 		Intent sig = new Intent( Intent.ACTION_CALL ) ;
 		sig.setData( Uri.parse( "tel:" + sNumber ) ) ;
-		ctx.startActivity(sig) ;
+		sig.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK ) ;
+		ctx.startActivity( sig ) ;
 	}
 
 /// INSTANCE API - Provides workaround access to native telephony functions. ///
