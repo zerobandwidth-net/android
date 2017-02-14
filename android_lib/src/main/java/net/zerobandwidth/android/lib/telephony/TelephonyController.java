@@ -58,8 +58,21 @@ public class TelephonyController
 /// STATIC API - Provides static utility functions for telephony tasks. ////////
 
 	/**
-	 * If you don't already have an instance of {@link TelephonyManager} handy,
-	 * use this method to obtain one and inquire about the current call state.
+	 * Fetches an instance of the device's telephony manager.
+	 * @param ctx the context in which services are available
+	 * @return the device's telephony manager service
+	 */
+	public static TelephonyManager getManager( Context ctx )
+	{
+		return ((TelephonyManager)
+				( ctx.getSystemService( Context.TELEPHONY_SERVICE ) )) ;
+	}
+
+	/**
+	 * Indicates the current call state.
+	 *
+	 * Equivalent to calling {@link TelephonyManager#getCallState} on an
+	 * existing instance of the manager.
 	 *
 	 * This method <b>requires</b> the
 	 * {@code android.permission.READ_PHONE_STATE} permission, and will throw a
@@ -77,11 +90,7 @@ public class TelephonyController
 	 */
 	public static int getCallState( Context ctx )
 	throws SecurityException
-	{
-		TelephonyManager mgrTel = ((TelephonyManager)
-				( ctx.getSystemService( Context.TELEPHONY_SERVICE ) )) ;
-		return mgrTel.getCallState() ;
-	}
+	{ return getManager(ctx).getCallState() ; }
 
 	/**
 	 * Indicates whether the phone is in "idle" state &mdash; that is, no
@@ -121,6 +130,23 @@ public class TelephonyController
 	public static boolean isRinging( Context ctx )
 	throws SecurityException
 	{ return( getCallState(ctx) == TelephonyManager.CALL_STATE_RINGING ) ; }
+
+	/**
+	 * Indicates the current call state.
+	 *
+	 * Equivalent to calling {@link TelephonyManager#getDataState} on an
+	 * existing instance of the manager.
+	 *
+	 * @param ctx the context in which to check data state
+	 * @return one of the data state indicators provided by
+	 *  {@code TelephonyManager}:
+	 *  {@link TelephonyManager#DATA_DISCONNECTED},
+	 *  {@link TelephonyManager#DATA_CONNECTING},
+	 *  {@link TelephonyManager#DATA_CONNECTED}, or
+	 *  {@link TelephonyManager#DATA_SUSPENDED}
+	 */
+	public static int getDataState( Context ctx )
+	{ return getManager(ctx).getDataState() ; }
 
 	/**
 	 * Places an outbound call to the specified telephone number.
@@ -341,6 +367,7 @@ public class TelephonyController
 	 * Indicates the state of the data connection.
 	 * @return (undocumented)
 	 * @throws ControllerInvocationException if the invocation fails
+	 * @deprecated Use {@link #getDataState(Context)} instead.
 	 */
 	public int getDataState()
 	throws ControllerInvocationException
