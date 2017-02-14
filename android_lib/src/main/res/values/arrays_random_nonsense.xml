@@ -335,26 +335,126 @@
         <item>the axiom</item>
         <item>an axle</item>
         <item>an azalea</item>
+        <item>a baby</item>
+        <item>the bachelor</item>
         <item>the back door</item>
+        <item>a backbend</item>
+        <item>a backbone</item>
         <item>the backbone</item>
+        <item>the backdrop</item>
         <item>backgammon</item>
         <item>the background</item>
+        <item>a backlash</item>
+        <item>the backlog</item>
+        <item>a backpack</item>
         <item>a backronym</item>
+        <item>a backstitch</item>
         <item>backward-compatibility</item>
+        <item>the backyard</item>
+        <item>bacon</item>
+        <item>bacteria</item>
         <item>a Bad Thing</item>
+        <item>a badge</item>
+        <item>badminton</item>
+        <item>a bag</item>
         <item>a bag on the side</item>
         <item>a bagbiter</item>
+        <item>baggage</item>
+        <item>bail</item>
+        <item>the bailiff</item>
+        <item>bailing</item>
+        <item>bait</item>
+        <item>the baker</item>
+        <item>a bakery</item>
+        <item>baking</item>
+        <item>balance</item>
+        <item>the balcony</item>
+        <item>a bale</item>
+        <item>a ball</item>
+        <item>a ballad</item>
+        <item>ballast</item>
+        <item>the ballerina</item>
+        <item>the ballet</item>
         <item>a balloon</item>
+        <item>the ballot</item>
+        <item>the ballroom</item>
+        <item>a ballyhoo</item>
+        <item>the balustrade</item>
+        <item>the ban</item>
         <item>a banana</item>
+        <item>the band</item>
+        <item>a bandage</item>
+        <item>a bandit</item>
+        <item>the bandstand</item>
+        <item>the bandwagon</item>
         <item>bandwidth</item>
         <item>a bang</item>
+        <item>banishment</item>
+        <item>the banister</item>
+        <item>the banjo</item>
+        <item>the bank</item>
+        <item>a banker</item>
+        <item>bankruptcy</item>
         <item>a banner</item>
+        <item>the banquet</item>
+        <item>a banshee</item>
+        <item>banter</item>
+        <item>a baptism</item>
         <item>a bar</item>
+        <item>a barbarian</item>
+        <item>a barbecue</item>
+        <item>a barbell</item>
+        <item>the barber</item>
+        <item>a barbiturate</item>
+        <item>the bard</item>
+        <item>The Bard</item>
         <item>barf</item>
         <item>a barfulation</item>
+        <item>a bargain</item>
+        <item>bargaining</item>
+        <item>a barge</item>
+        <item>a baritone</item>
+        <item>barium</item>
+        <item>bark</item>
+        <item>the barkeep</item>
+        <item>barking</item>
+        <item>barley</item>
         <item>the barn</item>
+        <item>the barnyard</item>
+        <item>a baron</item>
+        <item>a barrage</item>
+        <item>a barrel</item>
+        <item>the barricade</item>
+        <item>a barrier</item>
+        <item>the bartender</item>
+        <item>a base</item>
+        <item>baseball</item>
+        <item>a baseline</item>
+        <item>the basement</item>
+        <item>a basin</item>
+        <item>the basket</item>
+        <item>basketball</item>
+        <item>a bassinet</item>
+        <item>the bastard</item>
+        <item>a bastion</item>
+        <item>a bat</item>
         <item>Bat-Belt</item>
         <item>the batch</item>
+        <item>a bath</item>
+        <item>a bathrobe</item>
+        <item>the bathroom</item>
+        <item>the bathtub</item>
+        <item>the baton</item>
+        <item>a battalion</item>
+        <item>batter</item>
+        <item>a battery</item>
+        <item>a battle</item>
+        <item>a battlefield</item>
+        <item>the battlefront</item>
+        <item>a battleground</item>
+        <item>a bauble</item>
+        <item>the bay</item>
+        <item>a bayonet</item>
         <item>the bazaar</item>
         <item>the beep</item>
         <item>a beige toaster</item>
@@ -402,10 +502,12 @@
         <item>a bug</item>
         <item>a bump</item>
         <item>a burble</item>
+        <item>the butcher</item>
         <item>a buzz</item>
         <item>C++</item>
         <item>a calculator</item>
         <item>a cancelbot</item>
+        <item>the candlestick maker</item>
         <item>candygrammar</item>
         <item>a car</item>
         <item>a cargo cult</item>
@@ -589,7 +691,6 @@
         <item>a guru meditation</item>
         <item>a hack</item>
         <item>hacker humor</item>
-        <item>hairy</item>
         <item>the Halloween Documents</item>
         <item>ham</item>
         <item>a hammer</item>
@@ -619,6 +720,7 @@
         <item>the Internet of Things</item>
         <item>the Iron Age</item>
         <item>an ISO standard cup of tea</item>
+        <item>it</item>
         <item>J. Random Hacker</item>
         <item>Java</item>
         <item>job security</item>
@@ -655,6 +757,7 @@
         <item>a lobotomy</item>
         <item>a loop</item>
         <item>a loser</item>
+        <item>the lotion</item>
         <item>love</item>
         <item>mail</item>
         <item>the mainframe</item>
@@ -1034,6 +1137,7 @@
         <item>prepends</item>
         <item>punts</item>
         <item>pushes</item>
+        <item>puts</item>
         <item>questions</item>
         <item>quickens</item>
         <item>quotes</item>
@@ -1229,6 +1333,7 @@
         <item>golden</item>
         <item>good</item> <item>better</item> <item>best</item>
         <item>gregarious</item>
+        <item>hairy</item>
         <item>happy</item> <item>happier</item> <item>happiest</item>
         <item>harmful</item> <item>harmless</item>
         <item>hazardous</item>
@@ -1492,6 +1597,7 @@
         <item>in a jiffy</item>
         <item>in the afternoon</item>
         <item>in the background</item>
+        <item>in the basket</item>
         <item>in the blink of an eye</item>
         <item>in the foreground</item>
         <item>in the margins</item>
