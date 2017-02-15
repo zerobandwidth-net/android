@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import net.zerobandwidth.android.lib.telephony.exceptions.ControllerConstructionException;
 import net.zerobandwidth.android.lib.telephony.exceptions.ControllerInvocationException;
@@ -24,7 +25,7 @@ import java.lang.reflect.Method;
  * This class is based on several interesting StackOverflow posts and is still
  * highly experimental.
  *
- * The member functions represent the entirety of the {@code ITelephony}
+ * The member functions represent a large portion of the {@code ITelephony}
  * interface as discovered in the Android open source repository. However, in
  * this class, several of those methods are marked as deprecated. For each of
  * these deprecated methods, there is a static alternative that does not require
@@ -181,6 +182,9 @@ public class TelephonyController
 	alternatives provided by TelephonyManager.
 */
 
+	public static final String LOG_TAG =
+		TelephonyController.class.getSimpleName() ;
+
 	public static final String SERVICE_MANAGER_CLASS =
 			"android.os.ServiceManager" ;
 	public static final String SERVICE_MANAGER_NATIVE_CLASS =
@@ -267,24 +271,47 @@ public class TelephonyController
 
 		m_mgrTelephony = mthGetITelephony.invoke( null, bindTelephonyService ) ;
 
+//		this.dumpDiscoveredMethods() ;    // Comment this out for normal builds.
+
 		return this ;
+	}
+
+	/**
+	 * Used to discover the actual definition of the {@code ITelephony}
+	 * interface as visible to the current app.
+	 * @since zerobandwidth-net/android 0.0.6 (#17)
+	 */
+	@SuppressWarnings( "unused" )               // For diagnostic purposes only.
+	protected void dumpDiscoveredMethods()
+	{
+		Method[] amthITelephony = m_clsITelephony.getMethods() ;
+		StringBuilder sb = new StringBuilder() ;
+		sb.append( "*** DEBUG *** Methods discovered in ITelephony:" ) ;
+		for( Method mth : amthITelephony )
+			sb.append( "\n" ).append( mth.toString() ) ;
+		Log.d( LOG_TAG, sb.toString() ) ;
 	}
 
 	/**
 	 * Standard method of reflectively invoking a method of the telephony
 	 * manager.
 	 * @param sMethod the name of the underlying method being invoked
+	 * @param aclsTypes an array of parameter types, corresponding to the
+	 *                  paramters given in {@code aoParams}
+	 *                  (since zerobandwidth-net/android 0.0.6 (#17))
 	 * @param aoParams any parameters that would be passed to the underlying
-	 *                method
+	 *                method, corresponding to the types given in
+	 *                {@code aclsTypes}
+	 *                (since zerobandwidth-net/android 0.0.6 (#17))
 	 * @return the return value of the underlying method
 	 * @throws ControllerInvocationException if the invocation fails
 	 */
-	protected Object invoke( String sMethod, Object... aoParams )
+	protected Object invoke( String sMethod, Class<?>[] aclsTypes, Object[] aoParams )
 	throws ControllerInvocationException
 	{
 		try
 		{
-			return m_clsITelephony.getMethod( sMethod )
+			return m_clsITelephony.getMethod( sMethod, aclsTypes )
 						.invoke( m_mgrTelephony, aoParams ) ;
 		}
 		catch( Exception x )
@@ -297,7 +324,7 @@ public class TelephonyController
 	 */
 	public void answerRingingCall()
 	throws ControllerInvocationException
-	{ this.invoke( "answerRingingCall" ) ; }
+	{ this.invoke( "answerRingingCall", null, null ) ; }
 
 	/**
 	 * Answers an incoming call on behalf of a subscriber.
@@ -305,7 +332,12 @@ public class TelephonyController
 	 * @throws ControllerInvocationException if the invocation fails
 	 */
 	public void answerRingingCallForSubscriber( int id )
-	{ this.invoke( "answerRingingCallForSubscriber", id ) ; }
+	{
+		this.invoke( "answerRingingCallForSubscriber",
+				new Class<?>[] { Integer.class },
+				new Integer[] { id }
+			);
+	}
 
 	/**
 	 * Dials the specified number and initiates an outbound call.
@@ -316,7 +348,12 @@ public class TelephonyController
 	 */
 	public void call( String pkgCaller, String sNumber )
 	throws ControllerInvocationException
-	{ this.invoke( "call", pkgCaller, sNumber ) ; }
+	{
+		this.invoke( "call",
+				new Class<?>[] { String.class, String.class },
+				new String[] { pkgCaller, sNumber }
+			);
+	}
 
 	/**
 	 * Dials the specified number, but does not call it.
@@ -325,7 +362,12 @@ public class TelephonyController
 	 */
 	public void dial( String sNumber )
 	throws ControllerInvocationException
-	{ this.invoke( "dial", sNumber ) ; }
+	{
+		this.invoke( "dial",
+				new Class<?>[] { String.class },
+				new String[] { sNumber }
+			);
+	}
 
 	/**
 	 * Disables the data connection over the cell radio.
@@ -334,7 +376,10 @@ public class TelephonyController
 	 */
 	public boolean disableDataConnectivity()
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "disableDataConnectivity" ) )) ; }
+	{
+		return ((boolean)
+				( this.invoke( "disableDataConnectivity", null, null ) )) ;
+	}
 
 	/**
 	 * Enables the data connection over the cell radio.
@@ -343,7 +388,10 @@ public class TelephonyController
 	 */
 	public boolean enableDataConnectivity()
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "enableDataConnectivity" ) )) ; }
+	{
+		return ((boolean)
+				( this.invoke( "enableDataConnectivity", null, null ) )) ;
+	}
 
 	/**
 	 * Terminates a call in progress.
@@ -352,7 +400,7 @@ public class TelephonyController
 	 */
 	public boolean endCall()
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "endCall" ) )) ; }
+	{ return ((boolean)( this.invoke( "endCall", null, null ) )) ; }
 
 	/**
 	 * Terminates a call in progress on behalf of a subscriber.
@@ -362,7 +410,13 @@ public class TelephonyController
 	 */
 	public boolean endCallForSubscriber( int id )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "endCallForSubscriber", id ) )) ; }
+	{
+		final Object o = this.invoke( "endCallForSubscriber",
+				new Class<?>[] { Integer.class },
+				new Integer[] { id }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Indicates the state of the data connection.
@@ -372,7 +426,7 @@ public class TelephonyController
 	 */
 	public int getDataState()
 	throws ControllerInvocationException
-	{ return ((int)( this.invoke( "getDataState" ) )) ; }
+	{ return ((int)( this.invoke( "getDataState", null, null ) )) ; }
 
 	/**
 	 * Indicates whether the cell radio supports data connectivity.
@@ -381,7 +435,7 @@ public class TelephonyController
 	 */
 	public boolean isDataConnectivityPossible()
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "isDataConnectivityPossible" ) )) ; }
+	{ return ((boolean)( this.invoke( "isDataConnectivityPossible", null, null ) )) ; }
 
 	/**
 	 * Indicates whether the phone is in "idle" state &mdash; that is, no
@@ -394,7 +448,13 @@ public class TelephonyController
 	 */
 	public boolean isIdle( String pkgCaller )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "isIdle", pkgCaller ) )) ; }
+	{
+		final Object o = this.invoke( "isIdle",
+				new Class<?>[] { String.class },
+				new String[] { pkgCaller }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Indicates whether the phone is in "idle" state &mdash; that is, no
@@ -408,7 +468,13 @@ public class TelephonyController
 	 */
 	public boolean isIdleForSubscriber( int id, String pkgCaller )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "isIdleForSubcriber", id, pkgCaller ) )) ; }
+	{
+		final Object o = this.invoke( "isIdleForSubscriber",
+				new Class<?>[] { Integer.class, String.class },
+				new Object[] { id, pkgCaller }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Indicates whether the phone is "off-hook" &mdash; that is, waiting for a
@@ -421,7 +487,13 @@ public class TelephonyController
 	 */
 	public boolean isOffhook( String pkgCaller )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "isOffhook", pkgCaller ) )) ; }
+	{
+		final Object o = this.invoke( "isOffhook",
+				new Class<?>[] { String.class },
+				new String[] { pkgCaller }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Indicates whether the phone is "off-hook" &mdash; that is, waiting for a
@@ -435,7 +507,13 @@ public class TelephonyController
 	 */
 	public boolean isOffhookForSubscriber( int id, String pkgCaller )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "isOffhookForSubscriber", id, pkgCaller ) )) ; }
+	{
+		final Object o = this.invoke( "isOffhookForSubscriber",
+				new Class<?>[] { Integer.class, String.class },
+				new Object[] { id, pkgCaller }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Indicates whether the cell radio is active.
@@ -445,7 +523,13 @@ public class TelephonyController
 	 */
 	public boolean isRadioOn( String pkgCaller )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "isRadioOn", pkgCaller ) )) ; }
+	{
+		final Object o = this.invoke( "isRadioOn",
+				new Class<?>[] { String.class },
+				new String[] { pkgCaller }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Indicates whether the cell radio is active.
@@ -456,7 +540,13 @@ public class TelephonyController
 	 */
 	public boolean isRadioOnForSubscriber( int id, String pkgCaller )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "isRadioOnForSubscriber", id, pkgCaller ) )) ; }
+	{
+		final Object o = this.invoke( "isRadioOnForSubscriber",
+				new Class<?>[] { Integer.class, String.class },
+				new Object[] { id, pkgCaller }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Indicates whether there is currently an incoming call that is causing
@@ -469,7 +559,13 @@ public class TelephonyController
 	 */
 	public boolean isRinging( String pkgCaller )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "isRinging", pkgCaller ) )) ; }
+	{
+		final Object o = this.invoke( "isRinging",
+				new Class<?>[] { String.class },
+				new String[] { pkgCaller }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Indicates whether there is currently an incoming call that is causing
@@ -483,7 +579,13 @@ public class TelephonyController
 	 */
 	public boolean isRingingForSubscriber( int id, String pkgCaller )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "isRingingForSubscriber", id, pkgCaller ) )) ; }
+	{
+		final Object o = this.invoke( "isRingingForSubscriber",
+				new Class<?>[] { Integer.class, String.class },
+				new Object[] { id, pkgCaller }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Sets the cell radio on or off.
@@ -493,7 +595,13 @@ public class TelephonyController
 	 */
 	public boolean setRadio( boolean bEnabled )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "setRadio", bEnabled ) )) ; }
+	{
+		final Object o = this.invoke( "setRadio",
+				new Class<?>[] { Boolean.class },
+				new Boolean[] { bEnabled }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Silences the ringer if an incoming call is ringing. Also silences the
@@ -502,7 +610,7 @@ public class TelephonyController
 	 */
 	public void silenceRinger()
 	throws ControllerInvocationException
-	{ this.invoke( "silenceRinger" ) ; }
+	{ this.invoke( "silenceRinger", null, null ) ; }
 
 	/**
 	 * Supply a PIN to unlock the phone's SIM card.
@@ -512,7 +620,13 @@ public class TelephonyController
 	 */
 	public boolean supplyPin( String sPIN )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "supplyPin", sPIN ) )) ; }
+	{
+		final Object o = this.invoke( "supplyPin",
+				new Class<?>[] { String.class },
+				new String[] { sPIN }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Supply a PIN to unlock the phone's SIM card.
@@ -523,7 +637,13 @@ public class TelephonyController
 	 */
 	public boolean supplyPinForSubscriber( int id, String sPIN )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "supplyPinForSubscriber", id, sPIN ) )) ; }
+	{
+		final Object o = this.invoke( "supplyPinForSubscriber",
+				new Class<?>[] { Integer.class, String.class },
+				new Object[] { id, sPIN }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Supply a PUK (Personal Unlocking Key) to unlock the SIM and set its PIN
@@ -535,7 +655,13 @@ public class TelephonyController
 	 */
 	public boolean supplyPuk( String sPUK, String sPIN )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "supplyPuk", sPUK, sPIN ) )) ; }
+	{
+		final Object o = this.invoke( "supplyPuk",
+				new Class<?>[] { String.class, String.class },
+				new String[] { sPUK, sPIN }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Supply a PUK (Personal Unlocking Key) to unlock the SIM and set its PIN
@@ -548,7 +674,13 @@ public class TelephonyController
 	 */
 	public boolean supplyPukForSubscriber( int id, String sPUK, String sPIN )
 	throws ControllerInvocationException
-	{ return ((boolean)( this.invoke( "supplyPukForSubscriber", id, sPUK, sPIN ) )) ; }
+	{
+		final Object o = this.invoke( "supplyPukForSubscriber",
+				new Class<?>[] { Integer.class, String.class, String.class },
+				new Object[] { id, sPUK, sPIN }
+			);
+		return (boolean)o ;
+	}
 
 	/**
 	 * Toggles the state of the cell radio.
@@ -556,5 +688,5 @@ public class TelephonyController
 	 */
 	public void toggleRadio()
 	throws ControllerInvocationException
-	{ this.invoke( "toggleRadioOnOff" ) ; }
+	{ this.invoke( "toggleRadioOnOff", null, null ) ; }
 }
