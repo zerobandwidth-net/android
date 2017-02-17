@@ -19,7 +19,7 @@ import java.util.concurrent.TimeoutException;
  */
 @SuppressWarnings("unused")
 public class SimpleTestServiceConnection<S extends Service>
-extends SimpleServiceConnection
+extends SimpleServiceConnection<S>
 {
     public static final String LOG_TAG =
             SimpleTestServiceConnection.class.getSimpleName() ;
@@ -92,11 +92,11 @@ extends SimpleServiceConnection
     // /// Below this line are overrides with new return types.
 
     @Override
-    public SimpleTestServiceConnection<S> addListener( Listener l )
+    public SimpleTestServiceConnection<S> addListener( Listener<S> l )
     { super.addListener(l) ; return this ; }
 
     @Override
-    public SimpleTestServiceConnection<S> removeListener( Listener l )
+    public SimpleTestServiceConnection<S> removeListener( Listener<S> l )
     { super.removeListener(l) ; return this ; }
 
     @Override
