@@ -22,7 +22,7 @@ import java.util.concurrent.Semaphore;
 @RunWith(AndroidJUnit4.class)
 public class SingletonServiceTest
 extends ServiceTestCase<SingletonService>
-implements SimpleTestServiceConnection.Listener
+implements SimpleTestServiceConnection.Listener<SingletonService>
 {
     public static final String LOG_TAG =
             SingletonServiceTest.class.getSimpleName() ;
@@ -168,33 +168,33 @@ implements SimpleTestServiceConnection.Listener
 */
         m_srvOne = new SimpleTestServiceConnection<>(SingletonService.class)
                 .addListener(this).connectTest( new ServiceTestRule() ) ;
-        if( ! m_srvOne.isBound() ) fail( "Couldn't bind service 1." ) ;
+//        if( ! m_srvOne.isBound() ) fail( "Couldn't bind service 1." ) ;
         m_srvTwo = new SimpleTestServiceConnection<>(SingletonService.class)
                 .addListener(this).connectTest( new ServiceTestRule() ) ;
-        if( ! m_srvTwo.isBound() ) fail( "Couldn't bind service 2." ) ;
+//        if( ! m_srvTwo.isBound() ) fail( "Couldn't bind service 2." ) ;
         m_lock.acquire() ;
     }
 
     @Override
-    public <LS extends Service> void onServiceConnected(SimpleServiceConnection<LS> conn)
+    public void onServiceConnected( SimpleServiceConnection<SingletonService> conn )
     {
         if( conn == m_srvOne )
         {
             m_sOne = UUID.randomUUID().toString() ;
-            SingletonService srv = (SingletonService)(conn.getServiceInstance()) ;
+            SingletonService srv = conn.getServiceInstance() ;
             srv.put( String.class, m_sOne ) ;
         }
         else if( conn == m_srvTwo )
         {
             m_nTwo = (new Random()).nextInt(Integer.MAX_VALUE) ;
-            SingletonService srv = (SingletonService)(conn.getServiceInstance()) ;
+            SingletonService srv = conn.getServiceInstance() ;
             srv.put( Integer.class, m_nTwo ) ;
         }
         this.verifyValuesAcrossContexts() ;
     }
 
     @Override
-    public <LS extends Service> void onServiceDisconnected(SimpleServiceConnection<LS> conn)
+    public void onServiceDisconnected(SimpleServiceConnection<SingletonService> conn)
     {}
 
 //    public static synchronized void verifyValuesAcrossContexts()
@@ -226,8 +226,8 @@ implements SimpleTestServiceConnection.Listener
         if( m_sOne != null && m_nTwo != null )
         {
             Log.d( LOG_TAG, "We have results!" ) ;
-            SingletonService srvOne = (SingletonService)(m_srvOne.getServiceInstance()) ;
-            SingletonService srvTwo = (SingletonService)(m_srvTwo.getServiceInstance()) ;
+            SingletonService srvOne = m_srvOne.getServiceInstance() ;
+            SingletonService srvTwo = m_srvTwo.getServiceInstance() ;
             if( srvOne == null || srvTwo == null )
             {
                 Log.e( LOG_TAG, "Couldn't connect to at least one service." ) ;
