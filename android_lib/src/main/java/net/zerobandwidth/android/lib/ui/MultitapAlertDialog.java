@@ -1,14 +1,15 @@
 package net.zerobandwidth.android.lib.ui;
 
+import android.app.AlertDialog;
 import android.content.Context;
-import android.support.v7.app.AlertDialog;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import net.zerobandwidth.android.lib.app.AppUtils;
 import net.zerobandwidth.android.lib.R;
+import net.zerobandwidth.android.lib.app.AppUtils;
 
 /**
  * Allows specification of a number of multiple taps before the positive button
@@ -18,19 +19,18 @@ import net.zerobandwidth.android.lib.R;
  *
  * Special thanks to <code><b>@dapayne1</b></code> for the original inspiration.
  *
- * This version of the dialog builds on the Android Compatibility Library. For
- * an extension of the modern {@code AlertDialog} class, see
- * {@link MultitapAlertDialog}.
+ * When using the Android Compatibility Library, see also
+ * {@link MultitapAlertCompatDialog}.
  *
- * @since zerobandwidth-net/android 0.0.2 (#8)
+ * @since zerobandwidth-net/android 0.1.1 (#21)
  */
 @SuppressWarnings( "unused" )                              // This is a library.
-public class MultitapAlertCompatDialog
+public class MultitapAlertDialog
 extends AlertDialog
 implements DialogInterface.OnClickListener
 {
 	public static final String LOG_TAG =
-			MultitapAlertCompatDialog.class.getSimpleName() ;
+			MultitapAlertDialog.class.getSimpleName() ;
 
 	/**
 	 * Specifies the default number of taps required on the positive button
@@ -81,15 +81,19 @@ implements DialogInterface.OnClickListener
 	 * @param resTitle the resource ID of the title string
 	 * @param resMessage the resource ID of the message string
 	 */
-	public MultitapAlertCompatDialog( Context ctx, int resTitle, int resMessage )
+	public MultitapAlertDialog( Context ctx, int resTitle, int resMessage )
 	{
 		super(ctx) ;
 		this.setTitle( resTitle ) ;
 		this.setMessage( ctx.getString( resMessage ) ) ;
-		m_resPositiveLabelFormat = ( AppUtils.isTextCompatRTL(ctx) ?
-				R.string.label_btnMultitapPositive_RTL :
-				R.string.label_btnMultitapPositive_LTR )
-			;
+		if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 )
+		{
+			m_resPositiveLabelFormat = ( AppUtils.isTextRTL(ctx) ?
+					R.string.label_btnMultitapPositive_RTL :
+					R.string.label_btnMultitapPositive_LTR )
+				;
+		}
+		else m_resPositiveLabelFormat = R.string.label_btnMultitapPositive_LTR ;
 	}
 
 	/**
@@ -97,7 +101,7 @@ implements DialogInterface.OnClickListener
 	 * @param nTaps the number of taps required
 	 * @return (fluid)
 	 */
-	public MultitapAlertCompatDialog setPositiveTapsRequired( int nTaps )
+	public MultitapAlertDialog setPositiveTapsRequired( int nTaps )
 	{ this.m_nTapsRequired = nTaps ; return this ; }
 
 	/**
@@ -107,7 +111,7 @@ implements DialogInterface.OnClickListener
 	 * @param task the task to be executed
 	 * @return (fluid)
 	 */
-	public MultitapAlertCompatDialog setPositiveButton( int resLabel, Runnable task )
+	public MultitapAlertDialog setPositiveButton( int resLabel, Runnable task )
 	{
 		final Context ctx = this.getContext() ;
 		m_taskPositive = task ;
@@ -126,7 +130,7 @@ implements DialogInterface.OnClickListener
 	 * @param task the task to be executed
 	 * @return (fluid)
 	 */
-	public MultitapAlertCompatDialog setPositiveButton( Runnable task )
+	public MultitapAlertDialog setPositiveButton( Runnable task )
 	{ return this.setPositiveButton( android.R.string.ok, task ) ; }
 
 	/**
@@ -136,7 +140,7 @@ implements DialogInterface.OnClickListener
 	 * @param task the task to be executed
 	 * @return (fluid)
 	 */
-	public MultitapAlertCompatDialog setNegativeButton( int resLabel, Runnable task )
+	public MultitapAlertDialog setNegativeButton( int resLabel, Runnable task )
 	{
 		final Context ctx = this.getContext() ;
 		m_taskNegative = task ;
@@ -155,7 +159,7 @@ implements DialogInterface.OnClickListener
 	 * @param task the task to be executed
 	 * @return (fluid)
 	 */
-	public MultitapAlertCompatDialog setNegativeButton( Runnable task )
+	public MultitapAlertDialog setNegativeButton( Runnable task )
 	{ return this.setNegativeButton( android.R.string.cancel, task ) ; }
 
 	/**
@@ -167,7 +171,7 @@ implements DialogInterface.OnClickListener
 	 *                     tapped <i>once</i>
 	 * @return (fluid)
 	 */
-	public MultitapAlertCompatDialog setStandardButtons( Runnable taskPositive, Runnable taskNegative )
+	public MultitapAlertDialog setStandardButtons( Runnable taskPositive, Runnable taskNegative )
 	{
 		return this.setPositiveButton( taskPositive )
 		           .setNegativeButton( taskNegative )
@@ -180,7 +184,7 @@ implements DialogInterface.OnClickListener
 	 * intercepted.
 	 * @return the positive button label
 	 */
-	protected MultitapAlertCompatDialog regeneratePositiveLabel()
+	protected MultitapAlertDialog regeneratePositiveLabel()
 	{
 		final int nTapsRemaining = m_nTapsRequired - m_nTapsCurrent ;
 		final String sLabel = this.getContext().getString(
@@ -229,8 +233,8 @@ implements DialogInterface.OnClickListener
 			this.regeneratePositiveLabel() ;
 			m_btnPositive.setOnClickListener( new Button.OnClickListener()
 			{
-				protected final MultitapAlertCompatDialog m_dia =
-						MultitapAlertCompatDialog.this ;
+				protected final MultitapAlertDialog m_dia =
+						MultitapAlertDialog.this ;
 
 				@Override
 				public void onClick( View w )
@@ -243,4 +247,5 @@ implements DialogInterface.OnClickListener
 			});
 		}
 	}
+
 }
