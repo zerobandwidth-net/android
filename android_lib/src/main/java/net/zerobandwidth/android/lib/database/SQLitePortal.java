@@ -6,10 +6,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.Date;
+
 /**
  * Extends {@link SQLiteOpenHelper} by allowing an instance to maintain its own
  * persistent interface to its underlying database. Also statically provides
- * several useful database utility functions.
+ * several useful database utility functions and semantic constants, which also
+ * form the basis of
+ * {@link net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder QueryBuilder}.
  * @since zerobandwidth-net/android 0.0.2 (#8)
  */
 @SuppressWarnings("unused")                                // This is a library.
@@ -19,6 +23,89 @@ extends SQLiteOpenHelper
 /// Statics ////////////////////////////////////////////////////////////////////
 
     public static final String LOG_TAG = SQLitePortal.class.getSimpleName() ;
+
+	/**
+	 * Magic value returned by {@link Cursor#getColumnIndex} when a column
+	 * doesn't exist. (A column index of {@code -1} indicates an invalid state.)
+	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 */
+    public static final int COLUMN_NOT_FOUND = -1 ;
+
+	/**
+	 * Magic value returned by {@link Cursor#getPosition} when the cursor has
+	 * not yet started traversing the result set. (A cursor position of
+	 * {@code -1} indicates an uninitialized state.)
+	 *
+	 * Note, however, that the test
+	 * {@code crs.getPosition() == SQLitePortal.CURSOR_NOT_STARTED} is logically
+	 * equivalent to the result of the existing method
+	 * {@link Cursor#isBeforeFirst()}.
+	 *
+	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 */
+	public static final int CURSOR_NOT_STARTED = -1 ;
+
+	/**
+	 * Magic value to be passed to {@link SQLiteDatabase#delete} when we want
+	 * the method to return a count of the number of rows deleted. (A literal
+	 * value of {@code 1} always matches as {@code true} in a {@code WHERE}
+	 * clause.) The Android documentation implies that passing {@code null} as
+	 * the {@code WHERE} clause will not return a count.
+	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 */
+	public static final String DELETE_ALL = "1" ;
+
+	/**
+	 * Magic value returned by {@link SQLiteDatabase#insert} and related methods
+	 * when a row insertion fails. (A value of {@code -1} as the row ID
+	 * indicates an error state.)
+	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 */
+	public static final long INSERT_FAILED = -1 ;
+
+	/**
+	 * Magic value returned by {@link SQLiteDatabase#replace} and related
+	 * methods when a row replacement fails. (A value of {@code -1} as the row
+	 * ID indicates an error state.)
+	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 */
+	public static final long REPLACE_FAILED = -1 ;
+
+	/**
+	 * Magic value to be passed to {@link SQLiteDatabase#query} and related
+	 * methods when we want to select all rows.
+	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 */
+	public static final String SELECT_ALL = null ;
+
+	/**
+	 * Magic value to be passed to {@link SQLiteDatabase#update} and related
+	 * methods when we want to indiscriminately update all rows, and get a count
+	 * of the number of rows that were updated. (A literal value of {@code 1}
+	 * always matches as {@code true} in a {@code WHERE} clause.)
+	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 */
+	public static final String UPDATE_ALL = "1" ;
+
+	/**
+	 * If using integer columns to store Boolean values, where {@code 1} is true
+	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
+	 * value substitutions for "true".
+	 * @see #boolToInt(boolean)
+	 * @see #intToBool(int)
+	 * @since zerobandwidth-net/android 0.1.1 (#20)
+	 */
+	public static final String WHERE_TRUE = "1" ;
+
+	/**
+	 * If using integer columns to store Boolean values, where {@code 1} is true
+	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
+	 * value substitutions for "false".
+	 * @see #boolToInt(boolean)
+	 * @see #intToBool(int)
+	 * @since zerobandwidth-net/android 0.1.1 (#20)
+	 */
+	public static final String WHERE_FALSE = "0" ;
 
     /**
      * Safely closes a database cursor. If the reference is {@code null}, or the
@@ -48,6 +135,15 @@ extends SQLiteOpenHelper
      */
     public static boolean intToBool( int z )
     { return( z != 0 ) ; }
+
+	/**
+	 * Returns the number of milliseconds since epoch UTC. Use this value when
+	 * comparing to timestamps stored in the database as {@code long} integers.
+	 * @return milliseconds since epoch UTC
+	 * @since zerobandwidth-net/android 0.1.1 (#20)
+	 */
+	public static long now()
+	{ return (new Date()).getTime() ; }
 
 /// Inner Classes //////////////////////////////////////////////////////////////
 
