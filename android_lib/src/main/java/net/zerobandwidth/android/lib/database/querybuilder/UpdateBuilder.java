@@ -98,11 +98,13 @@ extends QueryBuilder<UpdateBuilder,Integer>
 	{
 		StringBuilder sb = new StringBuilder() ;
 		sb.append( SQL_UPDATE ).append( m_sTableName )
-		  .append( SQL_SET ).append( m_valsToWrite.toString() ) // TODO might be bogus
+		  .append( SQL_SET )
+		  .append( toSQLInputParams( m_valsToWrite ) ) // TODO might be bogus
 		  ;
 		final String sWhere = this.getWhereClause() ;
 		if( sWhere != null )
 			sb.append( SQL_WHERE ).append( sWhere ) ;
+		sb.append( " ;" ) ;
 		return sb.toString() ;
 	}
 }

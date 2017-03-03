@@ -187,7 +187,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 		if( m_vColumns == null || m_vColumns.isEmpty() )
 			return null ;
 		else
-			return (String[])(m_vColumns.toArray()) ;
+			return m_vColumns.toArray( new String[m_vColumns.size()] ) ;
 	}
 
 	/**
@@ -234,7 +234,14 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 * @return (fluid)
 	 */
 	public SelectionBuilder orderBy( String sColumnName )
-	{ return this.orderBy( sColumnName, ORDER_ASC ) ; }
+	{
+		if( sColumnName == null )
+		{
+			m_mapOrderBy.clear() ;
+			return this ;
+		}
+		else return this.orderBy( sColumnName, ORDER_ASC ) ;
+	}
 
 	/**
 	 * Generates the selection's {@code ORDER BY} clause, if any.
@@ -314,6 +321,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 			sb.append( SQL_ORDER_BY ).append( sOrderBy ) ;
 		if( m_nLimit != NO_LIMIT )
 			sb.append( SQL_LIMIT ).append( m_nLimit ) ;
+		sb.append( " ;" ) ;
 		return sb.toString() ;
 	}
 }

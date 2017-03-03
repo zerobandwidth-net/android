@@ -114,7 +114,8 @@ extends QueryBuilder<InsertionBuilder,Long>
 			.append( SQL_INSERT_INTO )
 			.append( m_sTableName )
 			.append( SQL_SET )
-			.append( m_valsToWrite.toString() ) // TODO might be bogus
+			.append( toSQLInputParams( m_valsToWrite ) )
+			.append( " ;" )
 			.toString()
 			;
 	}

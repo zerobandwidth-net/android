@@ -64,7 +64,7 @@ extends QueryBuilder<DeletionBuilder,Integer>
 	/**
 	 * Constructs a raw SQL {@code DELETE} query based on the attributes of the
 	 * builder instance
-	 * @return a raw SQLite {@coce DELETE} query
+	 * @return a raw SQLite {@code DELETE} query
 	 */
 	@Override
 	public String toString()
@@ -74,6 +74,7 @@ extends QueryBuilder<DeletionBuilder,Integer>
 		final String sWhere = this.getWhereClause() ;
 		if( sWhere != null )
 			sb.append( SQL_WHERE ).append( sWhere ) ;
+		sb.append( " ;" ) ;
 		return sb.toString() ;
 	}
 }

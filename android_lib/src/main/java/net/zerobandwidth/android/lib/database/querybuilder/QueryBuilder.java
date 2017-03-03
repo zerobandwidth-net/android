@@ -5,7 +5,13 @@ import android.database.sqlite.SQLiteDatabase;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Builds a SQLite query using methods, rather than the methods from the
@@ -122,6 +128,41 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 */
 	public long now()
 	{ return SQLitePortal.now() ; }
+
+	/**
+	 * Renders the key/value pairs in a set of {@link ContentValues} as a list
+	 * of input parameters to an SQL {@code INSERT} or {@code UPDATE} query's
+	 * {@code SET} clause.
+	 *
+	 * So that the fields always appear in consistent order (rather than by hash
+	 * code), the method will sort lexically by key before rendering the output
+	 * string.
+	 *
+	 * @param vals the key/value pairs to be rendered
+	 * @return an SQL {@code SET} clause body
+	 */
+	public static String toSQLInputParams( ContentValues vals )
+	{
+		StringBuilder sb = new StringBuilder() ;
+		List<Map.Entry<String,Object>> aEntries =
+				new ArrayList<>( vals.valueSet() ) ;
+		Collections.sort( aEntries, new Comparator<Map.Entry<String,Object>>()
+		{
+			@Override
+			public int compare( Map.Entry<String,Object> lhs, Map.Entry<String,Object> rhs )
+			{ return (lhs.getKey()).compareTo(rhs.getKey()) ; }
+		});
+		for( Map.Entry<String,Object> pair : aEntries )
+		{
+			if( sb.length() > 0 ) sb.append( ", " ) ;
+			sb.append( pair.getKey() ).append( "=" ) ;
+			if( pair.getValue() instanceof Number )
+				sb.append( pair.getValue() ) ;
+			else
+				sb.append( "'" ).append( pair.getValue() ).append( "'" ) ;
+		}
+		return sb.toString() ;
+	}
 
 /// Shared member fields ///////////////////////////////////////////////////////
 
