@@ -18,6 +18,13 @@ extends QueryBuilder<InsertionBuilder,Long>
 	protected static final String LOG_TAG =
 			InsertionBuilder.class.getSimpleName() ;
 
+	/**
+	 * Magic number returned by {@link SQLiteDatabase#insert} and similar
+	 * methods, when the insertion fails.
+	 * @see SQLitePortal#INSERT_FAILED ;
+	 */
+	public static final long INSERT_FAILED = SQLitePortal.INSERT_FAILED ;
+
 	protected static final String SQL_INSERT_INTO = "INSERT INTO " ;
 
 	protected static final String SQL_SET = " SET " ;
@@ -91,7 +98,7 @@ extends QueryBuilder<InsertionBuilder,Long>
 					.append( "] failed:" )
 					.toString()
 				, x ) ;
-			return SQLitePortal.INSERT_FAILED ;
+			return INSERT_FAILED ;
 		}
 	}
 

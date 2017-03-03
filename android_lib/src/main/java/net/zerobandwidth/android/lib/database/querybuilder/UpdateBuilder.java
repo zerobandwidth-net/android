@@ -16,6 +16,7 @@ public class UpdateBuilder
 extends QueryBuilder<UpdateBuilder,Integer>
 {
 	protected static final String LOG_TAG = UpdateBuilder.class.getSimpleName();
+
 	/**
 	 * Similar to the standard magic number returned when an insertion query
 	 * fails (see {@link SQLitePortal#INSERT_FAILED}, this return value from
@@ -42,6 +43,13 @@ extends QueryBuilder<UpdateBuilder,Integer>
 
 	public UpdateBuilder( String sTableName )
 	{ super( sTableName ) ; }
+
+	/**
+	 * Convenience grammar specifying that all rows should be deleted.
+	 * @return (fluid)
+	 */
+	public UpdateBuilder updateAll()
+	{ return this.where( SQLitePortal.UPDATE_ALL ) ; }
 
 	/**
 	 * Selects, by its numeric ID, the conflict resolution algorithm provided by
@@ -83,5 +91,18 @@ extends QueryBuilder<UpdateBuilder,Integer>
 				, x ) ;
 			return UPDATE_FAILED ;
 		}
+	}
+
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder() ;
+		sb.append( SQL_UPDATE ).append( m_sTableName )
+		  .append( SQL_SET ).append( m_valsToWrite.toString() ) // TODO might be bogus
+		  ;
+		final String sWhere = this.getWhereClause() ;
+		if( sWhere != null )
+			sb.append( SQL_WHERE ).append( sWhere ) ;
+		return sb.toString() ;
 	}
 }

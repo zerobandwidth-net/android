@@ -11,6 +11,29 @@ import java.util.Vector;
 
 /**
  * Builds a SQLite {@code SELECT} query.
+ *
+ * <h3>Examples</h3>
+ *
+ * <pre>
+ * Cursor crsResult = QueryBuilder.selectFrom( sTableName )
+ *     .allColumns()
+ *     .where( "entity_id=?", sID )
+ *     .executeOn( db )
+ *     ;
+ * </pre>
+ *
+ * <pre>
+ * Cursor crsResult = QueryBuilder.selectFrom( sTableName )
+ *     .columns( "entity_id", "name", "start_ts", "stop_ts" )
+ *     .where( "active=? AND start_ts>=?",
+ *         QueryBuilder.WHERE_TRUE, SQLitePortal.now() )
+ *     .groupBy( "name" )
+ *     .orderBy( "name", SelectionBuilder.ORDER_ASC )
+ *     .limit( 10 )
+ *     .executeOn( db )
+ *     ;
+ * </pre>
+ *
  * @since zerobandwidth-net/android 0.1.1 (#20)
  */
 @SuppressWarnings( "unused" )                              // This is a library.
@@ -21,7 +44,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 * Specifies that the selection should include all columns.
 	 * @see #columns(String...)
 	 */
-	public static final String ALL_COLUMNS = null ;
+	public static final String SELECT_ALL_COLUMNS = null ;
 
 	/**
 	 * Specifies that a column should be ordered ascending.
@@ -111,17 +134,24 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	{ return this.distinct(true) ; }
 
 	/**
+	 * Specifies that all columns should be selected (default).
+	 * @return (fluid)
+	 */
+	public SelectionBuilder allColumns()
+	{ m_vColumns = null ; return this ; }
+
+	/**
 	 * Sets the columns that should be returned in the selection set.
 	 *
-	 * If selecting all columns, then pass only the value {@link #ALL_COLUMNS},
-	 * rather than {@code null}.
+	 * If selecting all columns, then do not pass {@code null} to this method;
+	 * use {@link #allColumns()} instead.
 	 *
 	 * @param asColumns the names of columns to be returned
 	 * @return (fluid)
 	 */
 	public SelectionBuilder columns( String... asColumns )
 	{
-		if( asColumns == null ) // or ALL_COLUMNS
+		if( asColumns == null ) // or SELECT_ALL_COLUMNS
 		{ m_vColumns = null ; return this ; }
 		this.initColumns() ;
 		for( String sColumn : asColumns )
@@ -132,15 +162,15 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	/**
 	 * Sets the columns that should be returned in the selection set.
 	 *
-	 * If selecting all columsn, then do not pass {@code null} to this method;
-	 * instead, pass {@link #ALL_COLUMNS} to {@link #columns(String...)}.
+	 * If selecting all columns, then do not pass {@code null} to this method;
+	 * use {@link #allColumns()} instead.
 	 *
 	 * @param asColumns the names of columns to be returned
 	 * @return (fluid)
 	 */
 	public SelectionBuilder columns( Collection<String> asColumns )
 	{
-		if( asColumns == null ) // or ALL_COLUMNS
+		if( asColumns == null ) // or SELECT_ALL_COLUMNS
 		{ m_vColumns = null ; return this ; }
 		this.initColumns() ;
 		for( String sColumn : asColumns )
@@ -229,7 +259,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	/**
 	 * Adds an SQLite {@code LIMIT} clause to the selection.
 	 * To explicitly enforce no limit, pass {@link #NO_LIMIT}.
-	 * @param nLimit the limit to be enforced
+	 * @param nLimit the limit to be enforced, or {@link #NO_LIMIT} (default)
 	 * @return (fluid)
 	 */
 	public SelectionBuilder limit( int nLimit )

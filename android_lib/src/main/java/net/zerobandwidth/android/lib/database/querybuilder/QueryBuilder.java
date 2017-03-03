@@ -3,6 +3,8 @@ package net.zerobandwidth.android.lib.database.querybuilder;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
+import net.zerobandwidth.android.lib.database.SQLitePortal;
+
 import java.util.Collection;
 
 /**
@@ -21,6 +23,10 @@ import java.util.Collection;
  * {@link SQLiteDatabase}. In the future, the API of this class will be extended
  * to provide a grammar for constructing the conditional statement through
  * builder methods.</p>
+ *
+ * <p>The class builds on the foundation of {@link SQLitePortal} and derives
+ * several of its static constants and design decisions from features of that
+ * class.</p>
  *
  * @param <I> The implementation class which extends {@code QueryBuilder}. This
  *           is set explicitly in the declaration of the implementation class,
@@ -51,6 +57,26 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 * @see DeletionBuilder#toString()
 	 */
 	protected static final String SQL_WHERE = " WHERE " ;
+
+	/**
+	 * If using integer columns to store Boolean values, where {@code 1} is true
+	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
+	 * value substitutions for "true".
+	 * @see SQLitePortal#boolToInt(boolean)
+	 * @see SQLitePortal#intToBool(int)
+	 * @see SQLitePortal#WHERE_TRUE
+	 */
+	public static final String WHERE_TRUE = SQLitePortal.WHERE_TRUE ;
+
+	/**
+	 * If using integer columns to store Boolean values, where {@code 1} is true
+	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
+	 * value substitutions for "false".
+	 * @see SQLitePortal#boolToInt(boolean)
+	 * @see SQLitePortal#intToBool(int)
+	 * @see SQLitePortal#WHERE_FALSE
+	 */
+	public static final String WHERE_FALSE = SQLitePortal.WHERE_FALSE ;
 
 /// Static kickoff methods (starts a query of a given type) ////////////////////
 
@@ -85,6 +111,17 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 */
 	public static DeletionBuilder deleteFrom( String sTableName )
 	{ return new DeletionBuilder( sTableName ) ; }
+
+/// Other static methods ///////////////////////////////////////////////////////
+
+	/**
+	 * Returns the number of milliseconds since epoch UTC. Use this value when
+	 * comparing to timestamps stored in the database as {@code long} integers.
+	 * @return milliseconds since epoch UTC
+	 * @see SQLitePortal#now()
+	 */
+	public long now()
+	{ return SQLitePortal.now() ; }
 
 /// Shared member fields ///////////////////////////////////////////////////////
 
@@ -142,6 +179,26 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	public I setValues( ContentValues vals )
 	{
 		m_valsToWrite = vals ;
+		return (I)this ;
+	}
+
+	/**
+	 * Constructs an explicit {@code WHERE} clause for the query.
+	 *
+	 * The supplied string is used as a format string for the {@code WHERE}
+	 * clause and should contain <b>no</b> variable substitutions. The
+	 * collection of variable values will be set to {@code null} by this method,
+	 * based on this assumption.
+	 *
+	 * @param sWhereClause the explicit {@code WHERE} clause, containing
+	 *  <b>no</b> variable substitution placeholders
+	 * @return (fluid)
+	 */
+	@SuppressWarnings( "unchecked" )
+	public I where( String sWhereClause )
+	{
+		m_sExplicitWhereFormat = sWhereClause ;
+		m_asExplicitWhereParams = null ;
 		return (I)this ;
 	}
 
