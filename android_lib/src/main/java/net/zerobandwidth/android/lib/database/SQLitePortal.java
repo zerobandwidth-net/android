@@ -6,10 +6,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.Date;
+
 /**
  * Extends {@link SQLiteOpenHelper} by allowing an instance to maintain its own
  * persistent interface to its underlying database. Also statically provides
- * several useful database utility functions and semantic constants.
+ * several useful database utility functions and semantic constants, which also
+ * form the basis of
+ * {@link net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder QueryBuilder}.
  * @since zerobandwidth-net/android 0.0.2 (#8)
  */
 @SuppressWarnings("unused")                                // This is a library.
@@ -83,6 +87,26 @@ extends SQLiteOpenHelper
 	 */
 	public static final String UPDATE_ALL = "1" ;
 
+	/**
+	 * If using integer columns to store Boolean values, where {@code 1} is true
+	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
+	 * value substitutions for "true".
+	 * @see #boolToInt(boolean)
+	 * @see #intToBool(int)
+	 * @since zerobandwidth-net/android 0.1.1 (#20)
+	 */
+	public static final String WHERE_TRUE = "1" ;
+
+	/**
+	 * If using integer columns to store Boolean values, where {@code 1} is true
+	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
+	 * value substitutions for "false".
+	 * @see #boolToInt(boolean)
+	 * @see #intToBool(int)
+	 * @since zerobandwidth-net/android 0.1.1 (#20)
+	 */
+	public static final String WHERE_FALSE = "0" ;
+
     /**
      * Safely closes a database cursor. If the reference is {@code null}, or the
      * cursor is already closed, then the method returns trivially.
@@ -111,6 +135,15 @@ extends SQLiteOpenHelper
      */
     public static boolean intToBool( int z )
     { return( z != 0 ) ; }
+
+	/**
+	 * Returns the number of milliseconds since epoch UTC. Use this value when
+	 * comparing to timestamps stored in the database as {@code long} integers.
+	 * @return milliseconds since epoch UTC
+	 * @since zerobandwidth-net/android 0.1.1 (#20)
+	 */
+	public static long now()
+	{ return (new Date()).getTime() ; }
 
 /// Inner Classes //////////////////////////////////////////////////////////////
 
