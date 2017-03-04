@@ -1,10 +1,32 @@
 /* vim: tabstop=2 shiftwidth=2 expandtab */
+a:link
+{ color:#dead00; }
+
+a:visited
+{ color:#ca6e00; }
+
+a:hover
+{ color:#e8e800; }
+
+a:active
+{ color:#e8e800; }
+
 body
 {
-	background-color:#000000;
+	background-color:#101010;
 	color:#e8e8e8;
+	font-family:sans-serif;
 	padding:1em;
 }
 
+code
+{ font-family:monospace; }
+
+dt.section
+{ font-weight:bold; margin-top:16px; margin-bottom:8px; }
+
 img.imagebutton64
 { border:none; height:64px; width:64px; }
+
+.code
+{ font-family:monospace; }
