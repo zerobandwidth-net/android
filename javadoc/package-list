@@ -1,0 +1,11 @@
+net.zerobandwidth.android.lib
+net.zerobandwidth.android.lib.app
+net.zerobandwidth.android.lib.content
+net.zerobandwidth.android.lib.database
+net.zerobandwidth.android.lib.database.querybuilder
+net.zerobandwidth.android.lib.nonsense
+net.zerobandwidth.android.lib.security
+net.zerobandwidth.android.lib.services
+net.zerobandwidth.android.lib.telephony
+net.zerobandwidth.android.lib.telephony.exceptions
+net.zerobandwidth.android.lib.ui
