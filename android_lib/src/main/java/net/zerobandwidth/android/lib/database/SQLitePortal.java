@@ -147,6 +147,24 @@ extends SQLiteOpenHelper
 
 /// Inner Classes //////////////////////////////////////////////////////////////
 
+	/**
+	 * Classes interested in immediately reacting to a database's connection
+	 * status may implement this interface to catch the event. Usually,
+	 * connection times are fast enough that this is not necessary, and the
+	 * database under the {@link SQLitePortal} may be used immediately.
+	 * @since zerobandwidth-net/android 0.1.2 (#24)
+	 */
+	public interface ConnectionListener
+	{
+		/**
+		 * Handles callback event from {@link ConnectionTask} when the
+		 * connection is established.
+		 * @param dbh the {@link SQLitePortal} instance that was connected to
+		 *            the database
+		 */
+		public void onDatabaseConnected( SQLitePortal dbh ) ;
+	}
+
     /**
      * Allows the {@link SQLitePortal} to create a persistent connection to its
      * underlying database on a background thread.
@@ -160,6 +178,25 @@ extends SQLiteOpenHelper
          * conenction.
          */
         protected SQLitePortal m_dbh = SQLitePortal.this ;
+
+	    /**
+	     * A listener to handle the connection callback, if any.
+	     * @since zerobandwidth-net/android 0.1.2 (#24)
+	     */
+	    protected ConnectionListener m_listener = null ;
+
+	    /** The default constructor. */
+	    protected ConnectionTask()
+	    { m_listener = null ; }
+
+	    /**
+	     * A constructor which specifies a listener to receive the "on
+	     * connected" callback.
+	     * @param l a listener
+	     * @since zerobandwidth-net/android 0.1.2 (#24)
+	     */
+	    protected ConnectionTask( ConnectionListener l )
+	    { m_listener = l ; }
 
         /**
          * Executes the task in the background. {@link SQLitePortal}
@@ -178,6 +215,8 @@ extends SQLiteOpenHelper
             catch( Exception x )
             { Log.e( LOG_TAG, "Could not connect to database.", x ) ; }
             m_dbh.m_bIsConnected = ( m_dbh.m_db != null ) ;
+	        if( m_dbh.m_bIsConnected && m_listener != null )
+		        m_listener.onDatabaseConnected( m_dbh ) ;
         }
     }
 
@@ -212,6 +251,17 @@ extends SQLiteOpenHelper
      */
     public synchronized SQLitePortal openDB()
     { (new ConnectionTask()).runInBackground() ; return this ; }
+
+	/**
+	 * Kicks off a {@link ConnectionTask} which will inform the specified
+	 * {@link ConnectionListener} when the connection to the SQLite database is
+	 * established.
+	 * @param l the listener for the "on connected" callback
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.2 (#24)
+	 */
+	public synchronized SQLitePortal openDB( ConnectionListener l )
+	{ (new ConnectionTask(l)).runInBackground() ; return this ; }
 
     /**
      * Closes the database connection and releases all references to it.

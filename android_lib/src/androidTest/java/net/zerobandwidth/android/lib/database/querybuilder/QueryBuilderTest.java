@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.v7.internal.app.ToolbarActionBar;
 import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.MinimalUnitTestDBPortal;
