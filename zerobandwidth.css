@@ -1,0 +1,10 @@
+/* vim: tabstop=2 shiftwidth=2 expandtab */
+body
+{
+	background-color:#000000;
+	color:#e8e8e8;
+	padding:1em;
+}
+
+img.imagebutton64
+{ border:none; height:64px; width:64px; }
