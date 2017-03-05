@@ -38,14 +38,15 @@ public class SingletonServiceTest
 	 * Provides one of the multiple contexts across which we will test the
 	 * service instance.
 	 */
-	public static abstract class TestContext extends Activity
+	public static abstract class SingletonServiceTestContext
+	extends Activity
 	implements SimpleServiceConnection.Listener<SingletonService>
 	{
 		public SimpleTestServiceConnection<SingletonService> m_conn = null ;
 
 		public boolean m_bExecuted = false ;
 
-		public TestContext()
+		public SingletonServiceTestContext()
 		{ super() ; }
 
 		@Override
@@ -78,7 +79,7 @@ public class SingletonServiceTest
 		public void onServiceDisconnected( SimpleServiceConnection<SingletonService> conn )
 		{}
 
-		public TestContext unbind()
+		public SingletonServiceTestContext unbind()
 		{
 			m_conn.removeListener(this).disconnect(this) ;
 			m_conn = null ;
@@ -93,7 +94,12 @@ public class SingletonServiceTest
 		}
 	}
 
-    public static class FirstContext extends TestContext
+	/**
+	 * Provides one of the multiple contexts across which we will test the
+	 * service instance. This context writes a string value to the service.
+	 */
+	public static class FirstContext extends SingletonServiceTestContext
+    implements SimpleServiceConnection.Listener<SingletonService>
     {
         public String m_sIdentifier = UUID.randomUUID().toString() ;
 
@@ -120,7 +126,12 @@ public class SingletonServiceTest
         }
     }
 
-    public static class SecondContext extends TestContext
+	/**
+	 * Provides one of the multiple contexts across which we will test the
+	 * service instance. This context writes an integer value ot the service.
+	 */
+    public static class SecondContext extends SingletonServiceTestContext
+    implements SimpleServiceConnection.Listener<SingletonService>
     {
         public Integer m_nIdentifier = (new Random()).nextInt(Integer.MAX_VALUE) ;
 
@@ -147,15 +158,30 @@ public class SingletonServiceTest
         }
     }
 
+	/** Persistent but weak reference to the first test context. */
     protected static WeakReference<FirstContext> s_ctxOne = null ;
+	/** Persistent but weak reference to the second test context. */
     protected static WeakReference<SecondContext> s_ctxTwo = null ;
 
+	/**
+	 * The Android instrument that allows us to kick off the service inside the
+	 * test.
+	 */
 	@Rule
 	public final ServiceTestRule m_rule = new ServiceTestRule() ;
 
+	/** A persistent connection to the service. */
 	protected SimpleTestServiceConnection<SingletonService> m_conn ;
+	/** A persistent reference to the service. */
 	protected SingletonService m_srv = null ;
 
+	/**
+	 * Attempts to verify that the singletons written into the service are
+	 * accessible even when written from multiple contexts.
+	 *
+	 * Note that, because of the way service testing works in Android, this test
+	 * case is inherently unstable, and returns a lot of false negatives.
+	 */
 	@Test
 	public void testAcrossContexts()
 	{
@@ -207,9 +233,9 @@ public class SingletonServiceTest
 		catch( InterruptedException x )
 		{ fail( "Activity creation delay was interrupted." ) ; }
 		if( s_ctxOne == null || s_ctxOne.get() == null )
-			fail( "First context is dead." ) ;
+			fail( "First context is dead. This might simply be a lost race condition." ) ;
 		if( s_ctxTwo == null || s_ctxTwo.get() == null )
-			fail( "Second context is dead." ) ;
+			fail( "Second context is dead. This might simply be a lost race condition." ) ;
 		int nSpin = 0 ;
 		Log.d( LOG_TAG, "Spin cycle..." ) ;
 		//noinspection StatementWithEmptyBody
@@ -244,6 +270,24 @@ public class SingletonServiceTest
 				m_srv.get( Integer.class ) ) ;
 	}
 
+	/**
+	 * Exercises the more exotic methods of {@link SingletonService}.
+	 */
+	@Test
+	public void testNonMapMethods()
+	{
+		SingletonService srv = new SingletonService() ;
+		srv.onCreate() ;
+		assertEquals( "foo", srv.getOrPut( String.class, "foo" ) ) ;
+		assertEquals( "foo", srv.getOrPut( String.class, "bar" ) ) ;
+		assertEquals( "foo", srv.getOrPut( String.class, "baz" ) ) ;
+		assertTrue( srv.hasInstanceOf( String.class ) ) ;
+		assertFalse( srv.hasInstanceOf( Activity.class ) ) ;
+	}
+
+	/**
+	 * Tears down the object references maintained by the test class.
+	 */
 	@After
 	public void teardown()
 	{
