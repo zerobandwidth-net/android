@@ -14,8 +14,7 @@ import java.util.concurrent.TimeoutException;
  * Extends {@link SimpleServiceConnection} to provide connectivity to services
  * within an Android test case. This is not a test suite in itself; rather, it
  * provides a feature which may be used in tests.
- * <b>NOTE: Unit testing of services is currently broken. (#3)</b>
- * @since zerobandwidth-net/android 0.0.1 (#1)
+ * @since zerobandwidth-net/android 0.1.2 (#3)
  */
 @SuppressWarnings("unused")
 public class SimpleTestServiceConnection<S extends Service>
@@ -28,7 +27,7 @@ extends SimpleServiceConnection<S>
      * Limits the number of times that the connection will retry before giving
      * up.
      */
-    public static final int MAX_CONNECTION_RETRIES = 1000 ;
+    public static final int MAX_CONNECTION_RETRIES = 10 ;
 
     public SimpleTestServiceConnection( Class<S> cls )
     { super(cls) ; }
@@ -58,7 +57,9 @@ extends SimpleServiceConnection<S>
         {
             Intent sig = new Intent(
                     InstrumentationRegistry.getTargetContext(), m_clsService ) ;
-            binder = rule.bindService( sig, this, bmFlags ) ;
+            try { binder = rule.bindService( sig, this, bmFlags ) ; }
+            catch( TimeoutException x )
+            { Log.w( LOG_TAG, "Timed out waiting for a connection." ) ; }
         }
 
         if( binder == null )

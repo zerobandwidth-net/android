@@ -1,54 +1,114 @@
 package net.zerobandwidth.android.lib.services;
 
-import android.app.Service;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ServiceTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.ServiceTestCase;
 import android.util.Log;
 
+import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.junit.Assert.* ;
+
+import java.lang.ref.WeakReference;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Exercises {@link SingletonService}.
- * <b>NOTE: Unit testing of services is currently broken. (#3)</b>
+ * Note that the quality of Android {@code Service} testing is inherently
+ * unstable, so a failure on any given run is not necessarily indicative of a
+ * failure in the class's operation.
  * @since zerobandwidth-net/android 0.0.1 (#1)
  */
-@SuppressWarnings("WeakerAccess")
-@RunWith(AndroidJUnit4.class)
+@RunWith( AndroidJUnit4.class )
 public class SingletonServiceTest
-extends ServiceTestCase<SingletonService>
-implements SimpleTestServiceConnection.Listener<SingletonService>
 {
     public static final String LOG_TAG =
             SingletonServiceTest.class.getSimpleName() ;
-/*
-    public static class FirstContext
-    extends Activity
-    implements SingletonService.Connection.Listener
-    {
-        public SingletonService.Connection m_srvFirst = null ;
 
+	/**
+	 * Provides one of the multiple contexts across which we will test the
+	 * service instance.
+	 */
+	public static abstract class TestContext extends Activity
+	implements SimpleServiceConnection.Listener<SingletonService>
+	{
+		public SimpleTestServiceConnection<SingletonService> m_conn = null ;
+
+		public boolean m_bExecuted = false ;
+
+		public TestContext()
+		{ super() ; }
+
+		@Override
+		public void onCreate( Bundle bndlState )
+		{
+			super.onCreate(bndlState) ;
+			SingletonService.kickoff(this) ;
+			try
+			{
+				m_conn = new SimpleTestServiceConnection<>( SingletonService.class )
+					.addListener(this).connectTest( new ServiceTestRule() ) ;
+			}
+			catch( TimeoutException x )
+			{ fail( "An activity's connection attempt timed out." ) ; }
+		}
+
+		@Override
+		public void onServiceConnected( SimpleServiceConnection<SingletonService> conn )
+		{
+			m_conn = ((SimpleTestServiceConnection<SingletonService>)(conn)) ;
+			this.putUniqueValue() ;
+			m_bExecuted = true ;
+			this.setVisible(false) ;
+		}
+
+		/** Implementations will write their distinctive value here. */
+		public abstract void putUniqueValue() ;
+
+		@Override
+		public void onServiceDisconnected( SimpleServiceConnection<SingletonService> conn )
+		{}
+
+		public TestContext unbind()
+		{
+			m_conn.removeListener(this).disconnect(this) ;
+			m_conn = null ;
+			return this ;
+		}
+
+		@Override
+		public void onDestroy()
+		{
+			this.unbind() ;
+			super.onDestroy() ;
+		}
+	}
+
+    public static class FirstContext extends TestContext
+    {
         public String m_sIdentifier = UUID.randomUUID().toString() ;
 
-        public boolean m_bExecuted = false ;
+	    public FirstContext() { super() ; }
 
         @Override
-        public void onCreate( Bundle bndl )
+        public void onCreate( Bundle bndlState )
         {
-            super.onCreate(bndl) ;
+            super.onCreate(bndlState) ;
             Log.d( LOG_TAG, "Starting context 1..." ) ;
-            m_srvFirst = new SingletonService.Connection() ;
-            m_srvFirst.addListener(this).connect(this) ;
             SingletonServiceTest.s_ctxOne = new WeakReference<>(this) ;
         }
 
         @Override
-        public <LS extends Service> void onServiceConnected( SimpleServiceConnection<LS> conn )
+        public void putUniqueValue()
         {
             Log.d( LOG_TAG, (new StringBuilder())
                     .append( "First context is writing string [" )
@@ -56,54 +116,26 @@ implements SimpleTestServiceConnection.Listener<SingletonService>
                     .append( "] to the singleton service." )
                     .toString()
                 );
-            m_srvFirst.put( String.class, m_sIdentifier ) ;
-            m_bExecuted = true ;
-            SingletonServiceTest.verifyValuesAcrossContexts() ;
-        }
-
-        @Override
-        public <LS extends Service> void onServiceDisconnected( SimpleServiceConnection<LS> conn )
-        {}
-
-        public FirstContext unbind()
-        {
-            Log.d( LOG_TAG, "Unbinding context 1." ) ;
-            m_srvFirst.removeListener(this).disconnect(this) ;
-            m_srvFirst = null ;
-            return this ;
-        }
-
-        @Override
-        public void onDestroy()
-        {
-            Log.d( LOG_TAG, "Destroying context 1." ) ;
-            this.unbind() ;
-            super.onDestroy() ;
+            m_conn.getServiceInstance().put( String.class, m_sIdentifier ) ;
         }
     }
 
-    public static class SecondContext
-    extends Activity
-    implements SingletonService.Connection.Listener
+    public static class SecondContext extends TestContext
     {
-        public SingletonService.Connection m_srvSecond = null ;
-
         public Integer m_nIdentifier = (new Random()).nextInt(Integer.MAX_VALUE) ;
 
-        public boolean m_bExecuted = false ;
+	    public SecondContext() { super() ; }
 
         @Override
-        protected void onCreate( Bundle bndl )
+        public void onCreate( Bundle bndlState )
         {
-            super.onCreate(bndl) ;
+            super.onCreate(bndlState) ;
             Log.d( LOG_TAG, "Starting context 2..." ) ;
             SingletonServiceTest.s_ctxTwo = new WeakReference<>(this) ;
-            m_srvSecond = new SingletonService.Connection() ;
-            m_srvSecond.addListener(this).connect(this) ;
         }
 
         @Override
-        public <LS extends Service> void onServiceConnected( SimpleServiceConnection<LS> conn )
+        public void putUniqueValue()
         {
             Log.d( LOG_TAG, (new StringBuilder())
                     .append( "Second context is writing integer [" )
@@ -111,137 +143,113 @@ implements SimpleTestServiceConnection.Listener<SingletonService>
                     .append( "] to the singleton service." )
                     .toString()
             );
-            m_srvSecond.put( Integer.class, m_nIdentifier ) ;
-            m_bExecuted = true ;
-            SingletonServiceTest.verifyValuesAcrossContexts() ;
-        }
-
-        @Override
-        public <LS extends Service> void onServiceDisconnected(SimpleServiceConnection<LS> conn)
-        {}
-
-        public SecondContext unbind()
-        {
-            Log.d( LOG_TAG, "Unbinding context 2." ) ;
-            m_srvSecond.removeListener(this).disconnect(this) ;
-            m_srvSecond = null ;
-            return this ;
-        }
-
-        @Override
-        public void onDestroy()
-        {
-            Log.d( LOG_TAG, "Destroying context 2." ) ;
-            this.unbind() ;
-            super.onDestroy() ;
+            m_conn.getServiceInstance().put( Integer.class, m_nIdentifier ) ;
         }
     }
 
-    public static WeakReference<FirstContext> s_ctxOne = null ;
-    public static String s_sFirst = null ;
-    public static WeakReference<SecondContext> s_ctxTwo = null ;
-    public static Integer s_nSecond = null ;
-    protected static Semaphore s_lock = new Semaphore(1) ;
-*/
+    protected static WeakReference<FirstContext> s_ctxOne = null ;
+    protected static WeakReference<SecondContext> s_ctxTwo = null ;
 
-    protected SimpleTestServiceConnection<SingletonService> m_srvOne = null ;
-    protected SimpleTestServiceConnection<SingletonService> m_srvTwo = null ;
-    protected String m_sOne = null ;
-    protected Integer m_nTwo = null ;
-    protected Semaphore m_lock = new Semaphore(0) ;
+	@Rule
+	public final ServiceTestRule m_rule = new ServiceTestRule() ;
 
-    public SingletonServiceTest()
-    { super(SingletonService.class) ; }
+	protected SimpleTestServiceConnection<SingletonService> m_conn ;
+	protected SingletonService m_srv = null ;
 
-    @Test
-    public void testAcrossContexts()
-    throws Exception
-    {
-        Log.d( LOG_TAG, "Starting testAcrossContexts()." ) ;
-/*
-        Context ctx = InstrumentationRegistry.getTargetContext() ;
-        s_lock.acquire() ;
-        ctx.startActivity( (new Intent( ctx, FirstContext.class ))
-                .setFlags( Intent.FLAG_ACTIVITY_NEW_TASK ) ) ;
-        ctx.startActivity( (new Intent( ctx, SecondContext.class ))
-                .setFlags( Intent.FLAG_ACTIVITY_NEW_TASK ) ) ;
-*/
-        m_srvOne = new SimpleTestServiceConnection<>(SingletonService.class)
-                .addListener(this).connectTest( new ServiceTestRule() ) ;
-//        if( ! m_srvOne.isBound() ) fail( "Couldn't bind service 1." ) ;
-        m_srvTwo = new SimpleTestServiceConnection<>(SingletonService.class)
-                .addListener(this).connectTest( new ServiceTestRule() ) ;
-//        if( ! m_srvTwo.isBound() ) fail( "Couldn't bind service 2." ) ;
-        m_lock.acquire() ;
-    }
+	@Test
+	public void testAcrossContexts()
+	{
+		final int ACTIVITY_DELAY_MS = 7500 ; // Activity timeout delay. Tune to taste.
+		final int SPIN_CYCLE = 5000 ; // Waiting for numbers to populate. Tune to taste.
+		final int CONNECTION_DELAY_MS = 5000 ; // Service connection delay. Tune to taste.
 
-    @Override
-    public void onServiceConnected( SimpleServiceConnection<SingletonService> conn )
-    {
-        if( conn == m_srvOne )
-        {
-            m_sOne = UUID.randomUUID().toString() ;
-            SingletonService srv = conn.getServiceInstance() ;
-            srv.put( String.class, m_sOne ) ;
-        }
-        else if( conn == m_srvTwo )
-        {
-            m_nTwo = (new Random()).nextInt(Integer.MAX_VALUE) ;
-            SingletonService srv = conn.getServiceInstance() ;
-            srv.put( Integer.class, m_nTwo ) ;
-        }
-        this.verifyValuesAcrossContexts() ;
-    }
+		Log.d( LOG_TAG, "Kicking off service from test method..." ) ;
+		final Context ctx = InstrumentationRegistry.getTargetContext() ;
+		final Intent sigStart = ( new Intent( ctx, SingletonService.class ) )
+				.setAction( SingletonService.ACTION_KICKOFF ) ;
+		try { m_rule.startService( sigStart ) ; }
+		catch( TimeoutException x )
+		{ fail( "Initial kickoff action failed." ) ; }
+		Log.d( LOG_TAG, "Binding to service from test method..." ) ;
+		m_conn = new SimpleTestServiceConnection<>( SingletonService.class ) ;
+		final SimpleServiceConnection.Listener<SingletonService> l =
+			new SimpleServiceConnection.Listener<SingletonService>()
+			{
+				@Override
+				public void onServiceConnected( SimpleServiceConnection<SingletonService> conn )
+				{
+					Log.i( LOG_TAG, "Service connected inside anonymous listener." ) ;
+					SingletonServiceTest.this.m_srv = conn.getServiceInstance() ;
+					Log.d( LOG_TAG, (
+							SingletonServiceTest.this.m_srv == null ? "Service is null?!" : "Service is non-null." ) ) ;
+				}
 
-    @Override
-    public void onServiceDisconnected(SimpleServiceConnection<SingletonService> conn)
-    {}
+				@Override
+				public void onServiceDisconnected( SimpleServiceConnection<SingletonService> conn )
+				{}
+			};
+		try { m_conn.addListener(l).connectTest( m_rule ) ; }
+		catch( TimeoutException x )
+		{ fail( "Test method's connection attempt timed out." ) ; }
+		Log.d( LOG_TAG, "Sleeping to wait for a connection..." ) ;
+		try { Thread.sleep( CONNECTION_DELAY_MS ) ; }
+		catch( InterruptedException x )
+		{ fail( "Connection delay was interrupted." ) ; }
+		if( m_srv == null ) fail( "Never connected to service." ) ;
 
-//    public static synchronized void verifyValuesAcrossContexts()
-    public synchronized void verifyValuesAcrossContexts()
-    {
-        Log.d( LOG_TAG, "Called verifyValuesAcrossContexts()" ) ;
-/*
-        FirstContext ctxOne = s_ctxOne.get() ;
-        SecondContext ctxTwo = s_ctxTwo.get() ;
-        if( ctxOne != null && ctxOne.m_bExecuted
-         && ctxTwo != null && ctxTwo.m_bExecuted )
-        { // Results have been successfully captured; conclude the test.
-            Log.d( LOG_TAG, "We have results!" ) ;
-            assertEquals( s_sFirst, ctxOne.m_sIdentifier ) ;
-            assertEquals( s_nSecond, ctxTwo.m_nIdentifier ) ;
+		final Intent sigOne = new Intent( ctx, FirstContext.class )
+				.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK ) ;
+		final Intent sigTwo = new Intent( ctx, SecondContext.class )
+				.setFlags( Intent.FLAG_ACTIVITY_NEW_TASK ) ;
+		ctx.startActivity( sigOne ) ;
+		ctx.startActivity( sigTwo ) ;
+		try { Thread.sleep( ACTIVITY_DELAY_MS ) ; }
+		catch( InterruptedException x )
+		{ fail( "Activity creation delay was interrupted." ) ; }
+		if( s_ctxOne == null || s_ctxOne.get() == null )
+			fail( "First context is dead." ) ;
+		if( s_ctxTwo == null || s_ctxTwo.get() == null )
+			fail( "Second context is dead." ) ;
+		int nSpin = 0 ;
+		Log.d( LOG_TAG, "Spin cycle..." ) ;
+		//noinspection StatementWithEmptyBody
+		while( ! s_ctxOne.get().m_bExecuted && ! s_ctxTwo.get().m_bExecuted && nSpin++ < SPIN_CYCLE ) ;
+		if( nSpin == SPIN_CYCLE ) fail( "Never executed commands." ) ;
+		else
+		{
+			Log.d( LOG_TAG, (new StringBuilder())
+					.append( "Spin cycle ended after [" )
+					.append( nSpin )
+					.append( "] iterations." )
+					.toString()
+				);
+		}
 
-            // Compare the result written by each context to the value returned
-            // from the SingletonService as fetched by the other context.
-            assertEquals( s_sFirst, ctxTwo.m_srvSecond.get(String.class) ) ;
-            assertEquals( s_nSecond, ctxOne.m_srvFirst.get(Integer.class) ) ;
+		// Now we can finally try the cross-context test.
+		Log.d( LOG_TAG, (new StringBuilder())
+				.append( "*** RESULT ***\n" )
+				.append( "Context 1 identifier: " )
+				.append( s_ctxOne.get().m_sIdentifier )
+				.append( "\nService string:       " )
+				.append( m_srv.get( String.class ) )
+				.append( "\nContext 2 identifier: " )
+				.append( s_ctxTwo.get().m_nIdentifier )
+				.append( "\nService integer:      " )
+				.append( m_srv.get( Integer.class ) )
+				.toString()
+			);
+		assertEquals( s_ctxOne.get().m_sIdentifier,
+				m_srv.get( String.class ) ) ;
+		assertEquals( s_ctxTwo.get().m_nIdentifier,
+				m_srv.get( Integer.class ) ) ;
+	}
 
-            ctxOne.unbind() ;
-            ctxTwo.unbind() ;
-            s_lock.release() ;
-        }
-        else
-            Log.d( LOG_TAG, "No results yet!" ) ;
-*/
-        if( m_sOne != null && m_nTwo != null )
-        {
-            Log.d( LOG_TAG, "We have results!" ) ;
-            SingletonService srvOne = m_srvOne.getServiceInstance() ;
-            SingletonService srvTwo = m_srvTwo.getServiceInstance() ;
-            if( srvOne == null || srvTwo == null )
-            {
-                Log.e( LOG_TAG, "Couldn't connect to at least one service." ) ;
-                m_lock.release() ;
-                fail( "Couldn't connect to at least one service.") ;
-            }
-            assertEquals( m_sOne, srvOne.get(String.class) ) ;
-            assertEquals( m_nTwo, srvTwo.get(Integer.class) ) ;
-            // and now the fun part
-            assertEquals( m_nTwo, srvOne.get(Integer.class) ) ;
-            assertEquals( m_sOne, srvTwo.get(String.class) ) ;
-            m_lock.release() ;
-        }
-        else
-            Log.d( LOG_TAG, "No results yet!" ) ;
-    }
+	@After
+	public void teardown()
+	{
+		Log.d( LOG_TAG, "Tearing down the test." ) ;
+		if( s_ctxOne != null && s_ctxOne.get() != null ) s_ctxOne.get().finish() ;
+		if( s_ctxTwo != null && s_ctxTwo.get() != null ) s_ctxTwo.get().finish() ;
+		s_ctxOne = null ; s_ctxTwo = null ;
+	}
 }
