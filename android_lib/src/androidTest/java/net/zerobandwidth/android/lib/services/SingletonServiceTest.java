@@ -26,7 +26,7 @@ import java.util.concurrent.TimeoutException;
  * Note that the quality of Android {@code Service} testing is inherently
  * unstable, so a failure on any given run is not necessarily indicative of a
  * failure in the class's operation.
- * @since zerobandwidth-net/android 0.0.1 (#1)
+ * @since zerobandwidth-net/android 0.1.2 (#3)
  */
 @RunWith( AndroidJUnit4.class )
 public class SingletonServiceTest
@@ -37,6 +37,7 @@ public class SingletonServiceTest
 	/**
 	 * Provides one of the multiple contexts across which we will test the
 	 * service instance.
+	 * @since zerobandwidth-net/android 0.1.2 (#3)
 	 */
 	public static abstract class SingletonServiceTestContext
 	extends Activity
@@ -97,6 +98,7 @@ public class SingletonServiceTest
 	/**
 	 * Provides one of the multiple contexts across which we will test the
 	 * service instance. This context writes a string value to the service.
+	 * @since zerobandwidth-net/android 0.1.2 (#3)
 	 */
 	public static class FirstContext extends SingletonServiceTestContext
     implements SimpleServiceConnection.Listener<SingletonService>
@@ -129,6 +131,7 @@ public class SingletonServiceTest
 	/**
 	 * Provides one of the multiple contexts across which we will test the
 	 * service instance. This context writes an integer value ot the service.
+	 * @since zerobandwidth-net/android 0.1.2 (#3)
 	 */
     public static class SecondContext extends SingletonServiceTestContext
     implements SimpleServiceConnection.Listener<SingletonService>
