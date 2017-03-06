@@ -9,3 +9,4 @@ net.zerobandwidth.android.lib.services
 net.zerobandwidth.android.lib.telephony
 net.zerobandwidth.android.lib.telephony.exceptions
 net.zerobandwidth.android.lib.ui
+net.zerobandwidth.android.lib.view.updaters
