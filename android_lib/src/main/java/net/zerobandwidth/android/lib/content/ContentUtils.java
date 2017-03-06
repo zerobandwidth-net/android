@@ -23,6 +23,9 @@ public class ContentUtils
 {
 	protected static final String LOG_TAG = ContentUtils.class.getSimpleName() ;
 
+	/** MIME type "text/plain" */
+	public static final String MIMETYPE_TEXT_PLAIN = "text/plain" ;
+
 	/**
 	 * A persistent reference to the system's clipboard manager.
 	 */
@@ -105,6 +108,7 @@ public class ContentUtils
 	{
 		Intent sigShare = new Intent( Intent.ACTION_SEND ) ;
 		sigShare.putExtra( Intent.EXTRA_TEXT, sText ) ;
+		sigShare.setType( MIMETYPE_TEXT_PLAIN ) ;
 		ctx.startActivity( Intent.createChooser( sigShare, sTitle ) ) ;
 	}
 
