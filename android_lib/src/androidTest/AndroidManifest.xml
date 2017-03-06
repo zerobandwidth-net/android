@@ -4,6 +4,8 @@
     <application>
         <activity android:name="net.zerobandwidth.android.lib.services.SingletonServiceTest$FirstContext"/>
         <activity android:name="net.zerobandwidth.android.lib.services.SingletonServiceTest$SecondContext"/>
+        <service android:name="net.zerobandwidth.android.lib.services.SingletonService" android:enabled="true"/>
     </application>
+
 
 </manifest>
