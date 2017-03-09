@@ -1,6 +1,7 @@
 package net.zerobandwidth.android.lib.app;
 
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AppOpsManager;
@@ -12,7 +13,6 @@ import android.app.UiModeManager;
 import android.app.WallpaperManager;
 import android.app.admin.DevicePolicyManager;
 import android.app.job.JobScheduler;
-import android.app.usage.NetworkStatsManager;
 import android.app.usage.UsageStatsManager;
 import android.appwidget.AppWidgetManager;
 import android.bluetooth.BluetoothManager;
@@ -24,13 +24,11 @@ import android.hardware.ConsumerIrManager;
 import android.hardware.SensorManager;
 import android.hardware.camera2.CameraManager;
 import android.hardware.display.DisplayManager;
-import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.input.InputManager;
 import android.hardware.usb.UsbManager;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.MediaRouter;
-import android.media.midi.MidiManager;
 import android.media.projection.MediaProjectionManager;
 import android.media.session.MediaSessionManager;
 import android.media.tv.TvInputManager;
@@ -40,6 +38,7 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.nfc.NfcManager;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.DropBoxManager;
 import android.os.PowerManager;
 import android.os.UserManager;
@@ -47,7 +46,6 @@ import android.os.Vibrator;
 import android.os.storage.StorageManager;
 import android.print.PrintManager;
 import android.telecom.TelecomManager;
-import android.telephony.CarrierConfigManager;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -225,32 +223,6 @@ public class Managers
 	 */
 	public static final String USAGE_STATS_SERVICE = "usagestats" ;
 
-/// Android API 23 Constants ///////////////////////////////////////////////////
-
-	/**
-	 * Backward-compatibility constant for {@code Context.CARRIER_CONFIG_SERVICE}
-	 * (added in Android API 23)
-	 */
-	public static final String CARRIER_CONFIG_SERVICE = "carrier_config" ;
-
-	/**
-	 * Backward-compatibility constant for {@code Context.FINGERPRINT_SERVICE}
-	 * (added in Android API 23)
-	 */
-	public static final String FINGERPRINT_SERVICE = "fingerprint" ;
-
-	/**
-	 * Backward-compatibility constant for {@code Context.MIDI_SERVICE}
-	 * (added in Android API 23)
-	 */
-	public static final String MIDI_SERVICE = "midi" ;
-
-	/**
-	 * Backward-compatibility constant for {@code Context.NETWORK_STATS_SERVICE}
-	 * (added in Android API 23)
-	 */
-	public static final String NETWORK_STATS_SERVICE = "netstats" ;
-
 /// And now, the interesting bits //////////////////////////////////////////////
 
 	/**
@@ -293,130 +265,156 @@ public class Managers
 	 *     </tbody>
 	 * </table>
 	 *
-	 * <b>NOTE:</b> The official Android documentation appears to be incorrect
-	 * for the {@link Context#WALLPAPER_SERVICE} tag. This does not return an
-	 * instance of {@code WallpaperService}; instead, it returns a
-	 * {@link WallpaperManager}.
+	 * This map is instantiated only when the app's API version is lower than
+	 * 23. When greater than 23, the {@link #get} method will simply call the
+	 * existing {@code getSystemService(Class)} method in the API 23+ version of
+	 * {@code Context}, so the map would not need to be populated.
 	 *
 	 * @see Context
 	 */
 	public static HashMap<Class<?>,String> REVERSE_MAP ;
+
 	static // initializer for REVERSE_MAP
+	{ initReverseMap() ; }  // Factored as function, which can take annotations.
+
+	@SuppressLint( "NewApi" )     // Build version managed via switch() control.
+	protected static void initReverseMap()
 	{
+		if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.M )
+			return ; // trivially, because we won't be using the map.
+
 		REVERSE_MAP = new HashMap<>() ;
-		int nAPI = 14 ;
-		// Start with managers known to exist in and before API 14.
-		// These entries MUST be arranged in ascending order of API introduction
-		// and SHOULD be arranged alphabetically per API version.
-		REVERSE_MAP.put( AccessibilityManager.class, Context.ACCESSIBILITY_SERVICE ) ;
-		REVERSE_MAP.put( AccountManager.class, Context.ACCOUNT_SERVICE ) ;
-		REVERSE_MAP.put( ActivityManager.class, Context.ACTIVITY_SERVICE ) ;
-		REVERSE_MAP.put( AlarmManager.class, Context.ALARM_SERVICE ) ;
-		REVERSE_MAP.put( AudioManager.class, Context.AUDIO_SERVICE ) ;
-		REVERSE_MAP.put( ClipboardManager.class, Context.CLIPBOARD_SERVICE ) ;
-		REVERSE_MAP.put( ConnectivityManager.class, Context.CONNECTIVITY_SERVICE ) ;
-		REVERSE_MAP.put( DevicePolicyManager.class, Context.DEVICE_POLICY_SERVICE ) ;
-		REVERSE_MAP.put( DownloadManager.class, Context.DOWNLOAD_SERVICE ) ;
-		REVERSE_MAP.put( DropBoxManager.class, Context.DROPBOX_SERVICE ) ;
-		REVERSE_MAP.put( InputMethodManager.class, Context.INPUT_METHOD_SERVICE ) ;
-		REVERSE_MAP.put( KeyguardManager.class, Context.KEYGUARD_SERVICE ) ;
-		REVERSE_MAP.put( LayoutInflater.class, Context.LAYOUT_INFLATER_SERVICE ) ;
-		REVERSE_MAP.put( LocationManager.class, Context.LOCATION_SERVICE ) ;
-		REVERSE_MAP.put( NfcManager.class, Context.NFC_SERVICE ) ;
-		REVERSE_MAP.put( NotificationManager.class, Context.NOTIFICATION_SERVICE ) ;
-		REVERSE_MAP.put( PowerManager.class, Context.POWER_SERVICE ) ;
-		REVERSE_MAP.put( SearchManager.class, Context.SEARCH_SERVICE ) ;
-		REVERSE_MAP.put( SensorManager.class, Context.SENSOR_SERVICE ) ;
-		REVERSE_MAP.put( StorageManager.class, Context.STORAGE_SERVICE ) ;
-		REVERSE_MAP.put( TelephonyManager.class, Context.TELEPHONY_SERVICE ) ;
-		REVERSE_MAP.put( TextServicesManager.class, Context.TEXT_SERVICES_MANAGER_SERVICE ) ;
-		REVERSE_MAP.put( UiModeManager.class, Context.UI_MODE_SERVICE ) ;
-		REVERSE_MAP.put( UsbManager.class, Context.USB_SERVICE ) ;
-		REVERSE_MAP.put( Vibrator.class, Context.VIBRATOR_SERVICE ) ;
-		REVERSE_MAP.put( WallpaperManager.class, Context.WALLPAPER_SERVICE ) ;
-		REVERSE_MAP.put( WifiManager.class, Context.WIFI_SERVICE ) ;
-		REVERSE_MAP.put( WifiP2pManager.class, Context.WIFI_P2P_SERVICE ) ;
-		REVERSE_MAP.put( WindowManager.class, Context.WINDOW_SERVICE ) ;
-		try
-		{ // As long as these are in order, we get all the ones we can.
-			++nAPI ;// API 15
-			++nAPI ;// API 16
-			REVERSE_MAP.put( InputManager.class, INPUT_SERVICE ) ;
-			REVERSE_MAP.put( MediaRouter.class, MEDIA_ROUTER_SERVICE ) ;
-			REVERSE_MAP.put( NsdManager.class, NSD_SERVICE ) ;
-			++nAPI ;// API 17
-			REVERSE_MAP.put( DisplayManager.class, DISPLAY_SERVICE ) ;
-			REVERSE_MAP.put( UserManager.class, USER_SERVICE ) ;
-			++nAPI ;// API 18
-			REVERSE_MAP.put( BluetoothManager.class, BLUETOOTH_SERVICE ) ;
-			++nAPI ;// API 19
-			REVERSE_MAP.put( AppOpsManager.class, APP_OPS_SERVICE ) ;
-			REVERSE_MAP.put( CaptioningManager.class, CAPTIONING_SERVICE ) ;
-			REVERSE_MAP.put( ConsumerIrManager.class, CONSUMER_IR_SERVICE ) ;
-			REVERSE_MAP.put( PrintManager.class, PRINT_SERVICE ) ;
-			++nAPI ;// API 20
-			++nAPI ;// API 21
-			REVERSE_MAP.put( AppWidgetManager.class, APPWIDGET_SERVICE ) ;
-			REVERSE_MAP.put( BatteryManager.class, BATTERY_SERVICE ) ;
-			REVERSE_MAP.put( CameraManager.class, CAMERA_SERVICE ) ;
-			REVERSE_MAP.put( JobScheduler.class, JOB_SCHEDULER_SERVICE ) ;
-			REVERSE_MAP.put( LauncherApps.class, LAUNCHER_APPS_SERVICE ) ;
-			REVERSE_MAP.put( MediaProjectionManager.class, MEDIA_PROJECTION_SERVICE ) ;
-			REVERSE_MAP.put( MediaSessionManager.class, MEDIA_SESSION_SERVICE ) ;
-			REVERSE_MAP.put( RestrictionsManager.class, RESTRICTIONS_SERVICE ) ;
-			REVERSE_MAP.put( TelecomManager.class, TELECOM_SERVICE ) ;
-			REVERSE_MAP.put( TvInputManager.class, TV_INPUT_SERVICE ) ;
-			++nAPI ;// API 22
-			REVERSE_MAP.put( SubscriptionManager.class, TELEPHONY_SUBSCRIPTION_SERVICE ) ;
-			REVERSE_MAP.put( UsageStatsManager.class, USAGE_STATS_SERVICE ) ;
-			++nAPI ;// API 23
-			REVERSE_MAP.put( CarrierConfigManager.class, CARRIER_CONFIG_SERVICE ) ;
-			REVERSE_MAP.put( FingerprintManager.class, FINGERPRINT_SERVICE ) ;
-			REVERSE_MAP.put( MidiManager.class, MIDI_SERVICE ) ;
-			REVERSE_MAP.put( NetworkStatsManager.class, NETWORK_STATS_SERVICE ) ;
-		}
-		catch( NoClassDefFoundError x )
-		{
-			Log.i( LOG_TAG, (new StringBuilder())
-					.append( "Stopped loading manager definitions at API " )
-					.append( nAPI )
-					.toString()
-				);
+
+		Log.d( LOG_TAG, (new StringBuilder())
+				.append( "Loading reverse map for Android API " )
+				.append( Build.VERSION.SDK_INT )
+				.toString()
+			);
+
+		switch( Build.VERSION.SDK_INT )
+		{ // Fall through cases in reverse, populating each API's new classes.
+			case 22:
+				REVERSE_MAP.put( SubscriptionManager.class, TELEPHONY_SUBSCRIPTION_SERVICE ) ;
+				REVERSE_MAP.put( UsageStatsManager.class, USAGE_STATS_SERVICE ) ;
+			case 21:
+				REVERSE_MAP.put( AppWidgetManager.class, APPWIDGET_SERVICE ) ;
+				REVERSE_MAP.put( BatteryManager.class, BATTERY_SERVICE ) ;
+				REVERSE_MAP.put( CameraManager.class, CAMERA_SERVICE ) ;
+				REVERSE_MAP.put( JobScheduler.class, JOB_SCHEDULER_SERVICE ) ;
+				REVERSE_MAP.put( LauncherApps.class, LAUNCHER_APPS_SERVICE ) ;
+				REVERSE_MAP.put( MediaProjectionManager.class, MEDIA_PROJECTION_SERVICE ) ;
+				REVERSE_MAP.put( MediaSessionManager.class, MEDIA_SESSION_SERVICE ) ;
+				REVERSE_MAP.put( RestrictionsManager.class, RESTRICTIONS_SERVICE ) ;
+				REVERSE_MAP.put( TelecomManager.class, TELECOM_SERVICE ) ;
+				REVERSE_MAP.put( TvInputManager.class, TV_INPUT_SERVICE ) ;
+			case 20:
+			case 19:
+				REVERSE_MAP.put( AppOpsManager.class, APP_OPS_SERVICE ) ;
+				REVERSE_MAP.put( CaptioningManager.class, CAPTIONING_SERVICE ) ;
+				REVERSE_MAP.put( ConsumerIrManager.class, CONSUMER_IR_SERVICE ) ;
+				REVERSE_MAP.put( PrintManager.class, PRINT_SERVICE ) ;
+			case 18:
+				REVERSE_MAP.put( BluetoothManager.class, BLUETOOTH_SERVICE ) ;
+			case 17:
+				REVERSE_MAP.put( DisplayManager.class, DISPLAY_SERVICE ) ;
+				REVERSE_MAP.put( UserManager.class, USER_SERVICE ) ;
+			case 16:
+				REVERSE_MAP.put( InputManager.class, INPUT_SERVICE );
+				REVERSE_MAP.put( MediaRouter.class, MEDIA_ROUTER_SERVICE );
+				REVERSE_MAP.put( NsdManager.class, NSD_SERVICE );
+			default: // No new managers in API 15; library minimum is 14.
+				REVERSE_MAP.put( AccessibilityManager.class, Context.ACCESSIBILITY_SERVICE ) ;
+				REVERSE_MAP.put( AccountManager.class, Context.ACCOUNT_SERVICE ) ;
+				REVERSE_MAP.put( ActivityManager.class, Context.ACTIVITY_SERVICE ) ;
+				REVERSE_MAP.put( AlarmManager.class, Context.ALARM_SERVICE ) ;
+				REVERSE_MAP.put( AudioManager.class, Context.AUDIO_SERVICE ) ;
+				REVERSE_MAP.put( ClipboardManager.class, Context.CLIPBOARD_SERVICE ) ;
+				REVERSE_MAP.put( ConnectivityManager.class, Context.CONNECTIVITY_SERVICE ) ;
+				REVERSE_MAP.put( DevicePolicyManager.class, Context.DEVICE_POLICY_SERVICE ) ;
+				REVERSE_MAP.put( DownloadManager.class, Context.DOWNLOAD_SERVICE ) ;
+				REVERSE_MAP.put( DropBoxManager.class, Context.DROPBOX_SERVICE ) ;
+				REVERSE_MAP.put( InputMethodManager.class, Context.INPUT_METHOD_SERVICE ) ;
+				REVERSE_MAP.put( KeyguardManager.class, Context.KEYGUARD_SERVICE ) ;
+				REVERSE_MAP.put( LayoutInflater.class, Context.LAYOUT_INFLATER_SERVICE ) ;
+				REVERSE_MAP.put( LocationManager.class, Context.LOCATION_SERVICE ) ;
+				REVERSE_MAP.put( NfcManager.class, Context.NFC_SERVICE ) ;
+				REVERSE_MAP.put( NotificationManager.class, Context.NOTIFICATION_SERVICE ) ;
+				REVERSE_MAP.put( PowerManager.class, Context.POWER_SERVICE ) ;
+				REVERSE_MAP.put( SearchManager.class, Context.SEARCH_SERVICE ) ;
+				REVERSE_MAP.put( SensorManager.class, Context.SENSOR_SERVICE ) ;
+				REVERSE_MAP.put( StorageManager.class, Context.STORAGE_SERVICE ) ;
+				REVERSE_MAP.put( TelephonyManager.class, Context.TELEPHONY_SERVICE ) ;
+				REVERSE_MAP.put( TextServicesManager.class, Context.TEXT_SERVICES_MANAGER_SERVICE ) ;
+				REVERSE_MAP.put( UiModeManager.class, Context.UI_MODE_SERVICE ) ;
+				REVERSE_MAP.put( UsbManager.class, Context.USB_SERVICE ) ;
+				REVERSE_MAP.put( Vibrator.class, Context.VIBRATOR_SERVICE ) ;
+				REVERSE_MAP.put( WallpaperManager.class, Context.WALLPAPER_SERVICE ) ;
+				REVERSE_MAP.put( WifiManager.class, Context.WIFI_SERVICE ) ;
+				REVERSE_MAP.put( WifiP2pManager.class, Context.WIFI_P2P_SERVICE ) ;
+				REVERSE_MAP.put( WindowManager.class, Context.WINDOW_SERVICE ) ;
 		}
 	}
 
 	/**
 	 * Obtains an instance of the Android OS service whose class is given.
+	 *
+	 * If the app's API version is already 23 or higher, then the method will
+	 * simply call the new {@code getSystemService(Class)} method instead of
+	 * executing its own compatibility logic.
+	 *
 	 * The return value of this method is already an instance of the type
 	 * specified in the parameter; there is no need for additional typecasting
-	 * after the instance is returned to the caller.
-	 * This is exactly how the {@code getSystemService(Class)} method works in
-	 * the API 23+ version of {@link Context}.
+	 * after the instance is returned to the caller. This is exactly how the
+	 * {@code getSystemService(Class)} method works in the API 23+ version of
+	 * {@link Context}.
+	 *
 	 * @param ctx the context in which to obtain the service
 	 * @param cls the class to be obtained, as a parameter
 	 * @param <MGR> the class to be obtained, as a generic return type
-	 * @return an instance of the specified class
+	 * @return an instance of the specified class, or null if the system does
+	 *  not return an instance
 	 */
 	@SuppressWarnings({ "unchecked", "WrongConstant" })
 	public static <MGR> MGR get( Context ctx, Class<MGR> cls )
 	{
-		try
-		{
-			if( REVERSE_MAP.containsKey(cls) )
-				return ((MGR)( ctx.getSystemService( REVERSE_MAP.get(cls) ) )) ;
-			else
-			{
-				Log.w( LOG_TAG, (new StringBuilder())
-						.append( "Cannot obtain instance of class [" )
-						.append( cls.getCanonicalName() )
-						.append( "] not found in the reverse map." )
-						.toString()
-					);
-			}
-		}
-		catch( Exception x )
-		{ Log.e( LOG_TAG, "Exception thrown while obtaining a manager.", x ) ; }
+		if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.M )
+			return ctx.getSystemService( cls ) ;
 
-		return null ;
+		if( REVERSE_MAP.containsKey(cls) )
+			return ((MGR)( ctx.getSystemService( REVERSE_MAP.get(cls) ) )) ;
+		else
+		{
+			Log.w( LOG_TAG, (new StringBuilder())
+					.append( "Cannot obtain instance of class [" )
+					.append( cls.getCanonicalName() )
+					.append( "] not found in the reverse map." )
+					.toString()
+				);
+			return null ;
+		}
+	}
+
+	/**
+	 * As {@link #get}, but executes the action inside a
+	 * {@code try&hellip;catch} structure, returning {@code null} if an
+	 * exception is thrown
+	 * @param ctx the context in which to obtain the service
+	 * @param cls the class to be obtained, as a parameter
+	 * @param <MGR> the class to be obtained, as a generic return type
+	 * @return an instance of the specified class, or null if the system does
+	 *  not return an instance, or null if an exception occurred
+	 */
+	public static <MGR> MGR tryToGet( Context ctx, Class<MGR> cls )
+	{
+		try { return get( ctx, cls ) ; }
+		catch( Exception x )
+		{
+			Log.e( LOG_TAG, (new StringBuilder())
+					.append( "Exception thrown while obtaining instance of " )
+					.append( cls.getCanonicalName() )
+					.toString()
+				, x ) ;
+			return null ;
+		}
 	}
 }

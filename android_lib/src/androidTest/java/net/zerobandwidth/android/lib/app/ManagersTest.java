@@ -1,8 +1,13 @@
 package net.zerobandwidth.android.lib.app;
 
+import android.app.usage.NetworkStatsManager;
 import android.content.Context;
+import android.hardware.fingerprint.FingerprintManager;
+import android.media.midi.MidiManager;
+import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.telephony.CarrierConfigManager;
 import android.util.Log;
 
 import org.junit.Test;
@@ -26,11 +31,29 @@ public class ManagersTest
 	@Test
 	public void testManagers()
 	{
+		if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.M )
+		{
+			Log.i( LOG_TAG, "Testing for API 23+ ..." ) ;
+			Exception xCaught = null ;
+			try
+			{ // Get instances of managers that were added in Android API 23.
+				Managers.get( m_ctx, CarrierConfigManager.class ) ;
+				Managers.get( m_ctx, FingerprintManager.class ) ;
+				Managers.get( m_ctx, MidiManager.class ) ;
+				Managers.get( m_ctx, NetworkStatsManager.class ) ;
+			}
+			catch( Exception x ) { xCaught = x ; }
+			assertNull( xCaught ) ;
+			return ;
+		}
+
+		// Otherwise, get instances of classes from the current, lower API.
+
 		for( Map.Entry<Class<?>,String> pair : Managers.REVERSE_MAP.entrySet() )
 		{
 			final Class<?> cls = pair.getKey() ;
 			final String sTok = pair.getValue() ;
-			final Object mgr = Managers.get( m_ctx, cls ) ;
+			final Object mgr = Managers.tryToGet( m_ctx, cls ) ;
 //			Log.d( LOG_TAG, this.dumpStatusBeforeAssert( cls, sTok, mgr ) ) ;
 			assertTrue( mgr == null || cls.isAssignableFrom( mgr.getClass() ) ) ;
 			Log.i( LOG_TAG, (new StringBuilder())
