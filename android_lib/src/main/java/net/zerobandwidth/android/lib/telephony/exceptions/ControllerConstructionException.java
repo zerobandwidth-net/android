@@ -15,6 +15,7 @@ extends RuntimeException
 			"Failed to construct the telephony controller." ;
 
 	/** Constructs an exception with the default message. */
+	@SuppressWarnings("unused")
 	public ControllerConstructionException()
 	{ super( DEFAULT_MESSAGE ) ; }
 
@@ -27,6 +28,7 @@ extends RuntimeException
 	{ super( DEFAULT_MESSAGE, xCause ) ; }
 
 	/** Constructs an exception with the default message and specified cause. */
+	@SuppressWarnings("unused")
 	public ControllerConstructionException( String sMessage, Throwable xCause )
 	{ super( sMessage, xCause ) ; }
 }

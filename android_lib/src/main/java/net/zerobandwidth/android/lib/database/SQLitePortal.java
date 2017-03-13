@@ -162,7 +162,7 @@ extends SQLiteOpenHelper
 		 * @param dbh the {@link SQLitePortal} instance that was connected to
 		 *            the database
 		 */
-		public void onDatabaseConnected( SQLitePortal dbh ) ;
+		void onDatabaseConnected( SQLitePortal dbh ) ;
 	}
 
     /**
