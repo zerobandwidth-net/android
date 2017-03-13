@@ -291,14 +291,13 @@ public class QueryBuilderTest
 		final String sFoo = "abcdefghijklmnopqrstuvwxyz" ;
 		QueryBuilder.deleteFrom( TEST_TABLE_NAME ).deleteAll().executeOn( m_db ) ;
 		final int ITERATIONS = 5 ; // Tune this to taste; never more than 24.
-		long nLastID = -1 ;
 		for( int i = 0 ; i < ITERATIONS ; i++ )
 		{
 			ContentValues vals = new ContentValues() ;
 			vals.put( "a_string_field", sFoo.substring( i, i+2 ) ) ;
 			vals.put( "a_int_field", i ) ;
 			vals.put( "a_boolint_field", i % 2 ) ; // ends up "true" if i is odd
-			nLastID = QueryBuilder.insertInto( TEST_TABLE_NAME )
+			QueryBuilder.insertInto( TEST_TABLE_NAME )
 		            .setValues( vals ).executeOn( m_db ) ;
 		}
 		SelectionBuilder bldr = QueryBuilder.selectFrom( TEST_TABLE_NAME )

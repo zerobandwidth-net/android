@@ -37,6 +37,7 @@ public class PreferencePortalTest
 	}
 
 	/** Exercises {@link PreferencePortal#getStringifiedInt(SharedPreferences,String,int) */
+	@SuppressLint("ApplySharedPref")
 	@Test
 	public void testStaticGetStringifiedInt()
 	{
@@ -54,6 +55,7 @@ public class PreferencePortalTest
 	}
 
 	/** Exercises {@link PreferencePortal#getStringifiedLong(SharedPreferences,String,long)} */
+	@SuppressLint("ApplySharedPref")
 	@Test
 	public void testStaticGetStringifiedLong()
 	{
