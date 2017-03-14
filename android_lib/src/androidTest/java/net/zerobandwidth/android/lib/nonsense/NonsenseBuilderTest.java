@@ -1,11 +1,14 @@
 package net.zerobandwidth.android.lib.nonsense;
 
 import android.content.Context;
-import android.test.AndroidTestCase;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
-import org.junit.Test ;
 import org.junit.Before ;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static org.junit.Assert.* ;
 
 /**
@@ -13,62 +16,26 @@ import static org.junit.Assert.* ;
  *
  * @since zerobandwidth-net/android 0.0.1 (#7)
  */
+@RunWith( AndroidJUnit4.class )
 public class NonsenseBuilderTest
-extends AndroidTestCase
 {
 	public static final String LOG_TAG =
 			NonsenseBuilderTest.class.getSimpleName() ;
 
 	/**
-	 * Exposes additional information about a {@link NonsenseBuilder} to the
-	 * test cases in {@link NonsenseBuilderTest}.
-	 * @since zerobandwidth-net/android 0.0.1 (#7)
+	 * Context in which tests are executed.
+	 * @since zerobandwidth-net/android 0.1.3 (#30)
 	 */
-	public static class ExposedNonsenseBuilder
-	extends NonsenseBuilder
-	{
-		public ExposedNonsenseBuilder( Context ctx )
-		{ super(ctx) ; }
-
-		public ExposedNonsenseBuilder( Context ctx, NonsenseBuilder.Configuration cfg )
-		{ super(ctx,cfg) ; }
-
-		public Context getContext()
-		{ return m_ctx ; }
-
-		public NonsenseBuilder.Configuration getConfiguration()
-		{ return m_cfg ; }
-
-		public String getSubject()
-		{ return m_sSubject ; }
-
-		public String getSubjectAdjective()
-		{ return m_sSubjectAdjective ; }
-
-		public String getVerb()
-		{ return m_sVerb ; }
-
-		public String getAdverb()
-		{ return m_sVerbAdverb ; }
-
-		public String getObject()
-		{ return m_sObject ; }
-
-		public String getObjectAdjective()
-		{ return m_sObjectAdjective ; }
-
-		public String getObjectModifier()
-		{ return m_sObjectModifier ; }
-	}
+	protected Context m_ctx ;
 
 	/** The builder instance used in each test. */
-	protected ExposedNonsenseBuilder m_xyzzy = null ;
+	protected NonsenseBuilder m_xyzzy = null ;
 
 	@Before
-	@Override
 	public void setUp()
 	{
-		m_xyzzy = new ExposedNonsenseBuilder( mContext ) ;
+		m_ctx = InstrumentationRegistry.getTargetContext() ;
+		m_xyzzy = new NonsenseBuilder( m_ctx ) ;
 	}
 
 	/**
@@ -78,10 +45,9 @@ extends AndroidTestCase
 	 * Since this constructor invokes {@link NonsenseBuilder#setContext}, there
 	 * is no need to separately test that method.
 	 */
+	@Test
 	public void testConstructor()
-	{
-		assertEquals( mContext, m_xyzzy.getContext() ) ;
-	}
+	{ assertEquals( m_ctx, m_xyzzy.m_ctx ) ; }
 
 	/**
 	 * Exercises the full constructor, and also the builder-based paradigm for
@@ -90,16 +56,17 @@ extends AndroidTestCase
 	 * Since the constructor invokes {@link NonsenseBuilder#setConfiguration},
 	 * there is no need to separately test that method.
 	 */
+	@Test
 	public void testConfiguredConstructor()
 	{
-		m_xyzzy = new ExposedNonsenseBuilder( mContext,
+		m_xyzzy = new NonsenseBuilder( m_ctx,
 				(new NonsenseBuilder.Configuration())
 					.setSubjectAdjectiveChance( 25 )
 					.setAdverbChance( NonsenseBuilder.Configuration.NEVER )
 					.setObjectAdjectiveChance( NonsenseBuilder.Configuration.ALWAYS )
 					.setObjectPhraseChance( 42 )
 			);
-		final NonsenseBuilder.Configuration cfg = m_xyzzy.getConfiguration() ;
+		final NonsenseBuilder.Configuration cfg = m_xyzzy.m_cfg ;
 		assertEquals( 25, cfg.m_nSubjectAdjectiveChance ) ;
 		assertEquals( NonsenseBuilder.Configuration.NEVER,
 					cfg.m_nAdverbChance ) ;

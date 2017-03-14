@@ -11,9 +11,6 @@ package net.zerobandwidth.android.lib.telephony.exceptions;
 public class ControllerInvocationException
 extends RuntimeException
 {
-	protected static final String DEFAULT_MESSAGE =
-			"A method invocation failed." ;
-
 	/**
 	 * Generates the exception's standard message based on the method name.
 	 * @param sMethod the name of the invoked method
@@ -28,21 +25,6 @@ extends RuntimeException
 				.toString()
 				;
 	}
-
-	/** Constructs an exception with the default message. */
-	public ControllerInvocationException()
-	{ super( DEFAULT_MESSAGE ) ; }
-
-	/**
-	 * Constructs an exception with a standardized notice of the method name.
-	 * @param sMethod the name of the method that could not be invoked
-	 */
-	public ControllerInvocationException( String sMethod )
-	{ super( getMessage(sMethod) ) ; }
-
-	/** Constructs an exception with the default message and specified cause. */
-	public ControllerInvocationException( Throwable xCause )
-	{ super( DEFAULT_MESSAGE, xCause ) ; }
 
 	/**
 	 * Constructs an exception with a standardized notice of the method name,
