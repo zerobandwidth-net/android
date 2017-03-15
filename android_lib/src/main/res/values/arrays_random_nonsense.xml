@@ -970,16 +970,141 @@
         <item>a cargo cult</item>
         <item>a cascade</item>
         <item>the cathedral</item>
+        <item>a catheter</item>
+        <item>a cathode ray tube</item>
+        <item>cauliflower</item>
+        <item>a caveman</item>
+        <item>a cavern</item>
+        <item>caviar</item>
+        <item>a cavity</item>
+        <item>the ceiling</item>
+        <item>a celebration</item>
+        <item>celebrity</item>
+        <item>celerity</item>
+        <item>celery</item>
+        <item>the cell</item>
+        <item>the cellar</item>
+        <item>a cellist</item>
+        <item>cellophane</item>
+        <item>cellulose</item>
+        <item>cement</item>
+        <item>the cemetery</item>
+        <item>censorship</item>
+        <item>the center</item>
+        <item>a centimeter</item>
+        <item>centrifugation</item>
+        <item>a centrifuge</item>
+        <item>the century</item>
+        <item>cereal</item>
+        <item>the cerebellum</item>
+        <item>the ceremony</item>
+        <item>certainty</item>
+        <item>a certificate</item>
+        <item>a certification</item>
+        <item>cessation</item>
         <item>a chad</item>
+        <item>chagrin</item>
         <item>a chain</item>
+        <item>the chair</item>
+        <item>the chairperson</item>
+        <item>a chaise</item>
+        <item>chalk</item>
+        <item>a challenge</item>
+        <item>a challenger</item>
+        <item>the chamber</item>
+        <item>a chambermaid</item>
+        <item>champagne</item>
+        <item>the champion</item>
+        <item>the championship</item>
+        <item>a chance</item>
+        <item>the chancellor</item>
+        <item>a chandelier</item>
+        <item>change</item>
         <item>a channel</item>
+        <item>a chant</item>
+        <item>the chapel</item>
+        <item>a chaperone</item>
+        <item>the chaplain</item>
+        <item>a chapter</item>
+        <item>a character</item>
+        <item>charcoal</item>
+        <item>a charge</item>
+        <item>a chariot</item>
+        <item>charisma</item>
         <item>charity</item>
+        <item>charm</item>
+        <item>a chart</item>
+        <item>a charter</item>
+        <item>the chase</item>
+        <item>a chasm</item>
+        <item>chastity</item>
+        <item>a chat</item>
+        <item>a chatroom</item>
+        <item>chatter</item>
+        <item>a chauffeur</item>
         <item>a check</item>
+        <item>a checkbook</item>
+        <item>the checklist</item>
+        <item>a cheek</item>
+        <item>cheer</item>
+        <item>cheese</item>
+        <item>cheesecloth</item>
+        <item>a cheetah</item>
+        <item>the chef</item>
+        <item>a chemical</item>
+        <item>a chemise</item>
         <item>a chemist</item>
+        <item>chemistry</item>
+        <item>a cherry</item>
+        <item>a cherub</item>
+        <item>the chest</item>
+        <item>a chestnut</item>
+        <item>chicanery</item>
+        <item>a chick</item>
         <item>a chicken</item>
+        <item>the chief</item>
+        <item>the chieftain</item>
+        <item>a child</item>
+        <item>the child</item>
+        <item>chili</item>
+        <item>a chill</item>
+        <item>the chimney</item>
+        <item>a chin</item>
+        <item>a chip</item>
+        <item>a chiropractor</item>
+        <item>a chirp</item>
+        <item>a chisel</item>
+        <item>chivalry</item>
+        <item>chloride</item>
+        <item>chlorine</item>
         <item>a choad</item>
-        <item>the chopper</item>
+        <item>chocolate</item>
+        <item>choice</item>
+        <item>a choice</item>
+        <item>the choir</item>
+        <item>cholera</item>
+        <item>cholesterol</item>
+        <item>the chopper</item> <!-- Get to it! -->
+        <item>a chord</item>
+        <item>a chore</item>
+        <item>a choreographer</item>
+        <item>choreography</item>
+        <item>chow</item>
+        <item>chowder</item>
+        <item>chromatography</item>
+        <item>chrome</item>
+        <item>chromium</item>
+        <item>a chronicle</item>
+        <item>chronology</item>
+        <item>a chuckle</item>
+        <item>a chum</item>
+        <item>a chump</item>
+        <item>a chunk</item>
+        <item>the church</item>
         <item>the Church of the Sub-Genius</item>
+        <item>the churchyard</item>
+        <item>a chute</item>
+        <item>chutney</item>
         <item>the Click of Death</item>
         <item>a clique</item>
         <item>a clock</item>
@@ -1233,6 +1358,7 @@
         <item>a memory leak</item>
         <item>a metasyntactic variable</item>
         <item>a minor detail</item>
+        <item>a mitochondrion</item>
         <item>a mockingbird</item>
         <item>money</item>
         <item>the Mongolian Hordes Technique</item>
@@ -1273,6 +1399,7 @@
         <item>politics</item>
         <item>a ponytail</item>
         <item>power</item>
+        <item>a powerhouse</item>
         <item>precedence</item>
         <item>prestidigitation</item>
         <item>prestidigitization</item>
@@ -1374,6 +1501,7 @@
         <item>the terminal</item>
         <item>a test</item>
         <item>the theory</item>
+        <item>thieves\' cant</item>
         <item>a thread</item>
         <item>the Three-Fingered Salute</item>
         <item>a tick</item>
@@ -1478,6 +1606,7 @@
         <item>buzzes</item>
         <item>calls</item>
         <item>casts</item>
+        <item>celebrates</item>
         <item>channels</item>
         <item>channel-hops</item>
         <item>chases</item>
@@ -1610,6 +1739,7 @@
         <item>revolves</item>
         <item>rips</item>
         <item>rips off</item>
+        <item>roasts</item>
         <item>runs</item>
         <item>runs from</item>
         <item>runs to</item>
@@ -1694,6 +1824,11 @@
         <item>buzzword-compliant</item>
         <item>canonical</item>
         <item>catatonic</item>
+        <item>celebratory</item>
+        <item>central</item>
+        <item>ceremonial</item>
+        <item>certain</item>
+        <item>charismatic</item>
         <item>charred</item>
         <item>cheerful</item>
         <item>circuitous</item>
@@ -1970,6 +2105,9 @@
         <item>architecturally</item>
         <item>asynchronously</item>
         <item>badly</item>
+        <item>ceremonially</item>
+        <item>certainly</item>
+        <item>certifiably</item>
         <item>cheerfully</item>
         <item>comfortably</item>
         <item>completely</item>
@@ -2059,7 +2197,12 @@
         <item>in the basket</item>
         <item>in the belfry</item>
         <item>in the blink of an eye</item>
+        <item>in the conservatory</item>
+        <item>in the dining room</item>
         <item>in the foreground</item>
+        <item>in the hall</item>
+        <item>in the kitchen</item>
+        <item>in the library</item>
         <item>in the margins</item>
         <item>in the midst of everything else</item>
         <item>in the nick of time</item>
@@ -2072,6 +2215,7 @@
         <item>like nailing jelly to a tree</item>
         <item>not for lack of trying</item>
         <item>of bad news</item>
+        <item>of the cell</item>
         <item>of discussion</item>
         <item>of the holy scepter</item>
         <item>of no account</item>
@@ -2082,6 +2226,7 @@
         <item>on the edge</item>
         <item>on the fringe</item>
         <item>on the ocean</item>
+        <item>on an open fire</item>
         <item>on the precipice of darkness</item>
         <item>over hill and dale</item>
         <item>over the line</item>
@@ -2104,13 +2249,18 @@
         <item>with a two-by-four</item>
         <item>with all the time in the world</item>
         <item>with arms wide</item>
+        <item>with the candlestick</item>
+        <item>with clusters</item>
         <item>with eyes closed</item>
         <item>with eyes open</item>
         <item>with faces wet</item>
         <item>with fists closed</item>
         <item>with hands open</item>
+        <item>with the knife</item>
+        <item>with some sort of poison</item>
+        <item>with the revolver</item>
+        <item>with the rope</item>
         <item>without a care in the world</item>
-        <item>with clusters</item>
         <item>without hesitation</item>
         <item>without honor or humanity</item>
         <item>without regard for precedent or propriety</item>
