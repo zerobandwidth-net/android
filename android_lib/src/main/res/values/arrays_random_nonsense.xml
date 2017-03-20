@@ -973,6 +973,7 @@
         <item>a catheter</item>
         <item>a cathode ray tube</item>
         <item>cauliflower</item>
+        <item>caulk</item>
         <item>a caveman</item>
         <item>a cavern</item>
         <item>caviar</item>
@@ -1380,6 +1381,7 @@
         <item>a conqueror</item>
         <item>the conquest</item>
         <item>conscience</item>
+        <item>consciousness</item>
         <item>a conscript</item>
         <item>consent</item>
         <item>the consequence</item>
@@ -1427,34 +1429,223 @@
         <item>a contribution</item>
         <item>a contributor</item>
         <item>contrition</item>
-        <item>control</item> <!-- stopped here 2017-03-15 -->
+        <item>control</item>
+        <item>a controller</item>
+        <item>controversy</item>
+        <item>convalescence</item>
+        <item>convection</item>
+        <item>convenience</item>
+        <item>the convent</item>
+        <item>a convention</item>
+        <item>the conversation</item>
+        <item>a convertible</item>
+        <item>a convict</item>
+        <item>conviction</item>
+        <item>a convoy</item>
         <item>Conway\'s Game of Life</item>
         <item>Conway\'s Law</item>
+        <item>the cook</item>
         <item>a cookbook</item>
         <item>a cookie</item>
         <item>the cookie jar</item>
         <item>the Cookie Monster</item>
+        <item>coolness</item>
+        <item>coolant</item>
+        <item>a cooler</item>
+        <item>the coop</item>
+        <item>cooperation</item>
+        <item>a cooperative</item>
+        <item>coordination</item>
+        <item>the coordinator</item>
+        <item>a cop</item>
         <item>copious free time</item>
         <item>copper</item>
+        <item>a copy</item>
         <item>copy protection</item>
+        <item>a coquette</item>
+        <item>coral</item>
+        <item>a cord</item>
+        <item>a cordon</item>
+        <item>corduroy</item>
         <item>the core</item>
         <item>a core dump</item>
+        <item>coriander</item>
+        <item>the cork</item>
+        <item>a corkscrew</item>
+        <item>the Corkscrew</item>
+        <item>corn</item>
+        <item>cornbread</item>
+        <item>the corner</item>
+        <item>the cornernstone</item>
+        <item>a cornfield</item>
+        <item>cornstarch</item>
+        <item>a cornucopia</item>
+        <item>a corollary</item>
+        <item>a corona</item>
+        <item>the corporal</item>
+        <item>the corporation</item>
+        <item>corpulence</item>
+        <item>the corral</item>
+        <item>a correction</item>
+        <item>correlation</item>
+        <item>correspondence</item>
+        <item>the correspondent</item>
+        <item>a corridor</item>
+        <item>corrosion</item>
+        <item>corruption</item>
+        <item>a corsage</item>
+        <item>cosmology</item>
+        <item>a cost</item>
+        <item>a costume</item>
+        <item>a cottage</item>
+        <item>cotton</item>
+        <item>the couch</item>
+        <item>a cough</item>
+        <item>the council</item>
+        <item>counseling</item>
+        <item>the counselor</item>
+        <item>a count</item>
+        <item>the Count</item>
+        <item>the counter</item>
+        <item>a counterattack</item>
+        <item>a counterpart</item>
+        <item>counterpoint</item>
+        <item>the country</item>
+        <item>the countryside</item>
+        <item>a county</item>
+        <item>a coup</item>
+        <item>a coupe</item>
+        <item>a couple</item>
+        <item>a coupon</item>
+        <item>courage</item>
+        <item>the course</item>
         <item>a courier</item>
-        <item>a co-worker</item>
+        <item>the court</item>
+        <item>a courtesan</item>
+        <item>courtesy</item>
+        <item>the courthouse</item>
+        <item>a courtier</item>
+        <item>the courtroom</item>
+        <item>courtship</item>
+        <item>the courtyard</item>
+        <item>a cousin</item>
+        <item>a cove</item>
+        <item>a covenant</item>
+        <item>coverage</item>
+        <item>a cow</item>
+        <item>a coward</item>
+        <item>cowardice</item>
         <item>a cowboy</item>
+        <item>cowhide</item>
+        <item>a cowling</item>
+        <item>a co-worker</item>
+        <item>a coyote</item>
+        <item>a crabapple</item>
+        <item>a crack</item>
         <item>a cracker</item>
+        <item>a crackpot</item>
+        <item>the cradle</item>
+        <item>a craft</item>
+        <item>a craftsman</item>
         <item>craftsmanship</item>
+        <item>a cramp</item>
+        <item>a crank</item>
+        <item>a crash</item>
+        <item>a crate</item>
+        <item>a crater</item>
+        <item>a craving</item>
+        <item>a crawl</item>
         <item>a crawling horror</item>
+        <item>the crawlspace</item>
+        <item>a craze</item>
+        <item>cream</item>
+        <item>the crease</item>
         <item>creationism</item>
+        <item>creativity</item>
+        <item>the creator</item>
+        <item>a creature</item>
+        <item>credibility</item>
+        <item>credit</item>
+        <item>credulity</item>
+        <item>a creed</item>
+        <item>the creek</item>
         <item>a creep</item>
+        <item>a crescendo</item>
+        <item>a crescent</item>
+        <item>the crest</item>
         <item>a cretin</item>
+        <item>a crevice</item>
+        <item>the crew</item>
+        <item>a crib</item>
+        <item>a cricket</item>
+        <item>a crime</item>
+        <item>a criminal</item>
+        <item>a criterion</item>
+        <item>a critic</item>
         <item>critical mass</item>
+        <item>criticism</item>
         <item>a critique</item>
+        <item>a critter</item>
+        <item>a crocodile</item>
+        <item>a crone</item>
+        <item>a crook</item>
+        <item>a crop</item>
+        <item>the crossing</item>
+        <item>a crossover</item>
+        <item>the crosswalk</item>
+        <item>a crouch</item>
+        <item>a crow</item>
+        <item>the Crow</item>
+        <item>the crowd</item>
+        <item>the crown</item>
+        <item>cruelty</item>
         <item>cruft</item>
+        <item>a cruise</item>
+        <item>a cruiser</item>
         <item>a crumb</item>
+        <item>a crusade</item>
+        <item>a crusader</item>
+        <item>a crush</item>
+        <item>a crusher</item>
+        <item>the crust</item>
+        <item>a crutch</item>
+        <item>a crypt</item>
+        <item>a crystal</item>
+        <item>crystallography</item>
         <item>Cthulhu</item>
+        <item>a cubbyhole</item>
         <item>a cube</item>
         <item>a cubicle</item>
+        <item>cud</item>
+        <item>the culprit</item>
+        <item>a cult</item>
+        <item>a cultist</item>
+        <item>culture</item>
+        <item>cumin</item>
+        <item>cunning</item>
+        <item>a cup</item>
+        <item>the cupboard</item>
+        <item>a cur</item>
+        <item>the curator</item>
+        <item>the curb</item>
+        <item>the cure</item>
+        <item>a curio</item>
+        <item>curiosity</item>
+        <item>the curriculum</item>
+        <item>a curse</item>
+        <item>the curtain</item>
+        <item>curvature</item>
+        <item>the curve</item>
+        <item>a cushion</item>
+        <item>the cusp</item>
+        <item>the custodian</item>
+        <item>custody</item>
+        <item>a custom</item>
+        <item>the customer</item>
+        <item>a cut</item>
+        <item>a cutback</item>
+        <item>the cutoff</item>
+        <item>a cutter</item>
         <item>the Cycle of Rebirth</item>
         <item>a daemon</item>
         <item>the daily grind</item>
