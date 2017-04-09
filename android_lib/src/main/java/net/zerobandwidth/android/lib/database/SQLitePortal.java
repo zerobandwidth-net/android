@@ -6,14 +6,126 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 
 /**
- * Extends {@link SQLiteOpenHelper} by allowing an instance to maintain its own
- * persistent interface to its underlying database. Also statically provides
- * several useful database utility functions and semantic constants, which also
- * form the basis of
- * {@link net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder QueryBuilder}.
+ * Extends {@link SQLiteOpenHelper} with a few additional features.
+ *
+ * <h3>Database Connection Management</h3>
+ *
+ * <p>The portal maintains its own persistent reference to the underlying SQLite
+ * database. This connection is established with a background thread kicked off
+ * by the {@link #openDB(boolean, ConnectionListener) openDB()} method. The
+ * class provides variants of this method allowing the caller to specify whether
+ * the connection should be opened read-only, and provide a
+ * {@link ConnectionListener ConnectionListener} instance which can handle the
+ * {@link ConnectionListener#onDatabaseConnected onDatabaseConnected()} callback
+ * method.</p>
+ *
+ * <p>The portal's {@link #close()} method also overrides the parent's, so that
+ * it can close the connection to the database before closing out the portal
+ * itself.</p>
+ *
+ * <h3>Database from Local Asset <i>(since 0.1.4)</i></h3>
+ *
+ * <p>The portal provides protected methods allowing implementation classes to
+ * create databases from assets packaged within the APK itself. The descendant
+ * class should use these methods in its {@code onCreate()} and
+ * {@code onUpdate()} methods to ensure that the latest content is always
+ * available in the live database. These implementation classes are expected to
+ * use the database in read-only mode.</p>
+ *
+ * <p>See <a href="https://blog.reigndesign.com/blog/using-your-own-sqlite-database-in-android-applications/">
+ * Using Your Own SQLite Database in Android Applications</a> for the basis of
+ * this implementation.</p>
+ *
+ * <h4>Example</h4>
+ *
+ * <pre>
+ * public class MyDB extends SQLitePortal
+ * {
+ *     protected static final String DB_NAME = "mydb" ;
+ *
+ *     /**
+ *      * Rather than using this to represent the version of the database
+ *      * schema, use this constant to represent the version of the asset. Thus,
+ *      * whenever new content is added to the asset, the app will know to
+ *      * overwrite its database with the contents of the new asset. See the
+ *      * example of onUpgrade() below.
+ *     {@literal *}/
+ *     protected static final int DB_VERSION = 2 ;
+ *
+ *     /** Filename of the asset containing the static database instance. {@literal *}/
+ *     protected static final String DB_SOURCE_ASSET = "mydb.v2.db" ;
+ *
+ *     public MyDB( Context ctx )
+ *     { super( ctx, DB_NAME, null, DB_VERSION ) ; }
+ *
+ *     /** Copy the asset to the DB arena when creating the DB. {@literal *}/
+ *    {@literal @}Override
+ *     public void onCreate( SQLiteDatabase db )
+ *     {
+ *         if( ! this.databaseExists() )
+ *             this.copyFromAsset( DB_SOURCE_ASSET ) ;
+ *     }
+ *
+ *     /**
+ *      * Overwrite the DB with the asset if the version has changed.
+ *     {@literal *}/
+ *    {@literal @}Override
+ *     public void onUpgrade( SQLiteDatabase db, int nOld, int nNew )
+ *     {
+ *         if( nOld < nNew )
+ *             this.copyFromAsset( DB_SOURCE_ASSET ) ;
+ *     }
+ * }
+ * </pre>
+ *
+ * <h3>Static Constants and Utility Methods</h3>
+ *
+ * <p>The class provides several static constants and methods that are generally
+ * useful when dealing with SQLite databases. In particular:</p>
+ *
+ * <dl>
+ *     <dt>{@link #COLUMN_NOT_FOUND}</dt>
+ *     <dd>
+ *         Compare this value to the return value of
+ *         {@link Cursor#getColumnIndex} to determine whether a column exists.
+ *     </dd>
+ *     <dt>{@link #CURSOR_NOT_STARTED}</dt>
+ *     <dd>
+ *         Compare this value to the return value of
+ *         {@link Cursor#getPosition} to determine whether the cursor has
+ *         started traversing its contents.
+ *     </dd>
+ *     <dt>{@link #closeCursor(Cursor)}</dt>
+ *     <dd>
+ *         Safely closes a cursor, checking first whether the object is null or
+ *         has already been closed previously.
+ *     </dd>
+ *     <dt>{@link #boolToInt(boolean)} and {@link #intToBool(int)}</dt>
+ *     <dd>
+ *         Converts between Boolean values and the integer values typically used
+ *         to represent them in SQLite.
+ *     </dd>
+ *     <dt>{@link #now()}</dt>
+ *     <dd>
+ *         Returns a UTC epoch timestamp as a long integer. Implementation
+ *         classes are encouraged to store dates as long integer timestamps
+ *         for easier comparison and storage, and convert them to displayable
+ *         dates and times only when they need to be displayed.
+ *     </dd>
+ * </dl>
+ *
+ * <p>Since 0.1.1 (#20), some of these items also form the basis of
+ * {@link net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder QueryBuilder}
+ * and its descendants.</p>
+ *
  * @since zerobandwidth-net/android 0.0.2 (#8)
  */
 @SuppressWarnings("unused")                                // This is a library.
@@ -175,9 +287,16 @@ extends SQLiteOpenHelper
     {
         /**
          * A reference back to the {@link SQLitePortal} that needs the
-         * conenction.
+         * connection.
          */
         protected SQLitePortal m_dbh = SQLitePortal.this ;
+
+		/**
+		 * Specifies whether to open the database connection in read-only mode.
+		 * Defaults to {@code false}.
+		 * @since zerobandwidth-net/android 0.1.4 (#34)
+		 */
+		protected boolean m_bReadOnly = false ;
 
 	    /**
 	     * A listener to handle the connection callback, if any.
@@ -185,18 +304,37 @@ extends SQLiteOpenHelper
 	     */
 	    protected ConnectionListener m_listener = null ;
 
-	    /** The default constructor. */
+	    /**
+		 * The default constructor.
+		 * @deprecated zerobandwidth-net/android 0.1.4 (#34) &mdash;
+		 *  Always use {@link #ConnectionTask(boolean,ConnectionListener)}.
+		 */
 	    protected ConnectionTask()
-	    { m_listener = null ; }
+	    { m_bReadOnly = false ; m_listener = null ; }
 
 	    /**
 	     * A constructor which specifies a listener to receive the "on
 	     * connected" callback.
 	     * @param l a listener
 	     * @since zerobandwidth-net/android 0.1.2 (#24)
+		 * @deprecated zerobandwidth-net/android 0.1.4 (#34) &mdash;
+		 *  Always use {@link #ConnectionTask(boolean,ConnectionListener)}.
 	     */
 	    protected ConnectionTask( ConnectionListener l )
-	    { m_listener = l ; }
+	    { m_bReadOnly = false ; m_listener = l ; }
+
+		/**
+		 * A constructor specifying all behaviors of the task.
+		 * @param bReadOnly specifies whether to open the connection in
+		 *  read-only mode
+		 * @param l a listener
+		 * @since zerobandwidth-net/android 0.1.4 (#34)
+		 */
+		protected ConnectionTask( boolean bReadOnly, ConnectionListener l )
+		{
+			m_bReadOnly = bReadOnly ;
+			m_listener = l ;
+		}
 
         /**
          * Executes the task in the background. {@link SQLitePortal}
@@ -211,7 +349,11 @@ extends SQLiteOpenHelper
         {
             m_dbh.m_db = null ;
             m_dbh.m_bIsConnected = false ;
-            try { m_dbh.m_db = m_dbh.getWritableDatabase() ; }
+            try
+			{
+				m_dbh.m_db = ( m_bReadOnly ?
+					m_dbh.getReadableDatabase() : m_dbh.getWritableDatabase() );
+			}
             catch( Exception x )
             { Log.e( LOG_TAG, "Could not connect to database.", x ) ; }
             m_dbh.m_bIsConnected = ( m_dbh.m_db != null ) ;
@@ -225,9 +367,18 @@ extends SQLiteOpenHelper
     /** @see SQLiteOpenHelper#SQLiteOpenHelper(Context, String, SQLiteDatabase.CursorFactory, int)  */
     public SQLitePortal( Context ctx, String sDatabaseName,
                          SQLiteDatabase.CursorFactory cf, int nVersion )
-    { super( ctx, sDatabaseName, cf, nVersion ) ; }
+    {
+		super( ctx, sDatabaseName, cf, nVersion ) ;
+		m_ctx = ctx ;
+    }
 
 /// Instance Members ///////////////////////////////////////////////////////////
+
+	/**
+	 * The context in which the portal is created.
+	 * @since zerobandwidth-net/android 0.1.4 (#34)
+	 */
+	protected Context m_ctx = null ;
 
     /** A persistent reference to the underlying database. */
     protected SQLiteDatabase m_db = null ;
@@ -250,7 +401,7 @@ extends SQLiteOpenHelper
      * @return (fluid)
      */
     public synchronized SQLitePortal openDB()
-    { (new ConnectionTask()).runInBackground() ; return this ; }
+    { return this.openDB( false, null ) ; }
 
 	/**
 	 * Kicks off a {@link ConnectionTask} which will inform the specified
@@ -261,10 +412,37 @@ extends SQLiteOpenHelper
 	 * @since zerobandwidth-net/android 0.1.2 (#24)
 	 */
 	public synchronized SQLitePortal openDB( ConnectionListener l )
-	{ (new ConnectionTask(l)).runInBackground() ; return this ; }
+	{ return this.openDB( false, l ) ; }
+
+	/**
+	 * Kicks off a {@link ConnectionTask} which will optionally connect in
+	 * read-only mode.
+	 * @param bReadOnly specifies whether to open the database in read-only mode
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.4 (#34)
+	 */
+	public synchronized SQLitePortal openDB( boolean bReadOnly )
+	{ return this.openDB( bReadOnly, null ) ; }
+
+	/**
+	 * Kicks off a {@link ConnectionTask} which will optionally connect in
+	 * read-only mode, and will inform the specified {@link ConnectionListener}
+	 * when the connection to the SQLite database is established
+	 * @param bReadOnly specifies whether to open the database in read-only mode
+	 * @param l the listener for the "on connected" callback
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.4 (#34)
+	 */
+	public synchronized SQLitePortal openDB( boolean bReadOnly, ConnectionListener l )
+	{ (new ConnectionTask( bReadOnly, l )).runInBackground() ; return this ; }
 
     /**
      * Closes the database connection and releases all references to it.
+	 *
+	 * <p><b>Note:</b> Since 0.1.4 (#34), there is no need to invoke this method
+	 * before {@link #close()}; this class now overrides the parent's
+	 * {@code close()} method to call {@code closeDB()} first.</p>
+	 *
      * @return (fluid)
      */
     public synchronized SQLitePortal closeDB()
@@ -274,4 +452,119 @@ extends SQLiteOpenHelper
         m_bIsConnected = false ;
         return this ;
     }
+
+	/**
+	 * Closes the database connection and releases all references to it, before
+	 * closing the portal itself.
+	 * @since zerobandwidth-net/android 0.1.4 (#34)
+	 */
+	@Override
+	public void close()
+	{ this.closeDB() ; super.close() ; }
+
+/// Database from Assets (#34) /////////////////////////////////////////////////
+
+	/**
+	 * Discovers the full path to the database file for this portal in the app's
+	 * data folder on the Android device.
+	 * @return the full path and name to the database on the device
+	 * @since zerobandwidth-net/android 0.1.4 (#34)
+	 */
+	protected String getPathToDatabaseFile()
+	{
+		return (new StringBuilder())
+			.append( m_ctx.getApplicationInfo().dataDir )
+			.append( File.separatorChar )
+			.append( "databases" )
+			.append( File.separatorChar )
+			.append( this.getDatabaseName() )
+			.toString()
+			;
+	}
+
+	/**
+	 * Checks whether the portal's database exists in the app's data folder on
+	 * the Android device.
+	 * @return {@code true} if the database has already been created
+	 * @since zerobandwidth-net/android 0.1.4 (#34)
+	 */
+	protected boolean databaseExists()
+	{
+		final String sPath = this.getPathToDatabaseFile() ;
+		boolean bExists = false ;
+		try { bExists = (new File(sPath)).exists() ; }
+		catch( SecurityException x )
+		{
+			Log.w( LOG_TAG, (new StringBuilder())
+					.append( "Denied read access when checking for file [" )
+					.append( sPath ).append( "]." )
+					.toString()
+				);
+		}
+		return bExists ;
+	}
+
+	/**
+	 * Overwrites the portal's database with the contents of a static asset
+	 * packaged in the APK.
+	 * @return {@code true} if the asset was successfully copied; {@code false}
+	 *  otherwise
+	 * @since zerobandwidth-net/android 0.1.4 (#34)
+	 */
+	protected boolean copyFromAsset( String sAssetFileName )
+	{
+		boolean bSuccess = true ;
+		InputStream in = null ;
+		OutputStream out = null ;
+		String sDatabaseName = this.getDatabaseName() ;
+		try
+		{
+			String sDatabaseFile = this.getPathToDatabaseFile() ;
+			if( this.databaseExists() )
+			{
+				File fOld = new File( sDatabaseFile ) ;
+				if( fOld.delete() )
+					Log.i( LOG_TAG, "Deleted previous database file!" ) ;
+			}
+			in = m_ctx.getAssets().open(sAssetFileName) ;
+			out = new FileOutputStream( sDatabaseFile ) ;
+			byte[] ayBuffer = new byte[1024] ;
+			int nLength ;
+			while( ( nLength = in.read(ayBuffer) ) > 0 )
+				out.write( ayBuffer, 0, nLength ) ;
+		}
+		catch( IOException iox )
+		{
+			Log.e( LOG_TAG, (new StringBuilder())
+					.append( "Could not copy asset [" )
+					.append( sAssetFileName )
+					.append( "] to database [" )
+					.append( sDatabaseName )
+					.append( "]:" )
+					.toString()
+				, iox );
+			bSuccess = false ;
+		}
+		finally
+		{
+			try { if( in != null ) in.close() ; }
+			catch( IOException ioxCloseInput )
+			{
+				Log.e( LOG_TAG, "Could not close input stream!",
+						ioxCloseInput ) ;
+			}
+			if( out != null )
+			{
+				try { out.flush() ;  out.close() ; }
+				catch( IOException ioxCloseOutput )
+				{
+					Log.e( LOG_TAG,
+							"Could not close output stream!",
+							ioxCloseOutput
+						);
+				}
+			}
+		}
+		return bSuccess ;
+	}
 }
