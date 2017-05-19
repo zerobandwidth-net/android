@@ -430,4 +430,24 @@ extends SQLiteOpenHelper
 		}
 		return bExists ;
 	}
+
+	/**
+	 * Discovers the size of the database file in storage.
+	 * @return the size of the file, or -1 if an exception is thrown
+	 * @since zerobandwidth-net/android 0.1.4 (#34)
+	 */
+	protected long getDatabaseFileSize()
+	{
+		final String sPath = this.getPathToDatabaseFile() ;
+		try { return (new File(sPath)).length() ; }
+		catch( SecurityException x )
+		{
+			Log.w( LOG_TAG, (new StringBuilder())
+					.append( "Access denied for file [" )
+					.append( sPath ).append( "]; returning size -1." )
+					.toString()
+				);
+			return -1 ;
+		}
+	}
 }

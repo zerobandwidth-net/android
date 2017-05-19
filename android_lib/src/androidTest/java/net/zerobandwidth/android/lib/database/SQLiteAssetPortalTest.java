@@ -24,6 +24,14 @@ public class SQLiteAssetPortalTest
 			SQLiteAssetPortalTest.class.getSimpleName() ;
 
 	/**
+	 * Time to wait for a database connection to open, in milliseconds.
+	 */
+	public static final int OPEN_DB_WAIT_MS = 2000 ;
+
+	/** The execution context. */
+	protected Context m_ctx ;
+
+	/**
 	 * Verifies that the logic that manages the asset-to-database conversions
 	 * will operate properly.
 	 *
@@ -39,34 +47,56 @@ public class SQLiteAssetPortalTest
 	public void testDatabaseManagement()
 	throws InterruptedException // from Thread.sleep()
 	{
-		final Context ctx = InstrumentationRegistry.getContext() ;
-		SQLiteAssetPortal dbh = new SQLiteAssetTestDB( ctx, 1 ) ;
+		m_ctx = InstrumentationRegistry.getContext() ;
+		Log.d( LOG_TAG, "Calling test DB constructor..." ) ;
+		SQLiteAssetPortal dbh = new SQLiteAssetTestDB( m_ctx, 1 ) ;
 		Cursor crs = null ;
 		try
 		{
-			Log.i( LOG_TAG, "Initial open with version 1..." ) ;
-			dbh.openDB(true) ;
-			Thread.sleep(2000) ;
+			Log.i( LOG_TAG, "Phase 1: Open version 1..." ) ;
+			this.verifyDBContents( dbh, 2 ) ;
+
+			Log.i( LOG_TAG, "Phase 2: Upgrade to version 2..." ) ;
+			dbh = new SQLiteAssetTestDB( m_ctx, 2 ) ;
+			this.verifyDBContents( dbh, 3 ) ; // Opening DB will trigger upgrade
+
+			Log.i( LOG_TAG, "Phase 3: Open version 2 again with new object..." ) ;
+			dbh = new SQLiteAssetTestDB( m_ctx, 2 ) ;
+			this.verifyDBContents( dbh, 3 ) ;
+
+			Log.i( LOG_TAG, "Phase 4: Open version 2 with same object..." ) ;
+			this.verifyDBContents( dbh, 3 ) ;
+		}
+		finally
+		{
+			Log.i( LOG_TAG, "Deleting database..." ) ;
+			m_ctx.deleteDatabase( dbh.getDatabaseName() ) ;
+		}
+	}
+
+	/**
+	 * Repetitive code to verify that the test DB exists and contains the
+	 * expected number of rows.
+	 * @param dbh the test database portal
+	 * @param nExpected the number of rows expected
+	 * @throws InterruptedException if the thread sleeper fails
+	 */
+	private void verifyDBContents( SQLiteAssetPortal dbh, int nExpected )
+	throws InterruptedException
+	{
+		Cursor crs = null ;
+		try
+		{
+			dbh.openDB() ;
+			Thread.sleep(OPEN_DB_WAIT_MS) ;
 			assertTrue( dbh.databaseExists() ) ;
 			crs = QueryBuilder.selectFrom( "foo" ).executeOn( dbh.m_db ) ;
-			assertEquals( 2, crs.getCount() ) ;
-
-			SQLitePortal.closeCursor(crs) ;
-			dbh.close() ;
-
-			Log.i( LOG_TAG, "Subsequent open with version 2..." ) ;
-			dbh = new SQLiteAssetTestDB( ctx, 2 ) ;
-			dbh.openDB(true) ; // Should upgrade the DB with asset version 2.
-			Thread.sleep(2000) ;
-			assertTrue( dbh.databaseExists() ) ;
-			crs = QueryBuilder.selectFrom( "foo" ).executeOn( dbh.m_db ) ;
-			assertEquals( 3, crs.getCount() ) ;
+			assertEquals( nExpected, crs.getCount() ) ;
 		}
 		finally
 		{
 			SQLitePortal.closeCursor(crs) ;
 			dbh.close() ;
-			ctx.deleteDatabase( dbh.getDatabaseName() ) ;
 		}
 	}
 }

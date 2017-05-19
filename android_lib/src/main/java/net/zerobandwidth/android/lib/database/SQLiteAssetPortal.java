@@ -80,6 +80,7 @@ extends SQLitePortal
 		{
 			m_dbh.m_db = null ;
 			m_dbh.m_bIsConnected = false ;
+			Log.d( "ConnectionTask", "First getReadableDatabase() call" ) ;
 			try { m_dbh.m_db = m_dbh.getReadableDatabase() ; }
 			catch( Exception x )
 			{ Log.e( LOG_TAG, "Could not establish initial connection." ) ; }
@@ -89,6 +90,7 @@ extends SQLitePortal
 				m_dbh.copyFromAsset() ;
 				try
 				{
+					Log.d( "ConnectionTask", "Second getReadableDatabase() call" ) ;
 					m_dbh.m_db = m_dbh.getReadableDatabase() ;
 					m_dbh.m_bNeedsCopy = false ;
 				}
@@ -124,12 +126,19 @@ extends SQLitePortal
 	/**
 	 * If the database did not previously exist, then we need to copy it from
 	 * the asset.
+	 *
+	 * <p>Note that, since {@link ConnectionTask} executes
+	 * {@link SQLiteOpenHelper#getReadableDatabase()} twice, it is possible that
+	 * this method will be called spuriously during the second invocation.
+	 * However, since the task immediately resets {@link #m_bNeedsCopy} to
+	 * {@code false} after this, this has no negative consequence, other than
+	 * the time wasted on the method call.</p>
 	 */
 	@Override
 	public final void onCreate( SQLiteDatabase db )
 	{
-		m_bNeedsCopy = true ;
-		Log.d( LOG_TAG, "onCreate(): Asset should be copied." ) ;
+		long nAssetSize = ; // TODO get the size of the asset
+		m_bNeedsCopy = ( nAssetSize != this.getDatabaseFileSize() ) ;
 	}
 
 	/**
@@ -155,7 +164,7 @@ extends SQLitePortal
 	/**
 	 * Forces the connection to be read-only, and uses the descendant version of
 	 * {@link ConnectionTask} to open, and then copy, the database.
-	 * @param bReadOnly placebo - always overridden as {@code false} in this
+	 * @param bReadOnly placebo - always overridden as {@code true} in this
 	 *  version of the method
 	 * @param l the listener for the "on connected" callback
 	 * @return (fluid)
@@ -204,6 +213,14 @@ extends SQLitePortal
 			out = new FileOutputStream( sDatabaseFile ) ;
 			byte[] ayBuffer = new byte[1024] ;
 			int nLength ;
+			Log.d( LOG_TAG, (new StringBuilder())
+					.append( "Copying database from asset [" )
+					.append( sAssetFileName )
+					.append( "] to database [" )
+					.append( sDatabaseName )
+					.append( "]..." )
+					.toString()
+				);
 			while( ( nLength = in.read(ayBuffer) ) > 0 )
 				out.write( ayBuffer, 0, nLength ) ;
 		}
