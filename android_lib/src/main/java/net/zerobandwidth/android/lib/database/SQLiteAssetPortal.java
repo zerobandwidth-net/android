@@ -80,7 +80,6 @@ extends SQLitePortal
 		{
 			m_dbh.m_db = null ;
 			m_dbh.m_bIsConnected = false ;
-			Log.d( "ConnectionTask", "First getReadableDatabase() call" ) ;
 			try { m_dbh.m_db = m_dbh.getReadableDatabase() ; }
 			catch( Exception x )
 			{ Log.e( LOG_TAG, "Could not establish initial connection." ) ; }
@@ -90,8 +89,12 @@ extends SQLitePortal
 				m_dbh.copyFromAsset() ;
 				try
 				{
-					Log.d( "ConnectionTask", "Second getReadableDatabase() call" ) ;
 					m_dbh.m_db = m_dbh.getReadableDatabase() ;
+					// Explicitly override the copy flag after this second call,
+					// to avoid spurious re-copying of the DB. This must be done
+					// because onCreate() can still be called by Android as part
+					// of the SQLite DB connection life cycle, and our override
+					// would blindly set the copy flag to true.
 					m_dbh.m_bNeedsCopy = false ;
 				}
 				catch( Exception x )
@@ -137,8 +140,8 @@ extends SQLitePortal
 	@Override
 	public final void onCreate( SQLiteDatabase db )
 	{
-		long nAssetSize = ; // TODO get the size of the asset
-		m_bNeedsCopy = ( nAssetSize != this.getDatabaseFileSize() ) ;
+		Log.d( LOG_TAG, "onCreate() called; asset may be copied." ) ;
+		m_bNeedsCopy = true ;
 	}
 
 	/**
