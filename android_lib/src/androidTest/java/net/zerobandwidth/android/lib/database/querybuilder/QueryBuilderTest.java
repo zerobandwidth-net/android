@@ -115,6 +115,22 @@ public class QueryBuilderTest
 	}
 
 	/**
+	 * Exercises the newer grammar for binding and executing an
+	 * {@link InsertionBuilder}.
+	 * Intentionally doesn't test any of the other inner workings of the
+	 * builder, since those are covered elsewhere.
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	@Test
+	public void testInsertionBuilderBound()
+	{
+		ContentValues vals = getTestableValues() ;
+		long nID = QueryBuilder.insertInto( m_db, TEST_TABLE_NAME )
+				.setValues(vals).execute() ;
+		assertFalse( nID == InsertionBuilder.INSERT_FAILED ) ;
+	}
+
+	/**
 	 * Explicitly exercises basic functions of {@link UpdateBuilder}.
 	 * Implicitly exercises {@link InsertionBuilder} to build up the data set
 	 * for updates.
@@ -196,6 +212,29 @@ public class QueryBuilderTest
 	}
 
 	/**
+	 * Exercises the newer grammar for binding and executing an
+	 * {@link UpdateBuilder}.
+	 * Intentionally doesn't test any of the other inner workings of the
+	 * builder, since those are covered elsewhere.
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	@Test
+	public void testUpdateBuilderBound()
+	{
+		final long nID = QueryBuilder.insertInto( m_db, TEST_TABLE_NAME )
+				.setValues( getTestableValues() ).execute() ;
+		final String sID = Long.toString(nID) ;
+		ContentValues valsUpdate = new ContentValues() ;
+		valsUpdate.put( "a_string_field", "bound_update" ) ;
+		long nCount = QueryBuilder.update( m_db, TEST_TABLE_NAME )
+				.setValues( valsUpdate )
+				.where( "id=?", sID )
+				.execute()
+				;
+		assertEquals( 1, nCount ) ;
+	}
+
+	/**
 	 * Explicitly exercises basic functions of {@link DeletionBuilder}.
 	 * Implicitly exercises {@link InsertionBuilder} to build up the data set to
 	 * be deleted.
@@ -239,6 +278,31 @@ public class QueryBuilderTest
 		assertTrue( nCount >= ITERATIONS ) ;
 		Log.d( LOG_TAG, (new StringBuilder())
 			.append( "Deleted all rows: " ).append( nCount ).toString() ) ;
+	}
+
+	/**
+	 * Exercises the newer grammar for binding and executing an
+	 * {@link DeletionBuilder}.
+	 * Intentionally doesn't test any of the other inner workings of the
+	 * builder, since those are covered elsewhere.
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	@Test
+	public void testDeletionBuilderBound()
+	{
+		final int ITERATIONS = 5 ; // Tune this to taste.
+		long nLastID = 0 ;
+		for( int i = 0 ; i < ITERATIONS ; i++ )
+		{
+			nLastID = QueryBuilder.insertInto( m_db, TEST_TABLE_NAME )
+					.setValues( getTestableValues() ).execute() ;
+		}
+		final String sLastID = Long.toString( nLastID ) ;
+		Integer nCount = QueryBuilder.deleteFrom( m_db, TEST_TABLE_NAME )
+				.where( "id=?", sLastID )
+				.execute()
+				;
+		assertEquals( 1, nCount.intValue() ) ;
 	}
 
 	/**
@@ -359,5 +423,89 @@ public class QueryBuilderTest
 		assertNotNull( crs ) ;
 		assertEquals( 1, crs.getCount() ) ;
 		SQLitePortal.closeCursor( crs ) ;
+	}
+
+	/**
+	 * Exercises the newer grammar for binding and executing an
+	 * {@link SelectionBuilder}.
+	 * Intentionally doesn't test any of the other inner workings of the
+	 * builder, since those are covered elsewhere.
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	@Test
+	public void testSelectionBuilderBound()
+	{
+		long nID = QueryBuilder.insertInto( m_db, TEST_TABLE_NAME )
+				.setValues( getTestableValues() ).execute() ;
+		String sID = Long.toString(nID) ;
+		Cursor crs = QueryBuilder.selectFrom( m_db, TEST_TABLE_NAME )
+				.where( "id=?", sID )
+				.execute()
+				;
+		assertNotNull(crs) ;
+		if( crs.moveToFirst() )
+		{
+			assertEquals( nID, crs.getLong(0) ) ;
+			SQLitePortal.closeCursor( crs ) ;
+		}
+		else
+		{
+			SQLitePortal.closeCursor( crs ) ;
+			fail( "Didn't get the expected row!" ) ;
+		}
+	}
+
+	/**
+	 * Exercises the failure mechanism built into the base class's
+	 * {@link QueryBuilder#execute} method.
+	 * The syntax/grammar used in each {@code try} block is intentionally wrong,
+	 * in order to trigger the exception.
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	@Test
+	public void testFailedBuilderBindings()
+	{
+		QueryBuilder.UnboundException xCaught = null ;
+
+		try
+		{
+			QueryBuilder.insertInto( TEST_TABLE_NAME )
+					.setValues( getTestableValues() ).execute() ;
+		}
+		catch( QueryBuilder.UnboundException x )
+		{ xCaught = x ; }
+		assertNotNull( xCaught ) ;
+
+		xCaught = null ;
+
+		try
+		{
+			QueryBuilder.update( TEST_TABLE_NAME )
+					.setValues( getTestableValues() ).updateAll().execute() ;
+		}
+		catch( QueryBuilder.UnboundException x )
+		{ xCaught = x ; }
+		assertNotNull( xCaught ) ;
+
+		xCaught = null ;
+
+		try
+		{
+			QueryBuilder.selectFrom( TEST_TABLE_NAME )
+					.allColumns().execute() ;
+		}
+		catch( QueryBuilder.UnboundException x )
+		{ xCaught = x ; }
+		assertNotNull( xCaught ) ;
+
+		xCaught = null ;
+
+		try
+		{
+			QueryBuilder.deleteFrom( TEST_TABLE_NAME ).deleteAll().execute() ;
+		}
+		catch( QueryBuilder.UnboundException x )
+		{ xCaught = x ; }
+		assertNotNull( xCaught ) ;
 	}
 }

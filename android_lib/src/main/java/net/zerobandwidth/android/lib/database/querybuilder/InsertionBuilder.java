@@ -14,7 +14,7 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * Insert a row.
  *
  * <pre>
- * long nInserted = QueryBuilder.insertInto( sTableName )
+ * long nID = QueryBuilder.insertInto( sTableName )
  *     .setValues( vals )
  *     .executeOn( db )
  *     ;
@@ -24,7 +24,7 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * conflict arises.
  *
  * <pre>
- * long nInserted = QueryBuilder.insertInto( sTableName )
+ * long nID = QueryBuilder.insertInto( sTableName )
  *     .setValues( vals )
  *     .onConflict( SQLiteDatabase.CONFLICT_ROLLBACK )
  *     .executeOn( db )
@@ -34,15 +34,15 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * Insert a series of rows.
  *
  * <pre>
- * long nTotalInserted = 0 ;
+ * Vector<Integer> vnIDs = new Vector<>() ;
  * for( ContentValues vals : aSeveralValues )
  * {
- *     nInserted = QueryBuilder.insertInto( sTableName )
+ *     nID = QueryBuilder.insertInto( sTableName )
  *         .setValues( vals )
  *         .executeOn( db )
  *         ;
- *     if( nInserted != SQLitePortal.INSERT_FAILED )
- *         nTotalInserted += nInserted ;
+ *     if( nID != SQLitePortal.INSERT_FAILED )
+ *         vnIDs.add(nID) ;
  * }
  * </pre>
  *
