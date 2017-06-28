@@ -46,6 +46,36 @@ import java.util.Map;
 @SuppressWarnings( "unused" )                              // This is a library.
 public abstract class QueryBuilder<I extends QueryBuilder, R>
 {
+/// Inner Classes //////////////////////////////////////////////////////////////
+
+	/**
+	 * Informs a consumer that the builder's {@link #execute} method was invoked
+	 * while the builder was not bound to a target database instance. When
+	 * encountering this exception in code that consumes {@code QueryBuilder},
+	 * ensure that the code either uses one of the two-argument kickoff methods
+	 * that includes a database binding, or uses {@link #onDatabase} to
+	 * define a binding, or uses {@link #executeOn} instead of {@link #execute}.
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static class UnboundException
+	extends IllegalStateException
+	{
+		protected static final String DEFAULT_MESSAGE =
+			"Caller tried to execute a query without a database reference." ;
+
+		public UnboundException()
+		{ super(DEFAULT_MESSAGE) ; }
+
+		public UnboundException( String sMessage )
+		{ super(sMessage) ; }
+
+		public UnboundException( Throwable xCause )
+		{ super( DEFAULT_MESSAGE, xCause ) ; }
+
+		public UnboundException( String sMessage, Throwable xCause )
+		{ super( sMessage, xCause ) ; }
+	}
+
 /// Static constants ///////////////////////////////////////////////////////////
 
 	/**
@@ -94,12 +124,34 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	{ return new InsertionBuilder( sTableName ) ; }
 
 	/**
+	 * Kicks off construction of an {@code INSERT} query, bound to a specific
+	 * database instance.
+	 * @param db the database on which the query should be executed
+	 * @param sTableName the name of the table into which rows will be inserted
+	 * @return an instance of a builder that can handle insertion queries
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static InsertionBuilder insertInto( SQLiteDatabase db, String sTableName )
+	{ return insertInto(sTableName).onDatabase(db) ; }
+
+	/**
 	 * Kicks off construction of an {@code UPDATE} query.
 	 * @param sTableName the name of the table in which rows will be updated
 	 * @return an instance of a builder that can handle update queries
 	 */
 	public static UpdateBuilder update( String sTableName )
 	{ return new UpdateBuilder( sTableName ) ; }
+
+	/**
+	 * Kicks off construction of an {@code UPDATE} query, bound to a specific
+	 * database instance.
+	 * @param db the database on which the query should be executed
+	 * @param sTableName the name of the table in which rows will be updated
+	 * @return an instance of a builder that can handle update queries
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static UpdateBuilder update( SQLiteDatabase db, String sTableName )
+	{ return update(sTableName).onDatabase(db) ; }
 
 	/**
 	 * Kicks off construction of a {@code SELECT} query.
@@ -110,12 +162,34 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	{ return new SelectionBuilder( sTableName ) ; }
 
 	/**
+	 * Kicks off construction of a {@code SELECT} query, bound to a specific
+	 * database instance.
+	 * @param db the database on which the query should be executed
+	 * @param sTableName the name of the table from which rows will be selected
+	 * @return an instance of a builder that can handle selection queries
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static SelectionBuilder selectFrom( SQLiteDatabase db, String sTableName )
+	{ return selectFrom(sTableName).onDatabase(db) ; }
+
+	/**
 	 * Kicks off construction of a {@code DELETE} query.
 	 * @param sTableName the name of the table from which rows will be deleted
 	 * @return an instance of a builder that can handle deletion queries
 	 */
 	public static DeletionBuilder deleteFrom( String sTableName )
 	{ return new DeletionBuilder( sTableName ) ; }
+
+	/**
+	 * Kicks off construction of a {@code DELETE} query, bound to a specific
+	 * database instance.
+	 * @param db the databse on which the query should be executed
+	 * @param sTableName the name of the table from which rows will be deleted
+	 * @return an instance of a builder that can handle deletion queries
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static DeletionBuilder deleteFrom( SQLiteDatabase db, String sTableName )
+	{ return deleteFrom(sTableName).onDatabase(db) ; }
 
 /// Other static methods ///////////////////////////////////////////////////////
 
@@ -186,6 +260,12 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 */
 	protected String[] m_asExplicitWhereParams = null ;
 
+	/**
+	 * A persistent binding to a specific database, used by {@link #execute}.
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	protected SQLiteDatabase m_dbTarget = null ;
+
 /// Shared constructor /////////////////////////////////////////////////////////
 
 	/**
@@ -199,6 +279,17 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	}
 
 /// Shared methods /////////////////////////////////////////////////////////////
+
+	/**
+	 * Binds the builder to a specific database instance, to be used by
+	 * {@link #execute}.
+	 * @param db the database instance on which the query should be executed
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	@SuppressWarnings( "unchecked" )
+	public I onDatabase( SQLiteDatabase db )
+	{ m_dbTarget = db ; return (I)this ; }
 
 	/**
 	 * Sets the table name in which the query will be executed.
@@ -323,4 +414,22 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 * @return the usual return value of the underlying method
 	 */
 	public abstract R executeOn( SQLiteDatabase db ) ;
+
+	/**
+	 * Executes the query that has been built by the implementation class, on
+	 * the database instance to which the builder has been bound, either by a
+	 * constructor, or by {@link #onDatabase}.
+	 * @return the usual return value of the underlying method
+	 * @throws QueryBuilder.UnboundException if the builder is not yet bound to
+	 *  a database instance
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public final R execute()
+	throws QueryBuilder.UnboundException
+	{
+		if( m_dbTarget == null )
+			throw new QueryBuilder.UnboundException() ;
+
+		return this.executeOn( m_dbTarget ) ;
+	}
 }
