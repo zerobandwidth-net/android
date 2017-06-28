@@ -7,6 +7,28 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
 
 /**
  * Builds a SQLite {@code DELETE} query.
+ *
+ * <h3>Examples</h3>
+ *
+ * Delete all records from a table:
+ *
+ * <pre>
+ * int nDeleted = QueryBuilder.deleteFrom( sTableName )
+ *     .deleteAll()
+ *     .executeOn( db )
+ *     ;
+ * </pre>
+ *
+ * Delete select records from a table:
+ *
+ * <pre>
+ * int nDeleted = QueryBuilder.deleteFrom( sTableName )
+ *     .where( "active=? OR last_active_ts<=?",
+ *         QueryBuilder.WHERE_FALSE, SQLitePortal.now() - 86400 )
+ *     .executeOn( db )
+ *     ;
+ * </pre>
+ *
  * @since zerobandwidth-net/android 0.1.1 (#20)
  * @see SQLiteDatabase#delete(String, String, String[])
  */

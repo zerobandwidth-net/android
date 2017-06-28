@@ -8,6 +8,44 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
 
 /**
  * Builds a SQLite {@code INSERT} query.
+ *
+ * <h3>Examples</h3>
+ *
+ * Insert a row.
+ *
+ * <pre>
+ * long nInserted = QueryBuilder.insertInto( sTableName )
+ *     .setValues( vals )
+ *     .executeOn( db )
+ *     ;
+ * </pre>
+ *
+ * Insert a row, specifying that the operation should be rolled back if a
+ * conflict arises.
+ *
+ * <pre>
+ * long nInserted = QueryBuilder.insertInto( sTableName )
+ *     .setValues( vals )
+ *     .onConflict( SQLiteDatabase.CONFLICT_ROLLBACK )
+ *     .executeOn( db )
+ *     ;
+ * </pre>
+ *
+ * Insert a series of rows.
+ *
+ * <pre>
+ * long nTotalInserted = 0 ;
+ * for( ContentValues vals : aSeveralValues )
+ * {
+ *     nInserted = QueryBuilder.insertInto( sTableName )
+ *         .setValues( vals )
+ *         .executeOn( db )
+ *         ;
+ *     if( nInserted != SQLitePortal.INSERT_FAILED )
+ *         nTotalInserted += nInserted ;
+ * }
+ * </pre>
+ *
  * @since zerobandwidth-net/android 0.1.1 (#20)
  * @see SQLiteDatabase#insertWithOnConflict(String, String, ContentValues, int)
  */

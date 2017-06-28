@@ -8,6 +8,30 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
 
 /**
  * Builds a SQLite {@code UPDATE} query.
+ *
+ * <h3>Examples</h3>
+ *
+ * Update all rows.
+ *
+ * <pre>
+ * long nUpdated = QueryBuilder.update( sTableName )
+ *     .setValues( vals )
+ *     .updateAll()
+ *     .executeOn( db )
+ *     ;
+ * </pre>
+ *
+ * Update specific rows, specifying that conflicts should be ignored.
+ *
+ * <pre>
+ * long nUpdated = QueryBuilder.update( sTableName )
+ *     .setValues( vals )
+ *     .where( "some_column=?", sBogusValue )
+ *     .onConflict( SQLiteDatabase.CONFLICT_IGNORE )
+ *     .executeOn( db )
+ *     ;
+ * </pre>
+ *
  * @since zerobandwidth-net/android 0.1.1 (#20)
  * @see SQLiteDatabase#updateWithOnConflict(String, ContentValues, String, String[], int)
  */

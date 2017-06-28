@@ -35,6 +35,7 @@ import java.util.Vector;
  * </pre>
  *
  * @since zerobandwidth-net/android 0.1.1 (#20)
+ * @see SQLiteDatabase#query
  */
 @SuppressWarnings( "unused" )                              // This is a library.
 public class SelectionBuilder
