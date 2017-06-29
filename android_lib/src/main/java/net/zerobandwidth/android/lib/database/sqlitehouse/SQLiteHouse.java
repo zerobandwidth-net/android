@@ -185,14 +185,15 @@ extends SQLitePortal
 		 * @return an instance of the {@code SQLiteHouse} descendant,
 		 *  initialized with the database attributes found in the class's
 		 *  {@link SQLiteDatabaseSpec} annotation
-		 * @throws IntrospectionException
+		 * @throws IntrospectionException if something goes wrong while
+		 *  processing the descendant class. When invoking the descendant's
+		 *  constructor, there are several possible failure states; use
+		 *  {@code .getCause()} to determine which one applies.
 		 */
 		@SuppressWarnings( "unchecked" ) // Constructor is invoked from class.
 		public <FDSC extends SQLiteHouse> FDSC getInstance( Class<FDSC> cls,
 				Context ctx, SQLiteDatabase.CursorFactory cf )
-		throws IllegalAccessException, InstantiationException,
-				IntrospectionException, InvocationTargetException,
-				NoSuchMethodException
+		throws IntrospectionException
 		{
 			this.m_ctx = ctx ;
 			this.m_cf = cf ;
