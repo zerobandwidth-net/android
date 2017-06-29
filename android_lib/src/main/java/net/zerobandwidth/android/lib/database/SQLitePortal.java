@@ -290,6 +290,14 @@ extends SQLiteOpenHelper
 	/** A persistent reference to the underlying database. */
 	protected SQLiteDatabase m_db = null ;
 
+	/**
+	 * Remembers the version number with which the instance was constructed.
+	 * This is kept private in {@link SQLiteOpenHelper}, so in order to use this
+	 * in {@code SQLitePortal} and its descendants, we have to copy it here.
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	protected int m_nLatestVersion = -1 ;
+
 	/** Indicates whether a connection to the database has been established. */
 	protected boolean m_bIsConnected = false ;
 
@@ -307,6 +315,7 @@ extends SQLiteOpenHelper
     {
 		super( ctx, sDatabaseName, cf, nVersion ) ;
 		m_ctx = ctx ;
+	    m_nLatestVersion = nVersion ;
     }
 
 /// Database Connection Management Methods /////////////////////////////////////
@@ -450,4 +459,12 @@ extends SQLiteOpenHelper
 			return -1 ;
 		}
 	}
+
+	/**
+	 * Accessor for the schema version with which the instance was constructed.
+	 * @return the "latest" schema version number
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public int getLatestSchemaVersion()
+	{ return m_nLatestVersion ; }
 }
