@@ -1,4 +1,6 @@
-package net.zerobandwidth.android.lib.database.sqlitehouse;
+package net.zerobandwidth.android.lib.database.sqlitehouse.exceptions;
+
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
 
 /**
  * Thrown by {@link SQLiteHouse} and its descendant classes whenever the process

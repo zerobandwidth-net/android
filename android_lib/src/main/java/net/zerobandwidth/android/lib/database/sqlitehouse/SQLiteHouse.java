@@ -2,16 +2,20 @@ package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
+import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Uses custom annotations to automatically construct and manage SQLite
@@ -39,6 +43,14 @@ import java.util.List;
  *     )
  *     public class MyDatabaseClass extends SQLiteHouse<MyDatabaseClass> {}
  * </pre>
+ *
+ * <p>Note that the descendant class extends {@code SQLiteHouse} with a generic
+ * parameter pointing back to itself. This template parameter is used in
+ * {@code SQLiteHouse}'s method definitions to ensure that all methods that are
+ * "fluid" (<i>i.e.</i>, which return the same object) will return instances of
+ * that descendant class, rather than being typecast up the hierarchy to
+ * {@code SQLiteHouse} itself. This pattern allows for more effective method
+ * chaining in case the descendant has custom methods that are also fluid.</p>
  *
  * <h3>Defining the Database Schema</h3>
  *
@@ -117,6 +129,10 @@ import java.util.List;
  * established with {@link SQLitePortal#openDB()} and released with
  * {@link SQLitePortal#close()}.</p>
  *
+ * @param <DSC> A descendant class. When creating a descendant class, it should
+ *  extend {@code SQLiteHouse} templatized for itself. This will ensure that all
+ *  methods inherited from {@code SQLiteHouse} return instances of the
+ *  descendant class, rather than the parent class.
  *
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
@@ -165,7 +181,7 @@ extends SQLitePortal
 
 		protected int m_nSchemaVersion = SCHEMA_NOT_DEFINED ;
 
-		protected ArrayList<Class> m_aclsSchema = null ;
+		protected ArrayList<Class<? extends SQLightable>> m_aclsSchema = null ;
 
 		/**
 		 * Uses annotations found in a {@link SQLiteHouse} descendant to
@@ -240,7 +256,21 @@ extends SQLitePortal
 
 /// Instance Members ///////////////////////////////////////////////////////////
 
-	protected List<Class> m_aclsSchema = null ;
+	/**
+	 * A list of classes that, in aggregate, define the schema for the database.
+	 */
+	protected List<Class<? extends SQLightable>> m_aclsSchema = null ;
+
+	/**
+	 * A map of schema classes to lists of their fields.
+	 */
+	protected Map<Class<? extends SQLightable>,List<Field>> m_mapFields = null ;
+
+	/**
+	 * A map of schema classes to the columns that are annotated as primary
+	 * keys, using the {@link SQLitePrimaryKey} annotation.
+	 */
+	protected Map<Class<? extends SQLightable>,Field> m_mapKeys = null ;
 
 /// Constructors and Initializers //////////////////////////////////////////////
 
@@ -248,20 +278,21 @@ extends SQLitePortal
 	{
 		super( factory.m_ctx, factory.m_sDatabaseName,
 				factory.m_cf, factory.m_nSchemaVersion ) ;
-		this.setSchemaClasses( factory.m_aclsSchema ) ;
+		this.setSchemaClasses( factory.m_aclsSchema )
+			.processFieldsOfClasses()
+			;
 	}
 
-/// net.zerobandwidth.android.lib.database.SQLitePortal ////////////////////////
-
-	public void onCreate( SQLiteDatabase db )
-	{ } // TODO Can we provide a final implementation here?
-
-	public void onUpgrade( SQLiteDatabase db, int nOld, int nNew )
-	{ } // TODO Can we provide a final implementation here?
-
-/// Instance Methods ///////////////////////////////////////////////////////////
-
-	protected DSC setSchemaClasses( List<Class> aclsSchema )
+	/**
+	 * Caches a list of classes that define the database schema.
+	 *
+	 * Consumed by {@link #SQLiteHouse(Factory)}; must precede
+	 * {@link #processFieldsOfClasses()}.
+	 *
+	 * @param aclsSchema the list of classes
+	 * @return (fluid)
+	 */
+	protected DSC setSchemaClasses( List<Class<? extends SQLightable>> aclsSchema )
 	{
 		if( this.m_aclsSchema == null )
 			this.m_aclsSchema = new ArrayList<>() ;
@@ -272,4 +303,50 @@ extends SQLitePortal
 		//noinspection unchecked
 		return (DSC)this ;
 	}
+
+	/**
+	 * Given that the list of schema classes has been populated, discover and
+	 * cache their characteristics for future reference.
+	 *
+	 * Consumed by {@link #SQLiteHouse(Factory)}; must follow
+	 * {@link #setSchemaClasses(List)}.
+	 *
+	 * @return (fluid)
+	 */
+	protected DSC processFieldsOfClasses()
+	{
+		if( m_mapFields == null )
+			m_mapFields = new HashMap<>() ;
+		if( m_mapKeys == null )
+			m_mapKeys = new HashMap<>() ;
+		for( Class<? extends SQLightable> cls : m_aclsSchema )
+		{
+			List<Field> afldAll = Arrays.asList( cls.getDeclaredFields() ) ;
+			List<Field> afldAnnotated = new ArrayList<>() ;
+			for( Field fld : afldAll )
+			{ // Find only the fields that are annotated as columns.
+				if( fld.isAnnotationPresent( SQLiteColumn.class ) )
+					afldAnnotated.add(fld) ;
+				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )
+					m_mapKeys.put( cls, fld ) ;
+			}
+			m_mapFields.put( cls, afldAnnotated ) ;
+		}
+
+		//noinspection unchecked
+		return (DSC)this ;
+	}
+
+/// net.zerobandwidth.android.lib.database.SQLitePortal ////////////////////////
+
+	@Override
+	public void onCreate( SQLiteDatabase db )
+	{ } // TODO Can we provide a final implementation here?
+
+	@Override
+	public void onUpgrade( SQLiteDatabase db, int nOld, int nNew )
+	{ } // TODO Can we provide a final implementation here?
+
+/// Instance Methods ///////////////////////////////////////////////////////////
+
 }
