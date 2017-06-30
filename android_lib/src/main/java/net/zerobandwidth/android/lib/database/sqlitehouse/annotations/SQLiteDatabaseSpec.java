@@ -25,7 +25,7 @@ public @interface SQLiteDatabaseSpec
 	 * constructor of {@code SQLiteOpenHelper} or {@code SQLitePortal}.
 	 * @return the database name
 	 */
-	String database_name() ;
+	String database_name() ; // required
 
 	/**
 	 * The current schema version for the database overall, as usually supplied

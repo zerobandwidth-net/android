@@ -20,7 +20,7 @@ implements SQLightable
 	 * Should be discovered as column <code>blargh_string</code> of type
 	 * <code>TEXT</code> and default value <code>NULL</code>.
 	 */
-	@SQLiteColumn( "blargh_string" )
+	@SQLiteColumn( name = "blargh_string" )
 	protected String m_sString = null ;
 
 	// None of the following should be discovered as columns.

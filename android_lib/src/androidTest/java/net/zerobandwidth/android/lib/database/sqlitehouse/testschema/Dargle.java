@@ -8,6 +8,10 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTabl
 /**
  * Serves as one of the database schema definition classes for
  * {@link net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouseTest}.
+ *
+ * Columns intentionally don't specify indices; they should be sorted
+ * alphabetically, with {@code dargle_string} first, then {@code is_dargly}.
+ *
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 @SQLiteTable( "dargles" )
@@ -18,7 +22,7 @@ implements SQLightable
 	 * Should be discovered as column <code>dargle_string</code> of type
 	 * <code>TEXT</code> and default value <code>"dargle"</code>.
 	 */
-	@SQLiteColumn( value = "dargle_string", is_nullable = false )
+	@SQLiteColumn( name = "dargle_string", is_nullable = false )
 	@SQLitePrimaryKey
 	protected String m_sString = "dargle" ;
 
@@ -26,7 +30,7 @@ implements SQLightable
 	 * Should be discovered as column <code>is_dargly</code> of type
 	 * <code>INT</code> and default value <code>1</code>.
 	 */
-	@SQLiteColumn( "is_dargly" )
+	@SQLiteColumn( name = "is_dargly" )
 	protected boolean m_bBoolean = true ;
 
 	/**

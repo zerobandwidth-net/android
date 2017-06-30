@@ -30,13 +30,23 @@ public @interface SQLiteColumn
 	 * will contain the values from that database table column.
 	 * @return the name of this field's database corresponding table column
 	 */
-	String value() ;
+	String name() ; // required
+
+	/**
+	 * Roughly-specifies the column index. This is <i>not</i> a one-to-one
+	 * concordance; rather, it is used as a sorting order when organizing
+	 * columns for table creation. <i>Do not</i> depend on this index as a
+	 * one-to-one concordance of columns to numeric indices.
+	 * @return a rough estimation of column index, which is really a sort
+	 *  order
+	 */
+	int index() default 0 ;
 
 	/**
 	 * Specifies whether the database column should be nullable. The default,
 	 * {@code true}, will explicitly allow null values. Setting this attribute
 	 * to {@code false} will explicitly forbid null values.
-	 * @return
+	 * @return indicates whether the column should allow null values
 	 */
 	boolean is_nullable() default true ;
 }

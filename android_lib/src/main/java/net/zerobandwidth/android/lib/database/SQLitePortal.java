@@ -141,6 +141,22 @@ extends SQLiteOpenHelper
 	public static final String UPDATE_ALL = "1" ;
 
 	/**
+	 * Integer representation of "true".
+	 * @see #boolToInt(boolean)
+	 * @see #intToBool(int)
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final int SQLITE_TRUE_INT = 1 ;
+
+	/**
+	 * Integer representation of "false".
+	 * @see #boolToInt(boolean)
+	 * @see #intToBool(int)
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final int SQLITE_FALSE_INT = 0 ;
+
+	/**
 	 * If using integer columns to store Boolean values, where {@code 1} is true
 	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
 	 * value substitutions for "true".
@@ -178,7 +194,7 @@ extends SQLiteOpenHelper
      * @return {@code 1} for true or {@code 0} for false
      */
     public static int boolToInt( boolean b )
-    { return( b ? 1 : 0 ) ; }
+    { return( b ? SQLITE_TRUE_INT : SQLITE_FALSE_INT ) ; }
 
     /**
      * Simplistic transformation of an integer to a Boolean value, for retrieval
@@ -187,7 +203,7 @@ extends SQLiteOpenHelper
      * @return {@code true} iff the integer is non-zero
      */
     public static boolean intToBool( int z )
-    { return( z != 0 ) ; }
+    { return( z != SQLITE_FALSE_INT ) ; }
 
 	/**
 	 * Returns the number of milliseconds since epoch UTC. Use this value when

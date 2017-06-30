@@ -25,7 +25,7 @@ public @interface SQLiteTable
 	 * of which may be contained in instances of the decorated class.
 	 * @return the database table name
 	 */
-	String value() ;
+	String value() ; // required
 
 	/**
 	 * Specifies the first schema version in which this table was defined. The

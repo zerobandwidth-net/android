@@ -2,17 +2,26 @@ package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
+import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
+import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.RefractorMap;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -248,11 +257,65 @@ extends SQLitePortal
 		}
 	}
 
-/// Static Fields //////////////////////////////////////////////////////////////
+	/**
+	 * Used by {@link SQLiteHouse} to sort the indices and/or names of columns
+	 * within a table specification.
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 * @see SQLiteHouse#processFieldsOfClasses()
+	 */
+	public static class ColumnIndexComparator
+	implements Comparator<Field>
+	{
+		@Override
+		public int compare( Field fldFirst, Field fldSecond )
+		{
+			SQLiteColumn antFirst =
+					fldFirst.getAnnotation( SQLiteColumn.class ) ;
+			SQLiteColumn antSecond =
+					fldSecond.getAnnotation( SQLiteColumn.class ) ;
+
+			// Try comparing the "index" attribute first.
+			if( antFirst.index() < antSecond.index() ) return -1 ;
+			if( antFirst.index() > antSecond.index() ) return 1 ;
+
+			// If "index" is equal, the sort alphabetically.
+			String sFirst = antFirst.name() ;
+			String sSecond = antSecond.name() ;
+
+			int nCharIndex = 0 ;
+			while( nCharIndex < sFirst.length() && nCharIndex < sSecond.length() )
+			{
+				if( sFirst.charAt(nCharIndex) < sSecond.charAt(nCharIndex) )
+					return -1 ;
+				if( sFirst.charAt(nCharIndex) > sSecond.charAt(nCharIndex) )
+					return 1 ;
+				++nCharIndex ;
+			}
+
+			if( sFirst.length() < sSecond.length() )
+				return -1 ;
+			if( sFirst.length() > sSecond.length() )
+				return 1 ;
+
+			return 0 ;
+		}
+	}
+
+/// Static Methods /////////////////////////////////////////////////////////////
+
+
+/// Static Constants ///////////////////////////////////////////////////////////
 
 	public static final String LOG_TAG = SQLiteHouse.class.getSimpleName() ;
 
 	protected static final int SCHEMA_NOT_DEFINED = -1 ;
+
+	/**
+	 * This magic column name is used in every table to auto-create a row ID as
+	 * preferred by SQLite. Table classes should not define a member with this
+	 * name.
+	 */
+	public static final String MAGIC_ID_COLUMN_NAME = "_id" ;
 
 /// Instance Members ///////////////////////////////////////////////////////////
 
@@ -272,6 +335,8 @@ extends SQLitePortal
 	 */
 	protected Map<Class<? extends SQLightable>,Field> m_mapKeys = null ;
 
+	protected RefractorMap m_mapRefractor = null ;
+
 /// Constructors and Initializers //////////////////////////////////////////////
 
 	protected SQLiteHouse( SQLiteHouse.Factory factory )
@@ -281,6 +346,7 @@ extends SQLitePortal
 		this.setSchemaClasses( factory.m_aclsSchema )
 			.processFieldsOfClasses()
 			;
+		m_mapRefractor = (new RefractorMap()).init() ;
 	}
 
 	/**
@@ -330,6 +396,8 @@ extends SQLitePortal
 				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )
 					m_mapKeys.put( cls, fld ) ;
 			}
+			if( afldAnnotated.size() > 1 )
+				Collections.sort( afldAnnotated, new ColumnIndexComparator() ) ;
 			m_mapFields.put( cls, afldAnnotated ) ;
 		}
 
@@ -341,12 +409,70 @@ extends SQLitePortal
 
 	@Override
 	public void onCreate( SQLiteDatabase db )
-	{ } // TODO Can we provide a final implementation here?
+	{
+		Log.i( LOG_TAG, "Executing onCreate()" ) ;
+		for( Class<? extends SQLightable> clsTable : m_aclsSchema )
+			this.executeTableCreationSQL( clsTable ) ;
+	}
 
 	@Override
 	public void onUpgrade( SQLiteDatabase db, int nOld, int nNew )
-	{ } // TODO Can we provide a final implementation here?
+	{ // TODO Can we provide a final implementation here?
+		Log.i( LOG_TAG, "Executing onUpdate()" ) ;
+	}
 
 /// Instance Methods ///////////////////////////////////////////////////////////
+
+	protected <T extends SQLightable> DSC executeTableCreationSQL( Class<T> clsTable )
+	{
+		String sName = null ;
+		int nSince = 1 ;
+		SQLiteTable antTable = clsTable.getAnnotation( SQLiteTable.class ) ;
+		if( antTable != null )
+		{
+			sName = antTable.value() ;
+			nSince = antTable.since() ;
+		}
+		else // No annotation, but was added to DB spec. Fake a name.
+			sName = clsTable.getSimpleName().toLowerCase() ;
+
+
+		StringBuilder sb = new StringBuilder() ;
+		sb.append( "CREATE TABLE IF NOT EXISTS " )
+		  .append( sName )
+		  .append( " ( " )
+		  .append( MAGIC_ID_COLUMN_NAME )
+		  .append( " INT PRIMARY KEY AUTOINCREMENT )" )
+		  ;
+
+		T oTable = null ;
+		try { oTable = clsTable.newInstance() ; }
+		catch( Exception x )
+		{
+			Log.d( LOG_TAG, String.format(
+					"Table class [%s] has no default constructor.",
+					clsTable.getCanonicalName()
+				)) ;
+			oTable = null ;
+		}
+
+		for( Field fld : m_mapFields.get(clsTable) )
+		{
+			SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
+			sb.append( ", ( " )
+			  .append( antCol.name() )
+			  .append( " " )
+			  .append( m_mapRefractor.getSQLiteColumnTypeFor( fld.getType() ) )
+			  ;
+			if( fld.getAnnotation( SQLitePrimaryKey.class ) != null )
+				sb.append( " UNIQUE NOT NULL" ) ; // but we'll use it as a key
+			else
+				sb.append(( antCol.is_nullable() ? " NULL" : " NOT NULL" )) ;
+
+		}
+
+		//noinspection unchecked
+		return (DSC)this ;
+	}
 
 }

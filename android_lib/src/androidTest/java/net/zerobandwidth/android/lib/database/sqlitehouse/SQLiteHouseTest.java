@@ -37,6 +37,7 @@ public class SQLiteHouseTest
 		{ super(factory) ; }
 	}
 
+	@SuppressWarnings( "DefaultAnnotationParam" )
 	@SQLiteDatabaseSpec(
 			database_name = "valid_spec_class_db",
 			schema_version = 1,
@@ -50,7 +51,7 @@ public class SQLiteHouseTest
 	}
 
 	/**
-	 * Provides a valid context for the unit test.
+	 * Shorthand to provide a valid context for the unit test.
 	 * @return a usable context
 	 */
 	protected static Context getTestContext()
@@ -112,58 +113,26 @@ public class SQLiteHouseTest
 		List<Field> afldFargle = dbh.m_mapFields.get( Fargle.class ) ;
 		assertEquals( 3, afldFargle.size() ) ;
 		for( Field fld : afldFargle )
-		{
+		{ // Verify that only annotated fields were discovered.
 			SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
 			assertNotNull(antCol) ;
-
-			switch( fld.getName() )
-			{
-				case "m_nFargleID":
-					assertEquals( "fargle_id", antCol.value() ) ;
-					break ;
-				case "m_sString":
-					assertEquals( "fargle_string", antCol.value() ) ;
-					break ;
-				case "m_zInteger":
-					assertEquals( "fargle_num", antCol.value() ) ;
-					break ;
-				default:
-					fail( (new StringBuilder())
-							.append( "Found field in Fargle [" )
-							.append( fld.getName() )
-							.append( "] that should not have been discovered." )
-							.toString()
-						);
-			}
 		}
+		// Assuming that the sorting worked, we can call out fields explicitly.
+		assertEquals( "m_nFargleID", afldFargle.get(0).getName() ) ;
+		assertEquals( "m_sString", afldFargle.get(1).getName() ) ;
+		assertEquals( "m_zInteger", afldFargle.get(2).getName() ) ;
 		assertEquals( "m_nFargleID", dbh.m_mapKeys.get(Fargle.class).getName() ) ;
 
 		// Test discovery in Dargle class.
 		List<Field> afldDargle = dbh.m_mapFields.get( Dargle.class ) ;
 		assertEquals( 2, afldDargle.size() ) ;
 		for( Field fld : afldDargle )
-		{
+		{ // Verify that only annotated fields were discovered.
 			SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
 			assertNotNull(antCol) ;
-
-			switch( fld.getName() )
-			{
-				case "m_sString":
-					assertEquals( "dargle_string", antCol.value() ) ;
-					break ;
-				case "m_bBoolean":
-					assertEquals( "is_dargly", antCol.value() ) ;
-					break ;
-				case "m_zIgnoreThisField":
-				default:
-					fail( (new StringBuilder())
-							.append( "Found field in Dargle [" )
-							.append( fld.getName() )
-							.append( "] that should not have been discovered." )
-							.toString()
-						);
-			}
 		}
+		assertEquals( "m_sString", afldDargle.get(0).getName() ) ;
+		assertEquals( "m_bBoolean", afldDargle.get(1).getName() ) ;
 		assertEquals( "m_sString", dbh.m_mapKeys.get(Dargle.class).getName() ) ;
 
 		// Test discovery in Blargh class.
