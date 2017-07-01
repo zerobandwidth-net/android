@@ -49,4 +49,35 @@ public @interface SQLiteColumn
 	 * @return indicates whether the column should allow null values
 	 */
 	boolean is_nullable() default true ;
+
+	/**
+	 * Specifies the <b>string</b> which would be used in a SQLite
+	 * {@code CREATE TABLE} statement to define the field's default value.
+	 *
+	 * <p><b>String Enclosure:</b> If the field decorated by this annotation is
+	 * a string type, then {@code SQLiteHouse} will automatically surround the
+	 * value with quotes as appropriate. An explicit value of {@code "NULL"} for
+	 * this parameter will instruct {@code SQLiteHouse} to define the default as
+	 * a literal {@code NULL} instead. Do not try to enclose a text value in
+	 * single-quotes.</p>
+	 *
+	 * <p><b>Validation:</b> The algorithms that process the supplied value
+	 * make no attempt to validate the value with regards to its correspondence
+	 * to the field's type, etc. For example, if the annotated field is an
+	 * integer, and a non-numeric string value is supplied here, then you will
+	 * eventually see exceptions raised from parts of the code that try to
+	 * parse or use the value.</p>
+	 *
+	 * <p><b>Handling Null Default Values:</b>The default value for the
+	 * annotation parameter is {@code "NULL"}. If the column is nullable, and
+	 * this annotation parameter is not specified or is set to {@code "NULL"}
+	 * explicitly, then the column will be defined with {@code DEFAULT NULL}.
+	 * Otherwise, if the column is not nullable, then this annotation parameter
+	 * will effectively be required, as a default value must be set for
+	 * non-nullable columns.</p>
+	 *
+	 * @return the string which would specify the default in a SQLite column
+	 *  definition clause
+	 */
+	String sql_default() default "NULL" ;
 }

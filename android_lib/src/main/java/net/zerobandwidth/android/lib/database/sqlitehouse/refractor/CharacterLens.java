@@ -3,20 +3,34 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import net.zerobandwidth.android.lib.database.SQLitePortal;
+
 /**
  * Marshals a character.
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 public class CharacterLens
+extends Lens<Character>
 implements Refractor<Character>
 {
 	@Override
 	public String getSQLiteDataType()
 	{ return SQLITE_TYPE_TEXT ; }
 
+	/**
+	 * When a character cannot be null, we generate a null character.
+	 * @return a null character
+	 */
+	@Override
+	public Character getSQLiteDefaultValue()
+	{ return '\0' ; }
+
 	@Override
 	public String toSQLiteString( Character o )
-	{ return o.toString() ; }
+	{
+		return ( o == null ? SQLitePortal.SQLITE_NULL :
+				String.format( "'%s'", o.toString() ) ) ;
+	}
 
 	@Override
 	public Refractor<Character> addToContentValues( ContentValues vals, String sKey, Character val )

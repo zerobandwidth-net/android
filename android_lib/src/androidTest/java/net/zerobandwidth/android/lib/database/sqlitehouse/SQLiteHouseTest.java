@@ -1,11 +1,13 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
+import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Dargle;
@@ -139,5 +141,34 @@ public class SQLiteHouseTest
 		List<Field> afldBlargh = dbh.m_mapFields.get( Blargh.class ) ;
 		assertEquals( 1, afldBlargh.size() ) ;
 		assertEquals( "m_sString", afldBlargh.get(0).getName() ) ;
+	}
+
+	/**
+	 * Ensures that, having opened a database connection and created the
+	 * database for the first time, the file creates what we expected.
+	 * @see SQLiteHouse#onCreate(SQLiteDatabase)
+	 * @see SQLiteHouse#getTableCreationSQL(Class)
+	 */
+	@Test
+	public void testDatabaseCreation()
+	{
+		Context ctx = getTestContext() ;
+		ctx.deleteDatabase( ValidSpecClass.class
+				.getAnnotation(SQLiteDatabaseSpec.class).database_name() ) ;
+
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, ctx, null ) ;
+
+		try
+		{
+			dbh.openDB() ;
+			//noinspection StatementWithEmptyBody
+			while( ! dbh.isConnected() ) ; // Wait for a connection.
+			// pass trivially for now
+			// TODO we will want to ANALYZE the database and glean information
+			// https://sqlite.org/lang_analyze.html
+		}
+		finally
+		{ dbh.close() ; }
 	}
 }

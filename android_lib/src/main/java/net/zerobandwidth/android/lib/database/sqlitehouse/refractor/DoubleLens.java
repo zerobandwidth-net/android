@@ -3,20 +3,27 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import net.zerobandwidth.android.lib.database.SQLitePortal;
+
 /**
  * Marshals a double-precision floating-point number.
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 public class DoubleLens
+extends Lens<Double>
 implements Refractor<Double>
 {
 	@Override
 	public String getSQLiteDataType()
 	{ return SQLITE_TYPE_REAL ; }
 
+	/**
+	 * Defines the non-null default value as zero.
+	 * @return {@code 0.0}
+	 */
 	@Override
-	public String toSQLiteString( Double o )
-	{ return o.toString() ; }
+	public Double getSQLiteDefaultValue()
+	{ return 0.0 ; }
 
 	@Override
 	public Refractor<Double> addToContentValues( ContentValues vals, String sKey, Double val )

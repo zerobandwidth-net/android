@@ -8,15 +8,20 @@ import android.database.Cursor;
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 public class FloatLens
+extends Lens<Float>
 implements Refractor<Float>
 {
 	@Override
 	public String getSQLiteDataType()
 	{ return SQLITE_TYPE_REAL ; }
 
+	/**
+	 * Defines the default value as zero.
+	 * @return {@code 0.0f}
+	 */
 	@Override
-	public String toSQLiteString( Float o )
-	{ return o.toString() ; }
+	public Float getSQLiteDefaultValue()
+	{ return 0.0f ; }
 
 	@Override
 	public Refractor<Float> addToContentValues( ContentValues vals, String sKey, Float val )

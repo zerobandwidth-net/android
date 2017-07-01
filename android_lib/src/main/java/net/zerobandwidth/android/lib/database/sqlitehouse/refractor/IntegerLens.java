@@ -8,15 +8,20 @@ import android.database.Cursor;
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 public class IntegerLens
+extends Lens<Integer>
 implements Refractor<Integer>
 {
 	@Override
 	public String getSQLiteDataType()
 	{ return SQLITE_TYPE_INT ; }
 
+	/**
+	 * Defines the default value as zero.
+	 * @return {@code 0}
+	 */
 	@Override
-	public String toSQLiteString( Integer o )
-	{ return o.toString() ; }
+	public Integer getSQLiteDefaultValue()
+	{ return 0 ; }
 
 	@Override
 	public Refractor<Integer> addToContentValues( ContentValues vals, String sKey, Integer val )

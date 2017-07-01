@@ -33,17 +33,17 @@ public class RefractorMapTest
 		assertEquals( "TEXT",
 				map.getSQLiteColumnTypeFor( char.class ) ) ;
 
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( Integer.class ) ) ;
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( int.class ) ) ;
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( Short.class ) ) ;
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( short.class ) ) ;
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( Long.class ) ) ;
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( long.class ) ) ;
 
 		assertEquals( "REAL",
@@ -55,16 +55,16 @@ public class RefractorMapTest
 		assertEquals( "REAL",
 				map.getSQLiteColumnTypeFor( double.class ) ) ;
 
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( Boolean.class ) ) ;
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( boolean.class ) ) ;
 
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( java.util.Date.class ) ) ;
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( java.sql.Date.class ) ) ;
-		assertEquals( "INT",
+		assertEquals( "INTEGER",
 				map.getSQLiteColumnTypeFor( GregorianCalendar.class ) ) ;
 	}
 }

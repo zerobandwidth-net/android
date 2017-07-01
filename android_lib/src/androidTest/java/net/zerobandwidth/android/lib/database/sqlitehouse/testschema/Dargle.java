@@ -1,5 +1,6 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.testschema;
 
+import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
@@ -30,7 +31,8 @@ implements SQLightable
 	 * Should be discovered as column <code>is_dargly</code> of type
 	 * <code>INT</code> and default value <code>1</code>.
 	 */
-	@SQLiteColumn( name = "is_dargly" )
+	@SQLiteColumn( name = "is_dargly",
+			sql_default = SQLitePortal.SQLITE_TRUE_INTSTRING )
 	protected boolean m_bBoolean = true ;
 
 	/**

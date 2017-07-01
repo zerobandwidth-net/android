@@ -303,7 +303,6 @@ extends SQLitePortal
 
 /// Static Methods /////////////////////////////////////////////////////////////
 
-
 /// Static Constants ///////////////////////////////////////////////////////////
 
 	public static final String LOG_TAG = SQLiteHouse.class.getSimpleName() ;
@@ -412,7 +411,7 @@ extends SQLitePortal
 	{
 		Log.i( LOG_TAG, "Executing onCreate()" ) ;
 		for( Class<? extends SQLightable> clsTable : m_aclsSchema )
-			this.executeTableCreationSQL( clsTable ) ;
+			db.execSQL( this.getTableCreationSQL( clsTable ) ) ;
 	}
 
 	@Override
@@ -423,56 +422,64 @@ extends SQLitePortal
 
 /// Instance Methods ///////////////////////////////////////////////////////////
 
-	protected <T extends SQLightable> DSC executeTableCreationSQL( Class<T> clsTable )
+	protected <T extends SQLightable> String getTableCreationSQL( Class<T> clsTable )
 	{
 		String sName = null ;
-		int nSince = 1 ;
 		SQLiteTable antTable = clsTable.getAnnotation( SQLiteTable.class ) ;
 		if( antTable != null )
-		{
 			sName = antTable.value() ;
-			nSince = antTable.since() ;
-		}
 		else // No annotation, but was added to DB spec. Fake a name.
 			sName = clsTable.getSimpleName().toLowerCase() ;
-
 
 		StringBuilder sb = new StringBuilder() ;
 		sb.append( "CREATE TABLE IF NOT EXISTS " )
 		  .append( sName )
 		  .append( " ( " )
 		  .append( MAGIC_ID_COLUMN_NAME )
-		  .append( " INT PRIMARY KEY AUTOINCREMENT )" )
+		  .append( " " ).append( Refractor.SQLITE_TYPE_INT )
+		  .append( " PRIMARY KEY AUTOINCREMENT" )
 		  ;
-
-		T oTable = null ;
-		try { oTable = clsTable.newInstance() ; }
-		catch( Exception x )
-		{
-			Log.d( LOG_TAG, String.format(
-					"Table class [%s] has no default constructor.",
-					clsTable.getCanonicalName()
-				)) ;
-			oTable = null ;
-		}
 
 		for( Field fld : m_mapFields.get(clsTable) )
 		{
 			SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
-			sb.append( ", ( " )
+
+			boolean bIsKey =
+				( fld.getAnnotation( SQLitePrimaryKey.class ) != null ) ;
+
+			Refractor<?> lens ;
+			try { lens = m_mapRefractor.get( fld.getType() ).newInstance() ; }
+			catch( Exception x )
+			{
+				Log.e( LOG_TAG, "Could not instantiate a refractor.", x ) ;
+				continue ;
+			}
+
+			sb.append( ", " )
 			  .append( antCol.name() )
 			  .append( " " )
-			  .append( m_mapRefractor.getSQLiteColumnTypeFor( fld.getType() ) )
+			  .append( lens.getSQLiteDataType() )
 			  ;
-			if( fld.getAnnotation( SQLitePrimaryKey.class ) != null )
+
+			if( bIsKey ) // Override the annotation's nullability declaration.
 				sb.append( " UNIQUE NOT NULL" ) ; // but we'll use it as a key
 			else
 				sb.append(( antCol.is_nullable() ? " NULL" : " NOT NULL" )) ;
 
+			String sDefaultValue = antCol.sql_default() ;
+
+			if( ! SQLitePortal.SQLITE_NULL.equals(sDefaultValue)
+			 || ( ! bIsKey && antCol.is_nullable() ) )
+			{ // Value isn't null, or it is, but we're allowed to have a null.
+				sb.append( " DEFAULT " ).append( sDefaultValue ) ;
+			}
 		}
 
-		//noinspection unchecked
-		return (DSC)this ;
+		sb.append( " )" ) ;
+
+		Log.d( LOG_TAG, sb.toString() ) ;
+
+		return sb.toString() ;
 	}
 
 }

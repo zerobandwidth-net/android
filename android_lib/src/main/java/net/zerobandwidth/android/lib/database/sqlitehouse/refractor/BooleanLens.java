@@ -12,15 +12,27 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 public class BooleanLens
+extends Lens<Boolean>
 implements Refractor<Boolean>
 {
 	@Override
 	public String getSQLiteDataType()
 	{ return SQLITE_TYPE_INT ; }
 
+	/**
+	 * Defines the default value for Boolean types as {@code false}.
+	 * @return {@code false}
+	 */
+	@Override
+	public Boolean getSQLiteDefaultValue()
+	{ return false ; }
+
 	@Override
 	public String toSQLiteString( Boolean o )
-	{ return Integer.toString( SQLitePortal.boolToInt(o) ) ; }
+	{
+		return ( o == null ? SQLitePortal.SQLITE_NULL :
+				Integer.toString( SQLitePortal.boolToInt(o) ) ) ;
+	}
 
 	@Override
 	public Refractor<Boolean> addToContentValues( ContentValues vals, String sKey, Boolean val )

@@ -3,6 +3,8 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import net.zerobandwidth.android.lib.database.SQLitePortal;
+
 import java.sql.Date;
 
 /**
@@ -17,15 +19,30 @@ import java.sql.Date;
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 public class SQLDateLens
+extends Lens<Date>
 implements Refractor<Date>
 {
 	@Override
 	public String getSQLiteDataType()
 	{ return SQLITE_TYPE_INT ; }
 
+	/**
+	 * Defines the default value of a date column as null. This is different
+	 * from most Java datetime-related objects, which initialize by default to
+	 * the current time. In a database, this should instead be left as null, to
+	 * be overwritten with an explicit time later.
+	 * @return {@code null}
+	 */
+	@Override
+	public Date getSQLiteDefaultValue()
+	{ return null ; }
+
 	@Override
 	public String toSQLiteString( Date o )
-	{ return Long.toString( o.getTime() ) ; }
+	{
+		return ( o == null ? SQLitePortal.SQLITE_NULL :
+				Long.toString( o.getTime() ) ) ;
+	}
 
 	@Override
 	public Refractor<Date> addToContentValues( ContentValues vals, String sKey, Date val )

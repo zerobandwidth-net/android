@@ -141,6 +141,12 @@ extends SQLiteOpenHelper
 	public static final String UPDATE_ALL = "1" ;
 
 	/**
+	 * The string to be used in an SQLite statement to represent a null value.
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final String SQLITE_NULL = "NULL" ;
+
+	/**
 	 * Integer representation of "true".
 	 * @see #boolToInt(boolean)
 	 * @see #intToBool(int)
@@ -149,12 +155,28 @@ extends SQLiteOpenHelper
 	public static final int SQLITE_TRUE_INT = 1 ;
 
 	/**
+	 * Stringified-integer representation of "true".
+	 * @see #boolToIntString(boolean)
+	 * @see #SQLITE_TRUE_INT
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final String SQLITE_TRUE_INTSTRING = "1" ;
+
+	/**
 	 * Integer representation of "false".
 	 * @see #boolToInt(boolean)
 	 * @see #intToBool(int)
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
 	public static final int SQLITE_FALSE_INT = 0 ;
+
+	/**
+	 * Stringified-integer representation of "false".
+	 * @see #boolToIntString(boolean)
+	 * @see #SQLITE_FALSE_INT
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final String SQLITE_FALSE_INTSTRING = "0" ;
 
 	/**
 	 * If using integer columns to store Boolean values, where {@code 1} is true
@@ -195,6 +217,16 @@ extends SQLiteOpenHelper
      */
     public static int boolToInt( boolean b )
     { return( b ? SQLITE_TRUE_INT : SQLITE_FALSE_INT ) ; }
+
+	/**
+	 * Transforms a Boolean value into the string representation of a
+	 * corresponding integer, for use in SQLite statements.
+	 * @param b the Boolean value to be converted
+	 * @return {@code "1"} for true or {@code "0"} for false
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static String boolToIntString( boolean b )
+	{ return Integer.toString( boolToInt(b) ) ; }
 
     /**
      * Simplistic transformation of an integer to a Boolean value, for retrieval

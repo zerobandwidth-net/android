@@ -21,7 +21,7 @@ import android.database.Cursor;
  */
 public interface Refractor<T>
 {
-	String SQLITE_TYPE_INT = "INT" ;
+	String SQLITE_TYPE_INT = "INTEGER" ;
 	String SQLITE_TYPE_REAL = "REAL" ;
 	String SQLITE_TYPE_TEXT = "TEXT" ;
 
@@ -33,12 +33,34 @@ public interface Refractor<T>
 	String getSQLiteDataType() ;
 
 	/**
+	 * Returns a reasonable <b>non-null</b> default value for a column of this
+	 * data type in SQLite, particularly for cases in which the value
+	 * <i>cannot</i> be null. Examples would be {@code 0} for integer types,
+	 * an empty string for string types, {@code false} for Boolean types, etc.
+	 * @return a reasonable non-null default value for the data type
+	 */
+	T getSQLiteDefaultValue() ;
+
+	/**
 	 * Converts a Java thing's value into a string to be used in a SQLite query,
 	 * for example, in a {@code WHERE} clause filter.
 	 * @param o the Java thing to be converted
 	 * @return a string serialization for use in an SQLite statement
 	 */
 	String toSQLiteString( T o ) ;
+
+	/**
+	 * Returns a string representation of the column type's default value, for
+	 * use in an SQLite statement. The {@link Lens} abstract class provides a
+	 * canonical implementation of this method:
+	 *
+	 * <pre>
+	 *     return this.toSQLiteString( this.getSQLiteDefaultValue() ) ;
+	 * </pre>
+	 *
+	 * @return the string representation of the column type's default value
+	 */
+	String getSQLiteDefaultString() ;
 
 	/**
 	 * Determines the correct method in {@link ContentValues} to be used to add

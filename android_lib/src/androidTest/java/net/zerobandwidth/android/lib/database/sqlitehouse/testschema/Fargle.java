@@ -30,9 +30,10 @@ implements SQLightable
 	 * Should be discovered as column <code>fargle_string</code> of type
 	 * <code>TEXT</code> and default value <code>NULL</code>.
 	 */
-	@SQLiteColumn( name = "fargle_string", index = 1 )
+	@SuppressWarnings("DefaultAnnotationParam") // We're testing this explicitly.
+	@SQLiteColumn( name = "fargle_string", index = 1, sql_default = "NULL" )
 	protected String m_sString = null ;
 
-	@SQLiteColumn( name = "fargle_num", index = 2 )
+	@SQLiteColumn( name = "fargle_num", index = 2, sql_default = "42" )
 	protected int m_zInteger = 42 ;
 }
