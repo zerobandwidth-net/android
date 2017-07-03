@@ -3,6 +3,10 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+
+import java.lang.reflect.Field;
+
 /**
  * Defines how data is moved between a Java data type and its corresponding
  * SQLite data type.
@@ -61,6 +65,15 @@ public interface Refractor<T>
 	 * @return the string representation of the column type's default value
 	 */
 	String getSQLiteDefaultString() ;
+
+	/**
+	 * Gets the value of a field which would be appropriate for this refractor.
+	 * @param o the object instance from which the value will be extracted
+	 * @param fld the field from which the value will be extracted
+	 * @return the value
+	 */
+	T getValueFrom( SQLightable o, Field fld )
+	throws IllegalAccessException ;
 
 	/**
 	 * Determines the correct method in {@link ContentValues} to be used to add

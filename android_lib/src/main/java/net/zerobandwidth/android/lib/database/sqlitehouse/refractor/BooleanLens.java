@@ -4,6 +4,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+
+import java.lang.reflect.Field;
 
 /**
  * Marshals Boolean values by converting them to/from integers.
@@ -35,7 +38,13 @@ implements Refractor<Boolean>
 	}
 
 	@Override
-	public Refractor<Boolean> addToContentValues( ContentValues vals, String sKey, Boolean val )
+	public Boolean getValueFrom( SQLightable o, Field fld )
+			throws IllegalAccessException
+	{ return fld.getBoolean(o) ; }
+
+	@Override
+	public Refractor<Boolean> addToContentValues(
+			ContentValues vals, String sKey, Boolean val )
 	{
 		vals.put( sKey, SQLitePortal.boolToInt(val) ) ;
 		return this ;

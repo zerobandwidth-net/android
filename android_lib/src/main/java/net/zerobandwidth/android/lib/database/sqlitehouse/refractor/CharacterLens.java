@@ -4,6 +4,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+
+import java.lang.reflect.Field;
 
 /**
  * Marshals a character.
@@ -33,10 +36,16 @@ implements Refractor<Character>
 	}
 
 	@Override
-	public Refractor<Character> addToContentValues( ContentValues vals, String sKey, Character val )
+	public Character getValueFrom( SQLightable o, Field fld )
+	throws IllegalAccessException
+	{ return fld.getChar(o) ; }
+
+	@Override
+	public Refractor<Character> addToContentValues(
+			ContentValues vals, String sKey, Character val )
 	{
 		vals.put( sKey, val.toString() ) ;
-		return null;
+		return this ;
 	}
 
 	@Override

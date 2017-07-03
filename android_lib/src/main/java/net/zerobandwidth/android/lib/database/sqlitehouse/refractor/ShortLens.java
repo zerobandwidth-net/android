@@ -3,6 +3,10 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+
+import java.lang.reflect.Field;
+
 /**
  * Marshals shorts.
  * @since zerobandwidth-net/android 0.1.4 (#26)
@@ -22,6 +26,11 @@ implements Refractor<Short>
 	@Override
 	public Short getSQLiteDefaultValue()
 	{ return 0 ; }
+
+	@Override
+	public Short getValueFrom( SQLightable o, Field fld )
+	throws IllegalAccessException
+	{ return fld.getShort(o) ; }
 
 	@Override
 	public Refractor<Short> addToContentValues( ContentValues vals, String sKey, Short val )

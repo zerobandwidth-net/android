@@ -95,5 +95,4 @@ extends HashMap<Class<?>,Class<? extends Refractor>>
 					clsRefractor.getCanonicalName() ) ) ;
 		}
 	}
-
 }

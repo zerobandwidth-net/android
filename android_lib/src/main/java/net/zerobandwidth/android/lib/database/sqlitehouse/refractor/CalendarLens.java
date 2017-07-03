@@ -4,9 +4,10 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 
+import java.lang.reflect.Field;
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Marshals {@link Calendar} objects.

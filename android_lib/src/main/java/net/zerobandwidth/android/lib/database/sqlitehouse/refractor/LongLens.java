@@ -3,6 +3,10 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+
+import java.lang.reflect.Field;
+
 /**
  * Marshals long integers.
  * @since zerobandwidth-net/android 0.1.4 (#26)
@@ -22,6 +26,11 @@ implements Refractor<Long>
 	@Override
 	public Long getSQLiteDefaultValue()
 	{ return 0L ; }
+
+	@Override
+	public Long getValueFrom( SQLightable o, Field fld )
+	throws IllegalAccessException
+	{ return fld.getLong(o) ; }
 
 	@Override
 	public Refractor<Long> addToContentValues( ContentValues vals, String sKey, Long val )

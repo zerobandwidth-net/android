@@ -1,10 +1,13 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import net.zerobandwidth.android.lib.database.SQLiteColumnInfo;
+import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
@@ -20,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +70,9 @@ public class SQLiteHouseTest
 	{
 		protected ValidSpecClass( SQLiteHouse.Factory factory )
 		{ super(factory) ; }
+
+		protected SQLiteDatabase getDB()
+		{ return m_db ; }
 	}
 
 
@@ -88,6 +95,41 @@ public class SQLiteHouseTest
 	 */
 	protected static Context getTestContext()
 	{ return InstrumentationRegistry.getTargetContext() ; }
+
+	/**
+	 * Milliseconds until we give up on a connection to a database.
+	 */
+	protected static final int CONNECTION_TIMEOUT = 1000 ;
+
+	/**
+	 * Shorthand for obtaining a connection to a test database.
+	 * @param dbh an instance of the test class
+	 * @param <DBH> the test class
+	 * @return an instance of the test class
+	 * @throws Exception if anything goes wrong while connecting
+	 */
+	protected static <DBH extends SQLiteHouse> DBH connectTo( DBH dbh )
+	throws Exception
+	{
+		dbh.openDB() ;
+		long tsGiveUp = (new Date()).getTime() + CONNECTION_TIMEOUT ;
+		//noinspection StatementWithEmptyBody
+		while( ! dbh.isConnected() && (new Date()).getTime() < tsGiveUp ) ;
+		if( ! dbh.isConnected() )
+			fail( "Couldn't connect to database!" ) ;
+		return dbh ;
+	}
+
+	/**
+	 * Shorthand to delete the database specified by the given class.
+	 * @param cls the test database class
+	 * @param <DBH> the test database class
+	 */
+	protected static <DBH extends SQLiteHouse> void delete( Class<DBH> cls )
+	{
+		getTestContext().deleteDatabase(
+			cls.getAnnotation( SQLiteDatabaseSpec.class ).database_name() ) ;
+	}
 
 	/**
 	 * Ensures that the class throws an exception if no annotation is provided.
@@ -229,19 +271,18 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testDatabaseCreation()
+	throws Exception
 	{
 		Context ctx = getTestContext() ;
-		ctx.deleteDatabase( ValidSpecClass.class
-				.getAnnotation(SQLiteDatabaseSpec.class).database_name() ) ;
+
+		delete( ValidSpecClass.class ) ;
 
 		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
 				ValidSpecClass.class, ctx, null ) ;
 
 		try
 		{
-			dbh.openDB() ;
-			//noinspection StatementWithEmptyBody
-			while( ! dbh.isConnected() ) ; // Wait for a connection.
+			connectTo(dbh) ;
 			Map<String,SQLiteColumnInfo> mapInfo =
 					dbh.getColumnMapForTable( "fargles" ) ;
 			assertEquals( 4, mapInfo.size() ) ; // 3 defined plus auto-ID
@@ -265,32 +306,29 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testDatabaseUpgrade()
+	throws Exception
 	{
 		Context ctx = getTestContext() ;
-		String sDatabaseName = ValidSpecClass.class
-				.getAnnotation( SQLiteDatabaseSpec.class ).database_name() ;
 
-		ctx.deleteDatabase( sDatabaseName ) ;
+		delete( ValidSpecClass.class ) ;
+		delete( UpgradeSpecClass.class ) ;
 
 		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
 				ValidSpecClass.class, ctx, null ) ;
-		try
-		{
-			dbh.openDB() ;
-			//noinspection StatementWithEmptyBody
-			while( ! dbh.isConnected() ) ;
-		}
-		finally
-		{ dbh.close() ; }
+		try { connectTo(dbh) ; }
+		finally { dbh.close() ; }
 
 		UpgradeSpecClass dbhUpgrade = SQLiteHouse.Factory.init().getInstance(
 				UpgradeSpecClass.class, ctx, null ) ;
 		try
 		{
-			dbhUpgrade.openDB() ;
-			//noinspection StatementWithEmptyBody
-			while( ! dbhUpgrade.isConnected() ) ;
-			assertEquals( sDatabaseName, dbhUpgrade.getDatabaseName() ) ;
+			connectTo(dbhUpgrade) ;
+
+			// Assert that the new database name is the same as the old one, but
+			// the version number has gone up.
+			String sAntDatabaseName = ValidSpecClass.class
+					.getAnnotation( SQLiteDatabaseSpec.class ).database_name() ;
+			assertEquals( sAntDatabaseName, dbhUpgrade.getDatabaseName() ) ;
 			assertEquals( 2, dbhUpgrade.getLatestSchemaVersion() ) ;
 
 			// Show that the "fargles" table got upgraded.
@@ -307,5 +345,34 @@ public class SQLiteHouseTest
 		}
 		finally
 		{ dbhUpgrade.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#insert}.
+	 */
+	@Test
+	public void testInsertion()
+	throws Exception
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		try
+		{
+			connectTo(dbh) ;
+			Fargle fargle = new Fargle( 47, "Foo!", 99 ) ;
+			dbh.insert( fargle ) ;
+			Cursor crs = QueryBuilder.selectFrom( dbh.getDB(), "fargles" )
+					.where( "fargle_id=?", "47" )
+					.execute()
+					;
+			assertTrue( crs.moveToFirst() ) ;
+			assertEquals( 47, crs.getInt( crs.getColumnIndex( "fargle_id" ) ) );
+			assertEquals( "Foo!", crs.getString(
+					crs.getColumnIndex( "fargle_string" ) ) ) ;
+			assertEquals( 99, crs.getInt( crs.getColumnIndex("fargle_num") ) ) ;
+		}
+		finally
+		{ dbh.close() ; }
 	}
 }

@@ -1,10 +1,12 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
@@ -498,7 +500,10 @@ extends SQLitePortal
 			for( Field fld : afldAll )
 			{ // Find only the fields that are annotated as columns.
 				if( fld.isAnnotationPresent( SQLiteColumn.class ) )
+				{
+					fld.setAccessible(true) ;
 					afldAnnotated.add(fld) ;
+				}
 				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )
 					m_mapKeys.put( cls, fld ) ;
 			}
@@ -713,13 +718,8 @@ extends SQLitePortal
 		boolean bIsKey =
 				( fld.getAnnotation( SQLitePrimaryKey.class ) != null ) ;
 
-		Refractor<?> lens ;
-		try { lens = m_mapRefractor.get( fld.getType() ).newInstance() ; }
-		catch( Exception x )
-		{
-			Log.e( LOG_TAG, "Could not instantiate a refractor.", x ) ;
-			return null ;
-		}
+		Refractor<?> lens = this.getRefractorForField(fld) ;
+		if( lens == null ) return null ; // Can't continue without a refractor.
 
 		sb.append( antCol.name() ).append( " " )
 		  .append( lens.getSQLiteDataType() )
@@ -749,6 +749,74 @@ extends SQLitePortal
 		return sb.toString() ;
 	}
 
+/// Query Commands /////////////////////////////////////////////////////////////
+
+	/**
+	 * Inserts an object of a known schematic class into the database.
+	 * @param o the object to be inserted
+	 * @return the row ID of the inserted record
+	 */
+	public long insert( SQLightable o )
+	{
+		return QueryBuilder.insertInto( m_db,
+							getTableName( o.getClass(), null ) )
+				.setValues( this.toContentValues(o) )
+				.execute()
+				;
+	}
+
 /// Other Instance Methods /////////////////////////////////////////////////////
+
+	public Refractor<?> getRefractorForField( Field fld )
+	{
+		try { return m_mapRefractor.get( fld.getType() ).newInstance() ; }
+		catch( Exception x )
+		{
+			Log.e( LOG_TAG, (new StringBuilder())
+					.append( "Could not instantiate a refractor for field [" )
+					.append( fld.getName() )
+					.append( "]:" )
+					.toString(),
+				x ) ;
+			return null ;
+		}
+	}
+
+	/**
+	 * Extracts the values of all known fields in an object which correspond to
+	 * database columns, and returns a {@link ContentValues} instance containing
+	 * those values.
+	 *
+	 * <p>Consumed by {@link #insert}.</p>
+	 *
+	 * @param o the object to be processed.
+	 * @return the values that would be stored in the database
+	 */
+	public ContentValues toContentValues( SQLightable o )
+	{
+		ContentValues vals = new ContentValues() ;
+		for( Field fld : m_mapFields.get( o.getClass() ) )
+		{
+			Refractor lens = this.getRefractorForField(fld) ;
+			if( lens == null ) continue ; // Can't process this field further.
+			try
+			{
+				//noinspection unchecked
+				lens.addToContentValues( vals,
+						fld.getAnnotation(SQLiteColumn.class).name(),
+						lens.getValueFrom( o, fld ) ) ;
+			}
+			catch( IllegalAccessException xAccess )
+			{
+				Log.e( LOG_TAG, (new StringBuilder())
+						.append( "Could not extract value for field [" )
+						.append( fld.getName() )
+						.append( "]:" )
+						.toString(),
+					xAccess );
+			}
+		}
+		return vals ;
+	}
 
 }

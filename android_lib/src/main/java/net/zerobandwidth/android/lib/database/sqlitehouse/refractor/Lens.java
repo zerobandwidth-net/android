@@ -1,6 +1,9 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+
+import java.lang.reflect.Field;
 
 /**
  * Provides canonical implementations of various methods of {@link Refractor}.
@@ -28,4 +31,15 @@ implements Refractor<T>
 	@Override
 	public String getSQLiteDefaultString()
 	{ return this.toSQLiteString( this.getSQLiteDefaultValue() ) ; }
+
+	/**
+	 * This implementation simply uses {@link Field#get} and tries to cast it to
+	 * the lens's template parameter type. Actual implementation classes should
+	 * override this method if the data type is a primitive.
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public T getValueFrom( SQLightable o, Field fld )
+	throws IllegalAccessException
+	{ return ((T)(fld.get(o))) ; }
 }

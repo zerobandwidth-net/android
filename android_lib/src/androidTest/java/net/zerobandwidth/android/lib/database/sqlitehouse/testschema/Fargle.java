@@ -42,4 +42,17 @@ implements SQLightable
 	 */
 	@SQLiteColumn( name = "fargle_num", sql_default = "42" )
 	protected int m_zInteger = 42 ;
+
+	/**
+	 * Fully initializes an instance.
+	 * @param nID a unique numeric ID
+	 * @param s a string
+	 * @param z an integer
+	 */
+	public Fargle( int nID, String s, int z )
+	{
+		m_nFargleID = nID ;
+		m_sString = s ;
+		m_zInteger = z ;
+	}
 }

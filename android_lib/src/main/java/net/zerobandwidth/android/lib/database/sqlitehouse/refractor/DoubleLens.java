@@ -4,6 +4,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+
+import java.lang.reflect.Field;
 
 /**
  * Marshals a double-precision floating-point number.
@@ -24,6 +27,11 @@ implements Refractor<Double>
 	@Override
 	public Double getSQLiteDefaultValue()
 	{ return 0.0 ; }
+
+	@Override
+	public Double getValueFrom( SQLightable o, Field fld )
+	throws IllegalAccessException
+	{ return fld.getDouble(o) ; }
 
 	@Override
 	public Refractor<Double> addToContentValues( ContentValues vals, String sKey, Double val )
