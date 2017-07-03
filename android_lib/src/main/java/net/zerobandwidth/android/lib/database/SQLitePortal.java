@@ -8,6 +8,8 @@ import android.util.Log;
 
 import java.io.File;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Extends {@link SQLiteOpenHelper} with a few additional features.
@@ -420,6 +422,18 @@ extends SQLiteOpenHelper
 		return this ;
 	}
 
+	/**
+	 * Accessor for the underlying {@link SQLiteDatabase}. This should never be
+	 * used in practice, as it is always safer to invoke methods of the
+	 * {@code SQLitePortal} descendant to perform database functions. This
+	 * method should be used only in certain unit-testing scenarios in which
+	 * properties of the database itself must be directly examined.
+	 * @return the underlying database instance
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+//	public synchronized SQLiteDatabase getDB()
+//	{ return m_db ; }
+
     /**
      * Closes the database connection and releases all references to it.
 	 *
@@ -487,6 +501,28 @@ extends SQLiteOpenHelper
 		}
 		return bExists ;
 	}
+
+	/**
+	 * Uses SQLite pragmas to discover the structure of an existing table, and
+	 * return a list of its column definitions.
+	 * @param sTableName the name of the table to be described
+	 * @return a list of column information structures
+	 * @see SQLiteColumnInfo#gatherColumnList
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public List<SQLiteColumnInfo> getColumnListForTable( String sTableName )
+	{ return SQLiteColumnInfo.gatherColumnList( m_db, sTableName ) ; }
+
+	/**
+	 * Uses SQLite pragmas to discover the structure of an existing table, and
+	 * return a map of column names to column definitions.
+	 * @param sTableName the name of the table to be described
+	 * @return a map of column names to their definitions
+	 * @see SQLiteColumnInfo#gatherColumnMap
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public Map<String,SQLiteColumnInfo> getColumnMapForTable( String sTableName )
+	{ return SQLiteColumnInfo.gatherColumnMap( m_db, sTableName ) ; }
 
 	/**
 	 * Discovers the size of the database file in storage.

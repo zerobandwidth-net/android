@@ -1,25 +1,30 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import net.zerobandwidth.android.lib.database.SQLiteColumnInfo;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Dargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Flargle;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Quargle;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
@@ -32,6 +37,12 @@ import static junit.framework.Assert.fail;
 @RunWith( AndroidJUnit4.class )
 public class SQLiteHouseTest
 {
+	/**
+	 * Used by {@link #testFactoryFailureFromNoAnnotation()} to verify that the
+	 * {@link SQLiteHouse.Factory} will refuse to process a class that is not
+	 * properly annotated.
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
 	protected static class NoIntrospectionClass
 	extends SQLiteHouse<NoIntrospectionClass>
 	{
@@ -39,6 +50,11 @@ public class SQLiteHouseTest
 		{ super(factory) ; }
 	}
 
+	/**
+	 * Used as the canonical "valid" {@link SQLiteHouse} implementation for
+	 * various unit tests.
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
 	@SuppressWarnings( "DefaultAnnotationParam" )
 	@SQLiteDatabaseSpec(
 			database_name = "valid_spec_class_db",
@@ -49,6 +65,20 @@ public class SQLiteHouseTest
 	extends SQLiteHouse<ValidSpecClass>
 	{
 		protected ValidSpecClass( SQLiteHouse.Factory factory )
+		{ super(factory) ; }
+	}
+
+
+	@SQLiteDatabaseSpec(
+			database_name = "valid_spec_class_db",
+			schema_version = 2,
+			classes =
+				{ Flargle.class, Dargle.class, Quargle.class, Blargh.class }
+	)
+	protected static class UpgradeSpecClass
+	extends SQLiteHouse<UpgradeSpecClass>
+	{
+		protected UpgradeSpecClass( SQLiteHouse.Factory factory )
 		{ super(factory) ; }
 	}
 
@@ -144,10 +174,58 @@ public class SQLiteHouseTest
 	}
 
 	/**
+	 * Exercises {@link SQLiteHouse#getTableCreationSQL}.
+	 */
+	@Test
+	public void testTableCreationSQL()
+	{
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+
+		String sFargleSQL = dbh.getTableCreationSQL( Fargle.class,
+				Fargle.class.getAnnotation( SQLiteTable.class ) ) ;
+		String sFargleExpected = (new StringBuilder())
+				.append( "CREATE TABLE IF NOT EXISTS " )
+				.append( "fargles" )
+				.append( " ( _id INTEGER PRIMARY KEY AUTOINCREMENT" )
+				.append( ", fargle_id INTEGER UNIQUE NOT NULL" )
+				.append( ", fargle_string TEXT NULL DEFAULT NULL" )
+				.append( ", fargle_num INTEGER NULL DEFAULT 42" )
+				.append( " )" )
+				.toString()
+				;
+		assertEquals( sFargleExpected, sFargleSQL ) ;
+
+		String sDargleSQL = dbh.getTableCreationSQL( Dargle.class, null ) ;
+		String sDargleExpected = (new StringBuilder())
+				.append( "CREATE TABLE IF NOT EXISTS " )
+				.append( "dargles" )
+				.append( " ( _id INTEGER PRIMARY KEY AUTOINCREMENT" )
+				.append( ", dargle_string TEXT UNIQUE NOT NULL" )
+				.append( ", is_dargly INTEGER NULL DEFAULT 1" )
+				.append( " )" )
+				.toString()
+				;
+		assertEquals( sDargleExpected, sDargleSQL ) ;
+
+		String sBlarghSQL = dbh.getTableCreationSQL( Blargh.class, null ) ;
+		String sBlarghExpected = (new StringBuilder())
+				.append( "CREATE TABLE IF NOT EXISTS " )
+				.append( "blargh" )
+				.append( " ( _id INTEGER PRIMARY KEY AUTOINCREMENT" )
+				.append( ", blargh_string TEXT NULL DEFAULT NULL" )
+				.append( " )" )
+				.toString()
+				;
+		assertEquals( sBlarghExpected, sBlarghSQL ) ;
+	}
+
+	/**
 	 * Ensures that, having opened a database connection and created the
 	 * database for the first time, the file creates what we expected.
-	 * @see SQLiteHouse#onCreate(SQLiteDatabase)
-	 * @see SQLiteHouse#getTableCreationSQL(Class)
+	 * @see SQLiteHouse#onCreate
+	 * @see SQLiteHouse#getTableCreationSQL
+	 * @see <a href="http://www.sqlite.org/lang_analyze.html">SQLite Documentation: ANALYZE</a>
 	 */
 	@Test
 	public void testDatabaseCreation()
@@ -164,11 +242,70 @@ public class SQLiteHouseTest
 			dbh.openDB() ;
 			//noinspection StatementWithEmptyBody
 			while( ! dbh.isConnected() ) ; // Wait for a connection.
-			// pass trivially for now
-			// TODO we will want to ANALYZE the database and glean information
-			// https://sqlite.org/lang_analyze.html
+			Map<String,SQLiteColumnInfo> mapInfo =
+					dbh.getColumnMapForTable( "fargles" ) ;
+			assertEquals( 4, mapInfo.size() ) ; // 3 defined plus auto-ID
+			SQLiteColumnInfo infoFargleID = mapInfo.get("fargle_id") ;
+			assertEquals( 1, infoFargleID.nColumnID ) ;
+			assertEquals( Refractor.SQLITE_TYPE_INT, infoFargleID.sColumnType );
+			assertTrue( infoFargleID.bNotNull ) ;
+			assertEquals( null, infoFargleID.sDefault ) ;
+			assertFalse( infoFargleID.bPrimaryKey ) ;
 		}
 		finally
 		{ dbh.close() ; }
+	}
+
+	/**
+	 * Ensures that the upgrade algorithm works, by swapping an upgraded table
+	 * into the definition.
+	 * @see SQLiteHouse#onUpgrade
+	 * @see SQLiteHouse#getAddColumnSQL
+	 * @see SQLiteHouse#getTableCreationSQL
+	 */
+	@Test
+	public void testDatabaseUpgrade()
+	{
+		Context ctx = getTestContext() ;
+		String sDatabaseName = ValidSpecClass.class
+				.getAnnotation( SQLiteDatabaseSpec.class ).database_name() ;
+
+		ctx.deleteDatabase( sDatabaseName ) ;
+
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, ctx, null ) ;
+		try
+		{
+			dbh.openDB() ;
+			//noinspection StatementWithEmptyBody
+			while( ! dbh.isConnected() ) ;
+		}
+		finally
+		{ dbh.close() ; }
+
+		UpgradeSpecClass dbhUpgrade = SQLiteHouse.Factory.init().getInstance(
+				UpgradeSpecClass.class, ctx, null ) ;
+		try
+		{
+			dbhUpgrade.openDB() ;
+			//noinspection StatementWithEmptyBody
+			while( ! dbhUpgrade.isConnected() ) ;
+			assertEquals( sDatabaseName, dbhUpgrade.getDatabaseName() ) ;
+			assertEquals( 2, dbhUpgrade.getLatestSchemaVersion() ) ;
+
+			// Show that the "fargles" table got upgraded.
+			Map<String,SQLiteColumnInfo> mapFlargle =
+					dbhUpgrade.getColumnMapForTable( "fargles" ) ;
+			assertEquals( "'NEW!'", mapFlargle.get("flargle_addition").sDefault );
+
+			// Show that the "quargles" table got created.
+			List<SQLiteColumnInfo> infoQuargle =
+					dbhUpgrade.getColumnListForTable("quargles") ;
+			assertNotNull( infoQuargle ) ;
+			assertEquals( 2, infoQuargle.size() ) ;
+			assertEquals( "quargle", infoQuargle.get(1).sColumnName ) ;
+		}
+		finally
+		{ dbhUpgrade.close() ; }
 	}
 }

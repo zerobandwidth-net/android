@@ -20,16 +20,16 @@ public class Dargle
 implements SQLightable
 {
 	/**
-	 * Should be discovered as column <code>dargle_string</code> of type
-	 * <code>TEXT</code> and default value <code>"dargle"</code>.
+	 * Should be discovered as column {@code dargle_string} of type {@code TEXT}
+	 * and default value {@code "dargle"}.
 	 */
 	@SQLiteColumn( name = "dargle_string", is_nullable = false )
 	@SQLitePrimaryKey
 	protected String m_sString = "dargle" ;
 
 	/**
-	 * Should be discovered as column <code>is_dargly</code> of type
-	 * <code>INT</code> and default value <code>1</code>.
+	 * Should be discovered as column {@code is_dargly} of type {@code INTEGER}
+	 * and default value {@code 1}.
 	 */
 	@SQLiteColumn( name = "is_dargly",
 			sql_default = SQLitePortal.SQLITE_TRUE_INTSTRING )

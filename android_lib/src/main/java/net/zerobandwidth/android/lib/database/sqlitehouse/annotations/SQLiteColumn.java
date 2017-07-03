@@ -24,6 +24,8 @@ import java.lang.annotation.Target;
 @Target( ElementType.FIELD )
 public @interface SQLiteColumn
 {
+	int NO_INDEX_DEFINED = -1 ;
+
 	/**
 	 * Specifies the name of the database table column whose schema definition
 	 * is derived from this member field; in instances of the class, this field
@@ -39,8 +41,9 @@ public @interface SQLiteColumn
 	 * one-to-one concordance of columns to numeric indices.
 	 * @return a rough estimation of column index, which is really a sort
 	 *  order
+	 * @see net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse.ColumnIndexComparator
 	 */
-	int index() default 0 ;
+	int index() default NO_INDEX_DEFINED ;
 
 	/**
 	 * Specifies whether the database column should be nullable. The default,
@@ -80,4 +83,13 @@ public @interface SQLiteColumn
 	 *  definition clause
 	 */
 	String sql_default() default "NULL" ;
+
+	/**
+	 * Specifies the first schema version in which this column was defined. The
+	 * {@code SQLiteHouse} will use this information to determine when and
+	 * whether to add the column to the database during {@code onCreate()} or
+	 * {@code onUpdate()}.
+	 * @return the first database schema version that includes this column
+	 */
+	int since() default 1 ;
 }

@@ -17,8 +17,8 @@ public class Blargh
 implements SQLightable
 {
 	/**
-	 * Should be discovered as column <code>blargh_string</code> of type
-	 * <code>TEXT</code> and default value <code>NULL</code>.
+	 * Should be discovered as column {@code blargh_string} of type {@code TEXT}
+	 * and default value {@code NULL}.
 	 */
 	@SQLiteColumn( name = "blargh_string" )
 	protected String m_sString = null ;
