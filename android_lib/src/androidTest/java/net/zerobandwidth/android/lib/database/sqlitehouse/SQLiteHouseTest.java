@@ -7,6 +7,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import net.zerobandwidth.android.lib.database.SQLiteColumnInfo;
+import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
@@ -26,6 +27,7 @@ import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -159,7 +161,7 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testFactorySuccess()
-	throws Exception // Any uncaught exception at this point is a failure.
+	throws Exception // Any uncaught exception is a failure.
 	{
 		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
 				ValidSpecClass.class, getTestContext(), null ) ;
@@ -271,7 +273,7 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testDatabaseCreation()
-	throws Exception
+	throws Exception // Any uncaught exception is a failure.
 	{
 		Context ctx = getTestContext() ;
 
@@ -306,7 +308,7 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testDatabaseUpgrade()
-	throws Exception
+	throws Exception // Any uncaught exception is a failure.
 	{
 		Context ctx = getTestContext() ;
 
@@ -352,17 +354,18 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testInsertion()
-	throws Exception
+	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
 				ValidSpecClass.class, getTestContext(), null ) ;
+		Cursor crs = null ;
 		try
 		{
 			connectTo(dbh) ;
 			Fargle fargle = new Fargle( 47, "Foo!", 99 ) ;
 			dbh.insert( fargle ) ;
-			Cursor crs = QueryBuilder.selectFrom( dbh.getDB(), "fargles" )
+			crs = QueryBuilder.selectFrom( dbh.getDB(), "fargles" )
 					.where( "fargle_id=?", "47" )
 					.execute()
 					;
@@ -373,6 +376,57 @@ public class SQLiteHouseTest
 			assertEquals( 99, crs.getInt( crs.getColumnIndex("fargle_num") ) ) ;
 		}
 		finally
-		{ dbh.close() ; }
+		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#update}.
+	 */
+	@Test
+	public void testUpdate()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		Cursor crs = null ;
+		try
+		{
+			connectTo(dbh) ;
+
+			// Insert two entries into a table.
+			String sOne = UUID.randomUUID().toString() ;
+			Dargle dargleOne = new Dargle( sOne, true, 1 ) ;
+			dbh.insert(dargleOne) ;
+			String sTwo = UUID.randomUUID().toString() ;
+			Dargle dargleTwo = new Dargle( sTwo, true, 2 ) ;
+			dbh.insert(dargleTwo) ;
+
+			// Update one.
+			dbh.update( dargleOne.toggle() ) ;
+
+			// Verify that only dargleOne's row was updated.
+			crs = QueryBuilder.selectFrom( dbh.getDB(), "dargles" )
+					.where( "dargle_string=?", sOne )
+					.execute()
+					;
+			assertTrue( crs.moveToFirst() ) ;
+			assertEquals( sOne,
+					crs.getString( crs.getColumnIndex("dargle_string") ) ) ;
+			assertFalse( SQLitePortal.intToBool(
+					crs.getInt( crs.getColumnIndex("is_dargly") ) ) ) ;
+			crs.close() ;
+
+			// Verify that dargleTwo's row was NOT updated.
+			crs = QueryBuilder.selectFrom( dbh.getDB(), "dargles" )
+					.where( "dargle_string=?", sTwo )
+					.execute()
+					;
+			crs.moveToFirst() ;
+			assertTrue( SQLitePortal.intToBool(
+					crs.getInt( crs.getColumnIndex("is_dargly") ) ) ) ;
+		}
+		finally
+		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }
 	}
 }

@@ -39,4 +39,25 @@ implements SQLightable
 	 * Should not be discovered as a column.
 	 */
 	protected int m_zIgnoreThisField = -1 ;
+
+	/**
+	 * Fully initializes an instance.
+	 * @param s a string
+	 * @param b a Boolean value
+	 * @param z an ignored integer
+	 */
+	public Dargle( String s, boolean b, int z )
+	{
+		m_sString = s ;
+		m_bBoolean = b ;
+		m_zIgnoreThisField = z ;
+	}
+
+	/**
+	 * Toggles the Boolean member.
+	 * @see net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouseTest#testUpdate
+	 * @return (fluid)
+	 */
+	public Dargle toggle()
+	{ m_bBoolean = ! m_bBoolean ; return this ; }
 }

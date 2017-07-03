@@ -7,8 +7,9 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
  * of reflexively constructing a database fails.
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
+@SuppressWarnings( "unused" )
 public class IntrospectionException
-		extends RuntimeException
+extends RuntimeException
 {
 	protected static final String DEFAULT_MESSAGE =
 			"Failed to reflexively discover database information." ;

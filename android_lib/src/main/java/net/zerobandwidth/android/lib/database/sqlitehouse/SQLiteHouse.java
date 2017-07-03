@@ -12,6 +12,7 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteData
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.RefractorMap;
 
@@ -761,6 +762,48 @@ extends SQLitePortal
 		return QueryBuilder.insertInto( m_db,
 							getTableName( o.getClass(), null ) )
 				.setValues( this.toContentValues(o) )
+				.execute()
+				;
+	}
+
+	/**
+	 * Updates the values of an object from a known schematic class.
+	 * @param o the object to be updated
+	 * @return the number of rows updated (generally 1)
+	 * @throws SchematicException if the table definition for this class didn't
+	 *  specify its own primary key
+	 */
+	public int update( SQLightable o )
+	throws SchematicException
+	{
+		Field fldKey = m_mapKeys.get( o.getClass() ) ;
+		if( fldKey == null )
+		{
+			throw new SchematicException(
+				"Can't use update(SQLightable) without a key column." ) ;
+		}
+		String sColName = fldKey.getAnnotation( SQLiteColumn.class ).name() ;
+		Refractor lens = this.getRefractorForField(fldKey) ;
+		String sValue ;
+		try
+		{
+			//noinspection unchecked
+			sValue = lens.toSQLiteString( lens.getValueFrom( o, fldKey ) ) ;
+		}
+		catch( IllegalAccessException xAccess )
+		{
+			Log.e( LOG_TAG, (new StringBuilder())
+					.append( "Field corresponding to key column [" )
+					.append( sColName )
+					.append( "] was inaccessible. This shouldn't happen!" )
+					.toString()
+				, xAccess ) ;
+			return 0 ;
+		}
+		return QueryBuilder.update( m_db,
+						getTableName( o.getClass(), null ) )
+				.setValues( this.toContentValues(o) )
+				.where( String.format( "%s=%s", sColName, sValue ) )
 				.execute()
 				;
 	}
