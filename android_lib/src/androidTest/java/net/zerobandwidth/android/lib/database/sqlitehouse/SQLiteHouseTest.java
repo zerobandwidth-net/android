@@ -1,5 +1,6 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -380,7 +381,7 @@ public class SQLiteHouseTest
 	}
 
 	/**
-	 * Exercises {@link SQLiteHouse#update}.
+	 * Exercises {@link SQLiteHouse#update(SQLightable)}.
 	 */
 	@Test
 	public void testUpdate()
@@ -413,8 +414,7 @@ public class SQLiteHouseTest
 			assertTrue( crs.moveToFirst() ) ;
 			assertEquals( sOne,
 					crs.getString( crs.getColumnIndex("dargle_string") ) ) ;
-			assertFalse( SQLitePortal.intToBool(
-					crs.getInt( crs.getColumnIndex("is_dargly") ) ) ) ;
+			assertFalse( SQLitePortal.getBooleanColumn( crs, "is_dargly") ) ;
 			crs.close() ;
 
 			// Verify that dargleTwo's row was NOT updated.
@@ -423,8 +423,58 @@ public class SQLiteHouseTest
 					.execute()
 					;
 			crs.moveToFirst() ;
-			assertTrue( SQLitePortal.intToBool(
-					crs.getInt( crs.getColumnIndex("is_dargly") ) ) ) ;
+			assertTrue( SQLitePortal.getBooleanColumn( crs, "is_dargly") ) ;
+		}
+		finally
+		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#update(Class)}.
+	 */
+	@Test
+	public void testUpdateTable()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		Cursor crs = null ;
+		try
+		{
+			connectTo(dbh) ;
+			Dargle dargleOne =
+					new Dargle( UUID.randomUUID().toString(), true, 1 ) ;
+			Dargle dargleTwo =
+					new Dargle( UUID.randomUUID().toString(), true, 2 ) ;
+			dbh.insert(dargleOne) ;
+			dbh.insert(dargleTwo) ;
+
+			// Perform the update, using the builder from the method under test.
+			ContentValues vals = new ContentValues() ;
+			vals.put( "is_dargly", SQLitePortal.SQLITE_FALSE_INT ) ;
+			dbh.update( Dargle.class )
+					.setValues(vals)
+					.where( "dargle_string=?", dargleOne.getString() )
+					.execute()
+					;
+
+			// Verify that the intended row was updated.
+			crs = QueryBuilder.selectFrom( dbh.getDB(), "dargles" )
+					.where( "dargle_string=?", dargleOne.getString() )
+					.execute()
+					;
+			crs.moveToFirst() ;
+			assertFalse( SQLitePortal.getBooleanColumn( crs, "is_dargly" ) ) ;
+			crs.close() ;
+
+			// Verify that the unintended row was NOT updated.
+			crs = QueryBuilder.selectFrom( dbh.getDB(), "dargles" )
+					.where( "dargle_string=?", dargleTwo.getString() )
+					.execute()
+					;
+			crs.moveToFirst() ;
+			assertTrue( SQLitePortal.getBooleanColumn( crs, "is_dargly" ) ) ;
 		}
 		finally
 		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }

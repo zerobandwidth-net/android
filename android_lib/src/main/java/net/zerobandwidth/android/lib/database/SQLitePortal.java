@@ -240,6 +240,17 @@ extends SQLiteOpenHelper
     { return( z != SQLITE_FALSE_INT ) ; }
 
 	/**
+	 * Shorthand to fetch the Boolean value from a column that stores Boolean
+	 * values as integers.
+	 * @param crs the cursor that contains a row with one of these columns
+	 * @param sColName the name of the column
+	 * @return the Boolean value
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static boolean getBooleanColumn( Cursor crs, String sColName )
+	{ return intToBool( crs.getInt( crs.getColumnIndex( sColName ) ) ) ; }
+
+	/**
 	 * Returns the number of milliseconds since epoch UTC. Use this value when
 	 * comparing to timestamps stored in the database as {@code long} integers.
 	 * @return milliseconds since epoch UTC

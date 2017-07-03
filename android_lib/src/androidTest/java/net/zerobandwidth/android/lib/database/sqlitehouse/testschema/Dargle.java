@@ -54,6 +54,13 @@ implements SQLightable
 	}
 
 	/**
+	 * Accesses the string.
+	 * @return the string member
+	 */
+	public String getString()
+	{ return m_sString ; }
+
+	/**
 	 * Toggles the Boolean member.
 	 * @see net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouseTest#testUpdate
 	 * @return (fluid)

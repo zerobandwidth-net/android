@@ -7,6 +7,7 @@ import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
+import net.zerobandwidth.android.lib.database.querybuilder.UpdateBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
@@ -807,6 +808,15 @@ extends SQLitePortal
 				.execute()
 				;
 	}
+
+	/**
+	 * Shorthand to obtain an {@link UpdateBuilder} bound to this database and
+	 * targeting the table corresponding to the specified schematic class.
+	 * @param cls the class that defines part of the schema
+	 * @return an {@code UPDATE} query builder prepared for that table
+	 */
+	public UpdateBuilder update( Class<? extends SQLightable> cls )
+	{ return QueryBuilder.update( m_db, getTableName( cls, null ) ) ; }
 
 /// Other Instance Methods /////////////////////////////////////////////////////
 
