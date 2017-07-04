@@ -1,5 +1,6 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -7,7 +8,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.querybuilder.DeletionBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
+import net.zerobandwidth.android.lib.database.querybuilder.SelectionBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.UpdateBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
@@ -723,7 +726,6 @@ extends SQLitePortal
 			);
 		for( Class<? extends SQLightable> clsTable : m_aclsSchema )
 		{ // Determine what's new in each table.
-			//noinspection unchecked
 			QueryContext<DSC> qctx = this.getQueryContext() ;
 			qctx.loadTableDef(clsTable) ;
 			int nTableSince = ( qctx.antTable == null ?
@@ -783,6 +785,8 @@ extends SQLitePortal
 		for( Field fld : m_mapFields.get( qctx.clsTable ) )
 		{
 			qctx.loadColumnDef(fld) ;
+			if( MAGIC_ID_COLUMN_NAME.equals(qctx.sColumnName) )
+				continue ;     // Allows the data class to contain the magic ID.
 			sb.append( ", " )
 			  .append( this.getColumnDefinitionClause(qctx) )
 			  ;
@@ -890,7 +894,6 @@ extends SQLitePortal
 	 * @throws SchematicException if the table definition for this class didn't
 	 *  specify its own primary key
 	 */
-	@SuppressWarnings("unchecked")
 	public int update( SQLightable o )
 	throws SchematicException
 	{
@@ -932,7 +935,6 @@ extends SQLitePortal
 	 *  a row of the database
 	 * @throws SchematicException if anything goes wrong along the way
 	 */
-	@SuppressWarnings("unchecked")
 	public <ROW extends SQLightable> ROW search( ROW oCriteria )
 	throws SchematicException
 	{
@@ -945,33 +947,118 @@ extends SQLitePortal
 					"Can't use search(SQLightable) without a key column." ) ;
 		}
 		qctx.loadColumnValue(oCriteria) ;
-		ROW oResult ;
-		try
-		{
-			Constructor ctor = qctx.clsTable.getDeclaredConstructor() ;
-			if( ctor == null ) // try something different
-				ctor = qctx.clsTable.getConstructor() ;
-			ctor.setAccessible(true) ;
-			oResult = ((ROW)(ctor.newInstance())) ;
-		}
-		catch( Exception xConstruct )
-		{
-			throw new SchematicException(
-					"Couldn't construct a container object.", xConstruct ) ;
-		}
 		Cursor crs = null ;
-		List<Field> afldResult = m_mapFields.get( qctx.clsTable ) ;
 		try
 		{
 			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
 					.where( String.format( "%s=%s",
 							qctx.sColumnName, qctx.sColumnSQLValue ) )
 					.execute()
+			;
+			if( ! crs.moveToFirst() ) return null ; // No such object found.
+			return this.fromCursor( qctx, crs ) ;
+		}
+		finally
+		{ closeCursor(crs) ; }
+	}
+
+	/**
+	 * Searches the database for a row of the table represented by the supplied
+	 * object, where the specified integer is equal to the row's magic auto-ID.
+	 * @param cls the schematic class that will contain the row
+	 * @param nID the auto-incremented integer ID of the row
+	 * @param <ROW> the schematic class
+	 * @return a new instance of the schematic class, containing the row with
+	 *  the specified auto-ID
+	 */
+	@SuppressLint("DefaultLocale")
+	public <ROW extends SQLightable> ROW select( Class<ROW> cls, long nID )
+	{
+		QueryContext<DSC> qctx = this.getQueryContext() ;
+		qctx.loadTableDef(cls) ;
+		Cursor crs = null ;
+		try
+		{
+			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
+					.where( String.format( "%s=%d",
+							MAGIC_ID_COLUMN_NAME, nID ) )
+					.execute()
 					;
 			if( ! crs.moveToFirst() ) return null ; // No such object found.
+			return this.fromCursor( qctx, crs ) ;
 		}
-		catch( Exception x )
-		{ closeCursor(crs) ; throw x ; }
+		finally
+		{ closeCursor(crs) ; }
+	}
+
+	/**
+	 * Shorthand to obtain a {@link SelectionBuilder} bound to this database and
+	 * targeting the table corresponding to the specified schematic class.
+	 * @param cls the class that defines part of the schema
+	 * @return a {@code SELECT} query builder prepared for that table
+	 */
+	public SelectionBuilder selectFrom( Class<? extends SQLightable> cls )
+	{ return QueryBuilder.selectFrom( m_db, getTableName( cls, null ) ) ; }
+
+	/**
+	 * Searches the database for a row of the table represented by the supplied
+	 * objects, and deletes that row.
+	 * @param o the schematic class instance to be deleted if found
+	 * @param <ROW> the schematic class
+	 * @return the number of rows deleted
+	 * @throws SchematicException if the table doesn't specify a key column
+	 */
+	public <ROW extends SQLightable> int delete( ROW o )
+	throws SchematicException
+	{
+		QueryContext<DSC> qctx = this.getQueryContext() ;
+		qctx.loadTableDef( o.getClass() ) ;
+		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
+		if( qctx.fldColumn == null )
+		{
+			throw new SchematicException(
+					"Can't use delete(SQLightable) without a key column." ) ;
+		}
+		qctx.loadColumnValue(o) ;
+		return QueryBuilder.deleteFrom( m_db, qctx.sTableName )
+				.where( String.format( "%s=%s",
+						qctx.sColumnName, qctx.sColumnSQLValue ) )
+				.execute()
+				;
+	}
+
+	/**
+	 * Shorthand to obtain a {@link DeletionBuilder} bound to this database and
+	 * targeting the table corresponding to the specified schematic class.
+	 * @param cls the class that defines part of the schema
+	 * @return a {@code DELETE} query builder prepared for that table
+	 */
+	public DeletionBuilder deleteFrom( Class<? extends SQLightable> cls )
+	{ return QueryBuilder.deleteFrom( m_db, getTableName( cls, null ) ) ; }
+
+/// Other Instance Methods /////////////////////////////////////////////////////
+
+	public <T extends SQLightable> T fromCursor(
+			QueryContext<DSC> qctx, Cursor crs )
+	throws SchematicException
+	{
+		T oResult ;
+		try
+		{
+			Constructor ctor = qctx.clsTable.getDeclaredConstructor() ;
+			if( ctor == null ) // try something different
+				ctor = qctx.clsTable.getConstructor() ;
+			ctor.setAccessible(true) ;
+			//noinspection unchecked
+			oResult = ((T)(ctor.newInstance())) ;
+		}
+		catch( Exception xConstruct )
+		{
+			throw new SchematicException(
+					"Couldn't construct a container object.", xConstruct ) ;
+		}
+
+		List<Field> afldResult = m_mapFields.get( qctx.clsTable ) ;
 
 		for( Field fld : afldResult )
 		{
@@ -983,18 +1070,13 @@ extends SQLitePortal
 			}
 			catch( IllegalAccessException xAccess )
 			{
-				closeCursor(crs) ;
 				throw SchematicException.fieldWasInaccessible(
 						qctx.fldColumn.getName(), xAccess ) ;
 			}
 		}
 
-		closeCursor(crs) ;
-
 		return oResult ;
 	}
-
-/// Other Instance Methods /////////////////////////////////////////////////////
 
 	/**
 	 * Creates an empty query context bound to this database helper.
@@ -1003,6 +1085,15 @@ extends SQLitePortal
 	@SuppressWarnings("unchecked")
 	public QueryContext<DSC> getQueryContext()
 	{ return new QueryContext<>( (DSC)this ) ; }
+
+	/**
+	 * Creates a query context bound to this database helper, and preloads the
+	 * information for a specified table.
+	 * @param clsTable the schematic table to be preloaded
+	 * @return a context object
+	 */
+	public QueryContext<DSC> getQueryContext( Class<? extends SQLightable> clsTable )
+	{ return this.getQueryContext().loadTableDef(clsTable) ; }
 
 	/**
 	 * Discovers the type of refractor needed to marshal the specified field.
@@ -1068,5 +1159,4 @@ extends SQLitePortal
 		}
 		return vals ;
 	}
-
 }

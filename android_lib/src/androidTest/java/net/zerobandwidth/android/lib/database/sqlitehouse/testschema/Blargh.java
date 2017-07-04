@@ -30,4 +30,12 @@ implements SQLightable
 	protected int m_zRedHerring3 ;
 	protected float m_rRedHerring4 ;
 	protected boolean m_bRedHerring5 ;
+
+	public Blargh() {}
+
+	public Blargh( String s )
+	{ m_sString = s ; }
+
+	public boolean equals( Blargh that )
+	{ return this.m_sString.equals( that.m_sString ) ; }
 }

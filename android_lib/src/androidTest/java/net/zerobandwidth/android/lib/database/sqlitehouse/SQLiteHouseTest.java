@@ -9,9 +9,11 @@ import android.support.test.runner.AndroidJUnit4;
 
 import net.zerobandwidth.android.lib.database.SQLiteColumnInfo;
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.querybuilder.DeletionBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
+import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
@@ -354,6 +356,23 @@ public class SQLiteHouseTest
 	}
 
 	/**
+	 * Exercises {@link SQLiteHouse#getQueryContext(Class)}, which in turn
+	 * exercises {@link SQLiteHouse#getQueryContext()}.
+	 */
+	@Test
+	public void testGetQueryContext()
+	{
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		SQLiteHouse.QueryContext<ValidSpecClass> qctx =
+				dbh.getQueryContext( Fargle.class ) ;
+		assertEquals( Fargle.class, qctx.clsTable ) ;
+		assertEquals( "fargles", qctx.sTableName ) ;
+		assertEquals( Fargle.class.getAnnotation( SQLiteTable.class ),
+				qctx.antTable ) ;
+	}
+
+	/**
 	 * Exercises {@link SQLiteHouse#insert}.
 	 */
 	@Test
@@ -503,6 +522,148 @@ public class SQLiteHouseTest
 			Fargle fargleResult = dbh.search(fargleOne) ;
 			assertTrue( fargleOne.equals(fargleResult) ) ;
 			assertFalse( fargleTwo.equals(fargleResult) ) ;
+		}
+		finally
+		{ dbh.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#select(Class,long)}.
+	 */
+	@Test
+	public void testSelect()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		try
+		{
+			connectTo(dbh) ;
+			Fargle fargleOne = new Fargle( 30, "Get this one first.", 1 ) ;
+			long idOne = dbh.insert(fargleOne) ;
+			Fargle fargleTwo = new Fargle( 60, "Then get this one second.", 2 );
+			long idTwo = dbh.insert(fargleTwo) ;
+			assertTrue( fargleOne.equals( dbh.select(Fargle.class,idOne) ) ) ;
+			assertTrue( fargleTwo.equals( dbh.select(Fargle.class,idTwo) ) ) ;
+		}
+		finally
+		{ dbh.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#selectFrom(Class)}.
+	 */
+	@Test
+	public void testSelectFrom()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		SQLiteHouse.QueryContext<ValidSpecClass> qctx =
+				dbh.getQueryContext(Blargh.class) ;
+		Cursor crs = null ;
+		try
+		{
+			connectTo(dbh) ;
+			Blargh blarghOne = new Blargh("one") ;
+			dbh.insert(blarghOne) ;
+			Blargh blarghTwo = new Blargh("two") ;
+			long idTwo = dbh.insert(blarghTwo) ;
+
+			crs = dbh.selectFrom(Blargh.class)
+					.where( "blargh_string=?", "one" )
+					.execute()
+					;
+			assertTrue( crs.moveToFirst() ) ;
+			assertEquals( 1, crs.getCount() ) ;
+			SQLitePortal.closeCursor(crs) ;
+
+			crs = dbh.selectFrom( Blargh.class )
+					.where( "blargh_string=?", "two" )
+					.execute()
+					;
+			assertTrue( crs.moveToFirst() ) ;
+			assertEquals( 1, crs.getCount() ) ;
+			Blargh blarghTwoFetched = dbh.fromCursor( qctx, crs ) ;
+			SQLitePortal.closeCursor(crs) ;
+			assertTrue( blarghTwoFetched.equals(blarghTwo) ) ;
+
+			crs = dbh.selectFrom( Blargh.class )
+					.where( String.format( "%s=%d",
+							SQLiteHouse.MAGIC_ID_COLUMN_NAME, idTwo ) )
+					.execute()
+					;
+			assertTrue( crs.moveToFirst() ) ;
+			Blargh blarghTwoIDFetched = dbh.fromCursor( qctx, crs ) ;
+			SQLitePortal.closeCursor(crs) ;
+			assertTrue( blarghTwoIDFetched.equals(blarghTwo) ) ;
+		}
+		finally
+		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#delete(SQLightable)}.
+	 */
+	@Test
+	public void testDelete()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		try
+		{
+			connectTo(dbh) ;
+			Dargle dargleOne =
+					new Dargle( UUID.randomUUID().toString(), true, 1 ) ;
+			Dargle dargleTwo =
+					new Dargle( UUID.randomUUID().toString(), true, 2 ) ;
+			dbh.insert(dargleOne) ;
+			dbh.insert(dargleTwo) ;
+
+			assertEquals( 1, dbh.delete(dargleOne) ) ;
+			assertEquals( 0, dbh.delete(dargleOne) ) ;
+			assertEquals( 1, dbh.delete(dargleTwo) ) ;
+			assertEquals( 0, dbh.delete(dargleTwo) ) ;
+		}
+		finally
+		{ dbh.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#deleteFrom(Class)}.
+	 */
+	@Test
+	public void testDeleteFrom()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		try
+		{
+			connectTo(dbh) ;
+			Blargh blarghAlice = new Blargh( "alice" ) ;
+			dbh.insert( blarghAlice ) ;
+			Blargh blarghBob = new Blargh( "bob" ) ;
+			dbh.insert( blarghBob ) ;
+
+			DeletionBuilder deleteAlice = dbh.deleteFrom( Blargh.class )
+					.where( "blargh_string=?", "alice" ) ;
+			int nDeletedAlice = deleteAlice.execute() ;
+			assertEquals( 1, nDeletedAlice ) ;
+			nDeletedAlice = deleteAlice.execute() ;
+			assertEquals( 0, nDeletedAlice ) ;
+
+			DeletionBuilder deleteBob = dbh.deleteFrom( Blargh.class )
+					.where( "blargh_string=?", "bob" ) ;
+			int nDeletedBob = deleteBob.execute() ;
+			assertEquals( 1, nDeletedBob ) ;
+			nDeletedBob = deleteBob.execute() ;
+			assertEquals( 0, nDeletedBob ) ;
 		}
 		finally
 		{ dbh.close() ; }
