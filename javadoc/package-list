@@ -3,6 +3,10 @@ net.zerobandwidth.android.lib.app
 net.zerobandwidth.android.lib.content
 net.zerobandwidth.android.lib.database
 net.zerobandwidth.android.lib.database.querybuilder
+net.zerobandwidth.android.lib.database.sqlitehouse
+net.zerobandwidth.android.lib.database.sqlitehouse.annotations
+net.zerobandwidth.android.lib.database.sqlitehouse.exceptions
+net.zerobandwidth.android.lib.database.sqlitehouse.refractor
 net.zerobandwidth.android.lib.nonsense
 net.zerobandwidth.android.lib.security
 net.zerobandwidth.android.lib.services
