@@ -433,18 +433,6 @@ extends SQLiteOpenHelper
 		return this ;
 	}
 
-	/**
-	 * Accessor for the underlying {@link SQLiteDatabase}. This should never be
-	 * used in practice, as it is always safer to invoke methods of the
-	 * {@code SQLitePortal} descendant to perform database functions. This
-	 * method should be used only in certain unit-testing scenarios in which
-	 * properties of the database itself must be directly examined.
-	 * @return the underlying database instance
-	 * @since zerobandwidth-net/android 0.1.4 (#26)
-	 */
-//	public synchronized SQLiteDatabase getDB()
-//	{ return m_db ; }
-
     /**
      * Closes the database connection and releases all references to it.
 	 *

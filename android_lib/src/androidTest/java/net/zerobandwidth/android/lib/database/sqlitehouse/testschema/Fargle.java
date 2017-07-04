@@ -43,6 +43,8 @@ implements SQLightable
 	@SQLiteColumn( name = "fargle_num", sql_default = "42" )
 	protected int m_zInteger = 42 ;
 
+	public Fargle() {}
+
 	/**
 	 * Fully initializes an instance.
 	 * @param nID a unique numeric ID
@@ -54,5 +56,17 @@ implements SQLightable
 		m_nFargleID = nID ;
 		m_sString = s ;
 		m_zInteger = z ;
+	}
+
+	/**
+	 * Tests for equality.
+	 * @param that the object to be compared to this one.
+	 * @return {@code true} if all fields are equivalent
+	 */
+	public boolean equals( Fargle that )
+	{
+		return ( this.m_nFargleID == that.m_nFargleID
+		      && this.m_sString.equals( that.m_sString )
+		      && this.m_zInteger == that.m_zInteger ) ;
 	}
 }

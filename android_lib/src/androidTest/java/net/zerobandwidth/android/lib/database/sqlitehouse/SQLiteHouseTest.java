@@ -12,7 +12,6 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
-import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
@@ -227,8 +226,10 @@ public class SQLiteHouseTest
 		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
 				ValidSpecClass.class, getTestContext(), null ) ;
 
-		String sFargleSQL = dbh.getTableCreationSQL( Fargle.class,
-				Fargle.class.getAnnotation( SQLiteTable.class ) ) ;
+		SQLiteHouse.QueryContext<ValidSpecClass> qctx = dbh.getQueryContext() ;
+
+		qctx.loadTableDef( Fargle.class ) ;
+		String sFargleSQL = dbh.getTableCreationSQL(qctx) ;
 		String sFargleExpected = (new StringBuilder())
 				.append( "CREATE TABLE IF NOT EXISTS " )
 				.append( "fargles" )
@@ -241,7 +242,8 @@ public class SQLiteHouseTest
 				;
 		assertEquals( sFargleExpected, sFargleSQL ) ;
 
-		String sDargleSQL = dbh.getTableCreationSQL( Dargle.class, null ) ;
+		qctx.loadTableDef( Dargle.class ) ;
+		String sDargleSQL = dbh.getTableCreationSQL(qctx) ;
 		String sDargleExpected = (new StringBuilder())
 				.append( "CREATE TABLE IF NOT EXISTS " )
 				.append( "dargles" )
@@ -253,7 +255,8 @@ public class SQLiteHouseTest
 				;
 		assertEquals( sDargleExpected, sDargleSQL ) ;
 
-		String sBlarghSQL = dbh.getTableCreationSQL( Blargh.class, null ) ;
+		qctx.loadTableDef( Blargh.class ) ;
+		String sBlarghSQL = dbh.getTableCreationSQL(qctx) ;
 		String sBlarghExpected = (new StringBuilder())
 				.append( "CREATE TABLE IF NOT EXISTS " )
 				.append( "blargh" )
@@ -478,5 +481,30 @@ public class SQLiteHouseTest
 		}
 		finally
 		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#search(SQLightable)}.
+	 */
+	@Test
+	public void testSearch()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		try
+		{
+			connectTo(dbh) ;
+			Fargle fargleOne = new Fargle( 10, "Sought.", 1 ) ;
+			dbh.insert(fargleOne) ;
+			Fargle fargleTwo = new Fargle( 20, "Unsought.", 2 ) ;
+			dbh.insert(fargleTwo) ;
+			Fargle fargleResult = dbh.search(fargleOne) ;
+			assertTrue( fargleOne.equals(fargleResult) ) ;
+			assertFalse( fargleTwo.equals(fargleResult) ) ;
+		}
+		finally
+		{ dbh.close() ; }
 	}
 }
