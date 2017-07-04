@@ -5,6 +5,8 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static junit.framework.Assert.* ;
@@ -90,5 +92,33 @@ public class SQLitePortalTest
 			final int nBool = SQLitePortal.boolToInt( bValue ) ;
 			assertEquals( ( bValue ? 1 : 0 ), nBool ) ;
 		}
+	}
+
+	/**
+	 * Exercises {@link SQLitePortal#getColumnListForTable} and
+	 * {@link SQLitePortal#getColumnMapForTable}, thereby also exercising both
+	 * static methods in {@link SQLiteColumnInfo}.
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	@Test
+	public void testTableAnalytics()
+	{
+		SQLitePortal dbh = MinimalUnitTestDBPortal.getInstrumentedInstance() ;
+		dbh.openDB() ;
+		//noinspection StatementWithEmptyBody
+		while( ! dbh.isConnected() ) ;
+		List<SQLiteColumnInfo> aInfo = dbh.getColumnListForTable(
+				MinimalUnitTestDBPortal.TEST_TABLE_NAME ) ;
+		assertEquals( "TEXT", aInfo.get(1).sColumnType ) ;
+		assertEquals( "INTEGER", aInfo.get(2).sColumnType ) ;
+		assertEquals( "INTEGER", aInfo.get(3).sColumnType ) ;
+		Map<String,SQLiteColumnInfo> mapInfo = dbh.getColumnMapForTable(
+				MinimalUnitTestDBPortal.TEST_TABLE_NAME ) ;
+		assertEquals( 1, mapInfo.get("a_string_field").nColumnID ) ;
+		assertEquals( "TEXT", mapInfo.get("a_string_field").sColumnType ) ;
+		assertEquals( 2, mapInfo.get("a_int_field").nColumnID ) ;
+		assertEquals( "INTEGER", mapInfo.get("a_int_field").sColumnType ) ;
+		assertEquals( 3, mapInfo.get("a_boolint_field").nColumnID ) ;
+		assertEquals( "INTEGER", mapInfo.get("a_boolint_field").sColumnType ) ;
 	}
 }

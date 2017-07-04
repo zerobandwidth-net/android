@@ -8,6 +8,8 @@ import android.util.Log;
 
 import java.io.File;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Extends {@link SQLiteOpenHelper} with a few additional features.
@@ -141,6 +143,44 @@ extends SQLiteOpenHelper
 	public static final String UPDATE_ALL = "1" ;
 
 	/**
+	 * The string to be used in an SQLite statement to represent a null value.
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final String SQLITE_NULL = "NULL" ;
+
+	/**
+	 * Integer representation of "true".
+	 * @see #boolToInt(boolean)
+	 * @see #intToBool(int)
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final int SQLITE_TRUE_INT = 1 ;
+
+	/**
+	 * Stringified-integer representation of "true".
+	 * @see #boolToIntString(boolean)
+	 * @see #SQLITE_TRUE_INT
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final String SQLITE_TRUE_INTSTRING = "1" ;
+
+	/**
+	 * Integer representation of "false".
+	 * @see #boolToInt(boolean)
+	 * @see #intToBool(int)
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final int SQLITE_FALSE_INT = 0 ;
+
+	/**
+	 * Stringified-integer representation of "false".
+	 * @see #boolToIntString(boolean)
+	 * @see #SQLITE_FALSE_INT
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static final String SQLITE_FALSE_INTSTRING = "0" ;
+
+	/**
 	 * If using integer columns to store Boolean values, where {@code 1} is true
 	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
 	 * value substitutions for "true".
@@ -178,7 +218,17 @@ extends SQLiteOpenHelper
      * @return {@code 1} for true or {@code 0} for false
      */
     public static int boolToInt( boolean b )
-    { return( b ? 1 : 0 ) ; }
+    { return( b ? SQLITE_TRUE_INT : SQLITE_FALSE_INT ) ; }
+
+	/**
+	 * Transforms a Boolean value into the string representation of a
+	 * corresponding integer, for use in SQLite statements.
+	 * @param b the Boolean value to be converted
+	 * @return {@code "1"} for true or {@code "0"} for false
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static String boolToIntString( boolean b )
+	{ return Integer.toString( boolToInt(b) ) ; }
 
     /**
      * Simplistic transformation of an integer to a Boolean value, for retrieval
@@ -187,7 +237,18 @@ extends SQLiteOpenHelper
      * @return {@code true} iff the integer is non-zero
      */
     public static boolean intToBool( int z )
-    { return( z != 0 ) ; }
+    { return( z != SQLITE_FALSE_INT ) ; }
+
+	/**
+	 * Shorthand to fetch the Boolean value from a column that stores Boolean
+	 * values as integers.
+	 * @param crs the cursor that contains a row with one of these columns
+	 * @param sColName the name of the column
+	 * @return the Boolean value
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public static boolean getBooleanColumn( Cursor crs, String sColName )
+	{ return intToBool( crs.getInt( crs.getColumnIndex( sColName ) ) ) ; }
 
 	/**
 	 * Returns the number of milliseconds since epoch UTC. Use this value when
@@ -290,6 +351,14 @@ extends SQLiteOpenHelper
 	/** A persistent reference to the underlying database. */
 	protected SQLiteDatabase m_db = null ;
 
+	/**
+	 * Remembers the version number with which the instance was constructed.
+	 * This is kept private in {@link SQLiteOpenHelper}, so in order to use this
+	 * in {@code SQLitePortal} and its descendants, we have to copy it here.
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	protected int m_nLatestVersion = -1 ;
+
 	/** Indicates whether a connection to the database has been established. */
 	protected boolean m_bIsConnected = false ;
 
@@ -307,6 +376,7 @@ extends SQLiteOpenHelper
     {
 		super( ctx, sDatabaseName, cf, nVersion ) ;
 		m_ctx = ctx ;
+	    m_nLatestVersion = nVersion ;
     }
 
 /// Database Connection Management Methods /////////////////////////////////////
@@ -432,6 +502,28 @@ extends SQLiteOpenHelper
 	}
 
 	/**
+	 * Uses SQLite pragmas to discover the structure of an existing table, and
+	 * return a list of its column definitions.
+	 * @param sTableName the name of the table to be described
+	 * @return a list of column information structures
+	 * @see SQLiteColumnInfo#gatherColumnList
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public List<SQLiteColumnInfo> getColumnListForTable( String sTableName )
+	{ return SQLiteColumnInfo.gatherColumnList( m_db, sTableName ) ; }
+
+	/**
+	 * Uses SQLite pragmas to discover the structure of an existing table, and
+	 * return a map of column names to column definitions.
+	 * @param sTableName the name of the table to be described
+	 * @return a map of column names to their definitions
+	 * @see SQLiteColumnInfo#gatherColumnMap
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public Map<String,SQLiteColumnInfo> getColumnMapForTable( String sTableName )
+	{ return SQLiteColumnInfo.gatherColumnMap( m_db, sTableName ) ; }
+
+	/**
 	 * Discovers the size of the database file in storage.
 	 * @return the size of the file, or -1 if an exception is thrown
 	 * @since zerobandwidth-net/android 0.1.4 (#34)
@@ -450,4 +542,12 @@ extends SQLiteOpenHelper
 			return -1 ;
 		}
 	}
+
+	/**
+	 * Accessor for the schema version with which the instance was constructed.
+	 * @return the "latest" schema version number
+	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 */
+	public int getLatestSchemaVersion()
+	{ return m_nLatestVersion ; }
 }
