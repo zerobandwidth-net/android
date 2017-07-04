@@ -10,6 +10,7 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTabl
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 @SQLiteTable( value = "fargles" )
+@SuppressWarnings("unused") // They're used by proxy (named by DB column names)
 public class Flargle
 implements SQLightable
 {

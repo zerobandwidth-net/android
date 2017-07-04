@@ -64,6 +64,7 @@ public interface Refractor<T>
 	 *
 	 * @return the string representation of the column type's default value
 	 */
+	@SuppressWarnings("unused") // It's used in the Lens abstract descendant...
 	String getSQLiteDefaultString() ;
 
 	/**

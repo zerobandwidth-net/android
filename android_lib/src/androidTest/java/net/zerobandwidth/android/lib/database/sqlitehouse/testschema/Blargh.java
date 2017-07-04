@@ -2,7 +2,6 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.testschema;
 
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
-import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
 
 /**
  * Serves as one of the database schema definition classes for
@@ -13,6 +12,7 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrim
  *
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
+@SuppressWarnings("unused") // The "red herring" fields are intentionally unused.
 public class Blargh
 implements SQLightable
 {
@@ -31,11 +31,14 @@ implements SQLightable
 	protected float m_rRedHerring4 ;
 	protected boolean m_bRedHerring5 ;
 
+	/** Default constructor required by {@code SQLiteHouse}. */
 	public Blargh() {}
 
+	/** Specifies the value of the string member. */
 	public Blargh( String s )
 	{ m_sString = s ; }
 
+	/** Tests for the equality of the string member. */
 	public boolean equals( Blargh that )
 	{ return this.m_sString.equals( that.m_sString ) ; }
 }

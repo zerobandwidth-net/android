@@ -16,5 +16,6 @@ public class Quargle
 implements SQLightable
 {
 	@SQLiteColumn( name = "quargle" )
+	@SuppressWarnings("unused")
 	protected String m_sQuargle = null ;
 }

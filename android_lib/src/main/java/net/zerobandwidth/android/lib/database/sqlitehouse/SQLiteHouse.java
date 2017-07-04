@@ -95,12 +95,15 @@ import java.util.Map;
  *         protected String m_sLastName ;
  *
  *        {@literal @}SQLiteColumn( name = "birthday", index = 3 )
- *         protected Date m_dBirthdate ;
+ *         protected Calendar m_dBirthdate ;
  *
  *        {@literal @}SQLiteColumn( name = "address", index = 4 )
  *         protected String m_sAddress ;
  *
- *         // usual constructors, methods, etc. follow
+ *         /** Schema classes must provide a default constructor. {@literal *}/
+ *         public Person() {}
+ *
+ *         // other constructors, methods, etc. follow
  *     }
  * </pre>
  *
@@ -172,6 +175,45 @@ import java.util.Map;
  * implementations of these methods, unless they require some exotic
  * post-processing logic after the normal creation/update process has been
  * completed.</p>
+ *
+ * <h3>Using the Query Commands</h3>
+ *
+ * <p>The base {@code SQLiteHouse} class provides implementations of some basic
+ * query operations &mdash; insertion, selection, updates, and deletion. Once
+ * all of the schematic data is known to the instance, the grammar of
+ * interacting with the database flows relatively simply.</p>
+ *
+ * <pre>
+ *     MyDatabaseClass dbh = SQLiteHouse.Factory.init().getInstance(
+ *             MyDatabaseClass.class, ctx, null ) ;
+ *     dbh.openDB() ;
+ *     // wait for connection, either by sleeping or catching connection event
+ *
+ *     Person alice = new Person( UUID.randomUUID().toString(),
+ *         "Alice", "Appleton", new GregorianCalendar( 1980, 6, 3 ),
+ *         "1687 Newton Way, Principia, NY 10705" ) ;
+ *     dbh.insert( alice ) ;
+ *
+ *     Person bob = new Person( UUID.randomUUID().toString(),
+ *         "Bob", "Bullhead", new GregorianCalendar( 1960, 9, 5 ),
+ *         "230 South Bouquet St., Oakland, PA 15213" ) ;
+ *     long idBob = dbh.insert( bob ) ;
+ *
+ *     bob.setAddress( "115 Federal Street, Pittsburgh, PA 15212" ) ;
+ *     int nUpdated = dbh.update( bob ) ;                       // nUpdated == 1
+ *     Person also_bob = dbh.select( idBob ) ;
+ *     String sBobAddress = also_bob.getAddress() )     // 115 Federal Street...
+ *
+ *     int nDeleted = dbh.delete( alice ) ;                     // nDeleted == 1
+ *     nDeleted = dbh.delete( alice ) ;                         // nDeleted == 0
+ *     nDeleted = dbh.delete( bob ) ;                           // nDeleted == 1
+ *     nDeleted = dbh.delete( also_bob ) ;                      // nDeleted == 0
+ *
+ *     dbh.close() ;
+ * </pre>
+ *
+ * <p>The descendant class may, as with {@link SQLitePortal}, define further
+ * custom instance methods to perform more specific reusable queries.</p>
  *
  * @param <DSC> A descendant class. When creating a descendant class, it should
  *  extend {@code SQLiteHouse} templatized for itself. This will ensure that all
@@ -365,7 +407,7 @@ extends SQLitePortal
 	}
 
 	/**
-	 * Inner class instantiated temporarily to provide context for various
+	 * A short-lived, open data structure which provides context for various
 	 * operations within the class. Because so many of the values fetched here
 	 * must be reused multiple times within the body of certain larger
 	 * functions, it is useful to have all of these fields gathered in a single
@@ -398,6 +440,7 @@ extends SQLitePortal
 		/**
 		 * Constructs the instance and binds it back to a {@link SQLiteHouse}.
 		 * @param dbh the helper instance
+		 * @see SQLiteHouse#getQueryContext()
 		 */
 		public QueryContext( DBH dbh )
 		{ this.house = dbh ; }
@@ -522,6 +565,7 @@ extends SQLitePortal
 
 /// Static Constants ///////////////////////////////////////////////////////////
 
+	/** The tag used by logging statements in this class. */
 	public static final String LOG_TAG = SQLiteHouse.class.getSimpleName() ;
 
 	/**
@@ -542,17 +586,20 @@ extends SQLitePortal
 
 	/**
 	 * A list of classes that, in aggregate, define the schema for the database.
+	 * @see #setSchemaClasses(List)
 	 */
 	protected List<Class<? extends SQLightable>> m_aclsSchema = null ;
 
 	/**
 	 * A map of schema classes to lists of their fields.
+	 * @see #processFieldsOfClasses()
 	 */
 	protected Map<Class<? extends SQLightable>,List<Field>> m_mapFields = null ;
 
 	/**
 	 * A map of schema classes to the columns that are annotated as primary
 	 * keys, using the {@link SQLitePrimaryKey} annotation.
+	 * @see #processFieldsOfClasses()
 	 */
 	protected Map<Class<? extends SQLightable>,Field> m_mapKeys = null ;
 
@@ -766,7 +813,7 @@ extends SQLitePortal
 	 * the table class itself, and its {@link SQLiteTable} annotation (if any).
 	 *
 	 * <p>Consumed by {@link #onCreate} and {@link #onUpgrade}. Consumes
-	 * {@link #getTableName} and {@link #getColumnDefinitionClause}.</p>
+	 * {@link #getColumnDefinitionClause}.</p>
 	 *
 	 * @param qctx the context of the creation query
 	 * @return an SQL statement which will create the SQLite table based on the
@@ -804,7 +851,7 @@ extends SQLitePortal
 	 * the table class itself, its annotation, a field within that table, and
 	 * its column annotation.
 	 *
-	 * <p>Consumed by {@link #onUpgrade}. Consumes {@link #getTableName} and
+	 * <p>Consumed by {@link #onUpgrade}. Consumes
 	 * {@link #getColumnDefinitionClause}.</p>
 	 *
 	 * @param qctx the context of the alteration query
@@ -1038,6 +1085,21 @@ extends SQLitePortal
 
 /// Other Instance Methods /////////////////////////////////////////////////////
 
+	/**
+	 * Reads a row of data from a cursor, and marshals it into a schematic class
+	 * instance corresponding to the table from which the row was fetched.
+	 *
+	 * <p>Consumed by {@link #search} and {@link #select}, and may also be
+	 * consumed externally by any class that receives a cursor over results from
+	 * a {@code SELECT} query.</p>
+	 *
+	 * @param qctx the context of the selection query
+	 * @param crs the cursor currently pointing to a data row
+	 * @param <T> the schematic class
+	 * @return an instance of the class, containing the cursor's current row
+	 * @throws SchematicException if the data class instance cannot be
+	 *  constructed for some reason
+	 */
 	public <T extends SQLightable> T fromCursor(
 			QueryContext<DSC> qctx, Cursor crs )
 	throws SchematicException
@@ -1121,7 +1183,7 @@ extends SQLitePortal
 	 * database columns, and returns a {@link ContentValues} instance containing
 	 * those values.
 	 *
-	 * <p>Consumed by {@link #insert}.</p>
+	 * <p>Consumed by {@link #insert} and {@link #update}.</p>
 	 *
 	 * @param o the object to be processed.
 	 * @return the values that would be stored in the database

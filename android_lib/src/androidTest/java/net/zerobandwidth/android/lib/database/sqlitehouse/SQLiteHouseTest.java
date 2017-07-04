@@ -1,5 +1,6 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -554,6 +555,7 @@ public class SQLiteHouseTest
 	/**
 	 * Exercises {@link SQLiteHouse#selectFrom(Class)}.
 	 */
+	@SuppressLint("DefaultLocale")
 	@Test
 	public void testSelectFrom()
 	throws Exception // Any uncaught exception is a failure.

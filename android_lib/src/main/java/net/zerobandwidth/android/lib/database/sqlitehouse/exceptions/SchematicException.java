@@ -7,6 +7,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.exceptions;
  * in some schematic class.
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
+@SuppressWarnings("unused") // This is a library.
 public class SchematicException
 extends RuntimeException
 {

@@ -4,9 +4,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
-import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
-
-import java.lang.reflect.Field;
 
 /**
  * Marshals strings.
