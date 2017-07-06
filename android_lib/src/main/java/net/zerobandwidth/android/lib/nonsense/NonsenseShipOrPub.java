@@ -41,7 +41,9 @@ implements NonsenseGenerator
 
 	/**
 	 * By default, this class will always begin the name with a "The". Use the
-	 *
+	 * {@link #setArticleChance(int)} method to alter the instance's chance at
+	 * runtime.
+	 * @see #m_nArticleChance
 	 */
 	protected static final int DEFAULT_ARTICLE_CHANCE = 100 ;
 
@@ -52,6 +54,7 @@ implements NonsenseGenerator
 	 * The percent chance that the builder will begin the random name with
 	 * "The". By default, this chance is 100%; consumers may change this by
 	 * calling {@link #setArticleChance(int)}.
+	 * @see #DEFAULT_ARTICLE_CHANCE
 	 */
 	protected int m_nArticleChance = DEFAULT_ARTICLE_CHANCE ;
 
