@@ -129,6 +129,8 @@ public class TitleFormatter
 				c = Character.toUpperCase(c) ;
 			else if( i == 3 && sNormal.startsWith( "o'" ) )
 				c = Character.toUpperCase(c) ;
+			else if( i > 1 && sNormal.charAt(i-1) == '-' )
+				c = Character.toUpperCase(c) ;
 			acReturn[i] = c ;
 		}
 		return new String(acReturn) ;

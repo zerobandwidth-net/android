@@ -23,26 +23,28 @@ public class TitleFormatterTest
 		Context ctx = InstrumentationRegistry.getContext() ;
 		TitleFormatter.EnglishLocaleContext lctx =
 				new TitleFormatter.EnglishLocaleContext( ctx ) ;
-		assertEquals( "Fargle",
-				TitleFormatter.resolveEnglishToken( lctx, "fargle", false ) ) ;
-		assertEquals( "Fargle",
-				TitleFormatter.resolveEnglishToken( lctx, "FARGLE", false ) ) ;
-		assertEquals( "To",
-				TitleFormatter.resolveEnglishToken( lctx, "to", true ) ) ;
-		assertEquals( "to",
-				TitleFormatter.resolveEnglishToken( lctx, "to", false ) ) ;
-		assertEquals( "to",
-				TitleFormatter.resolveEnglishToken( lctx, "TO", false ) ) ;
-		assertEquals( "Before",
-				TitleFormatter.resolveEnglishToken( lctx, "before", false ) ) ;
-		assertEquals( "Before",
-				TitleFormatter.resolveEnglishToken( lctx, "BEFORE", false ) ) ;
-		assertEquals( "The",
-				TitleFormatter.resolveEnglishToken( lctx, "the", true ) ) ;
-		assertEquals( "the",
-				TitleFormatter.resolveEnglishToken( lctx, "the", false ) ) ;
-		assertEquals( "the",
-				TitleFormatter.resolveEnglishToken( lctx, "THE", false ) ) ;
+		assertEquals( "Fargle", TitleFormatter
+				.resolveEnglishToken( lctx, "fargle", false ) ) ;
+		assertEquals( "Fargle", TitleFormatter
+				.resolveEnglishToken( lctx, "FARGLE", false ) ) ;
+		assertEquals( "To", TitleFormatter
+				.resolveEnglishToken( lctx, "to", true ) ) ;
+		assertEquals( "to", TitleFormatter
+				.resolveEnglishToken( lctx, "to", false ) ) ;
+		assertEquals( "to", TitleFormatter
+				.resolveEnglishToken( lctx, "TO", false ) ) ;
+		assertEquals( "Before", TitleFormatter
+				.resolveEnglishToken( lctx, "before", false ) ) ;
+		assertEquals( "Before", TitleFormatter
+				.resolveEnglishToken( lctx, "BEFORE", false ) ) ;
+		assertEquals( "The", TitleFormatter
+				.resolveEnglishToken( lctx, "the", true ) ) ;
+		assertEquals( "the", TitleFormatter
+				.resolveEnglishToken( lctx, "the", false ) ) ;
+		assertEquals( "the", TitleFormatter
+				.resolveEnglishToken( lctx, "THE", false ) ) ;
+		assertEquals( "Little-Endian", TitleFormatter
+				.resolveEnglishToken( lctx, "little-endian", false ) ) ;
 	}
 
 	/** Exercises {@link TitleFormatter#formatEnglishTitle}. */
