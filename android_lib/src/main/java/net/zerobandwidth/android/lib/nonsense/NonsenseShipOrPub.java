@@ -3,9 +3,9 @@ package net.zerobandwidth.android.lib.nonsense;
 import android.content.Context;
 
 import net.zerobandwidth.android.lib.R;
+import net.zerobandwidth.android.lib.text.format.TitleFormatter;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Random;
 
 /**
@@ -154,18 +154,19 @@ implements NonsenseGenerator
 	 * Generates the name.
 	 * @return the name of a ship, or a pub, or whatever
 	 */
+	@SuppressWarnings("StringBufferReplaceableByString")
 	@Override
 	public String getString()
 	{
 		StringBuilder sb = new StringBuilder() ;
 
 		sb.append( this.getArticle() )
-		  .append( this.getRandomNonsense( m_asAdjectives ) )
+		  .append( m_asAdjectives[ RANDOM.nextInt( m_asAdjectives.length ) ] )
 		  .append( " " )
-		  .append( this.getRandomNonsense( m_asNouns ) )
+		  .append( this.getStrippedNoun() )
 		  ;
 
-		return sb.toString() ;
+		return TitleFormatter.format( m_ctx, sb.toString() ) ;
 	}
 
 	/**
@@ -181,18 +182,17 @@ implements NonsenseGenerator
 		return "The " ;
 	}
 
-	protected String getRandomNonsense( String[] asNonsense )
+	/**
+	 * Ensures that we strip any article that was already included with the
+	 * noun resource.
+	 * @return the naked noun
+	 */
+	protected String getStrippedNoun()
 	{
-		String sNonsense = asNonsense[ RANDOM.nextInt( asNonsense.length ) ] ;
-		String[] asTokens = sNonsense.split( "\\w" ) ;
-		StringBuilder sb = new StringBuilder() ;
-		for( String sToken : asTokens )
-		{
-			if( sb.length() > 0 ) sb.append( " " ) ;
-
-		}
-		return sb.toString() ;
+		String sNoun = m_asNouns[ RANDOM.nextInt( m_asNouns.length ) ] ;
+		if( Utils.startsWithArticle(sNoun) )
+			return (sNoun.split( " ", 2 ))[1] ;
+		else
+			return sNoun ;
 	}
-
-
 }
