@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="asEnglishArticles">
+        <item>a</item>
+        <item>an</item>
+        <item>the</item>
+    </string-array>
+
+    <!-- https://en.wikipedia.org/wiki/List_of_English_prepositions -->
+    <string-array name="asEnglishPrepositions">
+        <item>aboard</item>
+        <item>about</item>
+        <item>above</item>
+        <item>across</item>
+        <item>after</item>
+        <item>against</item>
+        <item>along</item>
+        <item>alongside</item>
+        <item>amid</item>
+        <item>among</item>
+        <item>around</item>
+        <item>as</item>
+        <item>astride</item>
+        <item>at</item>
+        <item>atop</item>
+        <item>before</item>
+        <item>behind</item>
+        <item>below</item>
+        <item>beneath</item>
+        <item>beside</item>
+        <item>between</item>
+        <item>beyond</item>
+        <item>but</item>
+        <item>by</item>
+        <item>circa</item>
+        <item>despite</item>
+        <item>during</item>
+        <item>except</item>
+        <item>for</item>
+        <item>from</item>
+        <item>in</item>
+        <item>inside</item>
+        <item>into</item>
+        <item>near</item>
+        <item>notwithstanding</item>
+        <item>of</item>
+        <item>off</item>
+        <item>on</item>
+        <item>onto</item>
+        <item>out</item>
+        <item>outside</item>
+        <item>over</item>
+        <item>per</item>
+        <item>since</item>
+        <item>than</item>
+        <item>through</item>
+        <item>throughout</item>
+        <item>to</item>
+        <item>toward</item>
+        <item>towards</item>
+        <item>under</item>
+        <item>underneath</item>
+        <item>until</item>
+        <item>up</item>
+        <item>upon</item>
+        <item>upside</item>
+        <item>versus</item>
+        <item>vs.</item>
+        <item>via</item>
+        <item>with</item>
+        <item>within</item>
+        <item>without</item>
+    </string-array>
+
+</resources>
