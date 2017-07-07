@@ -202,7 +202,7 @@ import java.util.Map;
  *     bob.setAddress( "115 Federal Street, Pittsburgh, PA 15212" ) ;
  *     int nUpdated = dbh.update( bob ) ;                       // nUpdated == 1
  *     Person also_bob = dbh.select( idBob ) ;
- *     String sBobAddress = also_bob.getAddress() )     // 115 Federal Street...
+ *     String sBobAddress = also_bob.getAddress() ;     // 115 Federal Street...
  *
  *     int nDeleted = dbh.delete( alice ) ;                     // nDeleted == 1
  *     nDeleted = dbh.delete( alice ) ;                         // nDeleted == 0
@@ -260,14 +260,51 @@ extends SQLitePortal
 		public static SQLiteHouse.Factory init()
 		{ return new SQLiteHouse.Factory() ; }
 
+		/** The context in which the {@code SQLiteHouse} will operate. */
 		protected Context m_ctx = null ;
 
+		/**
+		 * The name of the database to be created. The factory will glean this
+		 * from the {@link SQLiteDatabaseSpec} annotation of the class that is
+		 * passed into the {@link #getInstance} method.
+		 *
+		 * The {@link SQLiteHouse#SQLiteHouse(Factory)} constructor retrieves
+		 * this value from the factory to pass it to the parent class's
+		 * constructor, {@link SQLitePortal#SQLitePortal}.
+		 */
 		protected String m_sDatabaseName = null ;
 
+		/**
+		 * The cursor factory to be used with the {@link SQLiteHouse} instance,
+		 * if any. This is passed as an argument to {@link #getInstance}.
+		 *
+		 * The {@link SQLiteHouse#SQLiteHouse(Factory)} constructor retrieves
+		 * this value from the factory to pass it to the parent class's
+		 * constructor, {@link SQLitePortal#SQLitePortal}.
+		 */
 		protected SQLiteDatabase.CursorFactory m_cf = null ;
 
+		/**
+		 * The current schema version of the databsae. The factory will glean
+		 * this from the {@link SQLiteDatabaseSpec} annotation of the class that
+		 * is passed into the {@link #getInstance} method.
+		 *
+		 * The {@link SQLiteHouse#SQLiteHouse(Factory)} constructor retrieves
+		 * this value from the factory to pass it to the parent class's
+		 * constructor, {@link SQLitePortal#SQLitePortal}.
+		 */
 		protected int m_nSchemaVersion = SCHEMA_NOT_DEFINED ;
 
+		/**
+		 * The array of classes which, in aggregate, define the schema for the
+		 * database. The factory will glean this list from the
+		 * {@link SQLiteDatabaseSpec} annotation of the class that is passed to
+		 * the {@link #getInstance} method.
+		 *
+		 * The {@link SQLiteHouse#SQLiteHouse(Factory)} constructor uses this
+		 * list to construct the schema; see
+		 * {@link SQLiteHouse#setSchemaClasses(List)}.
+		 */
 		protected ArrayList<Class<? extends SQLightable>> m_aclsSchema = null ;
 
 		/**
@@ -410,8 +447,8 @@ extends SQLitePortal
 	 * A short-lived, open data structure which provides context for various
 	 * operations within the class. Because so many of the values fetched here
 	 * must be reused multiple times within the body of certain larger
-	 * functions, it is useful to have all of these fields gathered in a single
-	 * contextual container.
+	 * functions, or must be passed <i>between</i> functions, it is useful to
+	 * have all of these fields gathered in a single contextual container.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
 	public static class QueryContext<DBH extends SQLiteHouse>

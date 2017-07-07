@@ -10,10 +10,6 @@ import java.lang.annotation.Target;
  * Correlates a member field with a corresponding column in an SQLite database
  * table.
  *
- * <p>The discovery algorithm will use the default value supplied in the member
- * field declaration to determine a {@code DEFAULT} value for the database
- * column schema.</p>
- *
  * <p>See {@link net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse}
  * for details of how this fits into the overall framework.</p>
  *
@@ -56,6 +52,13 @@ public @interface SQLiteColumn
 	/**
 	 * Specifies the <b>string</b> which would be used in a SQLite
 	 * {@code CREATE TABLE} statement to define the field's default value.
+	 *
+	 * <p><b>Field Declaration:</b> Unfortunately it is not possible to
+	 * introspectively use the default value that is declared for the field in
+	 * the class itself. However, since we specify the default in this
+	 * annotation, we also allow the consumer to intentionally define something
+	 * different from the field's declared default. Whether this freedom is of
+	 * any interesting use is left as an exercise for the reader.</p>
 	 *
 	 * <p><b>String Enclosure:</b> If the field decorated by this annotation is
 	 * a string type, then {@code SQLiteHouse} will automatically surround the

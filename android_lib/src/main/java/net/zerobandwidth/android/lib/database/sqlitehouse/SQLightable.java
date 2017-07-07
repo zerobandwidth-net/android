@@ -6,7 +6,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse;
  * by a {@link net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable}
  * annotation which defines the attributes of that table. Implementation classes
  * <b>must</b> also define a zero-argument constructor in order to be usable by
- * {@link SQLiteHouse#search}.
+ * {@link SQLiteHouse#search} or {@link SQLiteHouse#select}.
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 public interface SQLightable
