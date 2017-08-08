@@ -1,5 +1,8 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.annotations;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.NullRefractor;
+import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -95,4 +98,16 @@ public @interface SQLiteColumn
 	 * @return the first database schema version that includes this column
 	 */
 	int since() default 1 ;
+
+	/**
+	 * Optionally specifies a custom {@link Refractor} implementation to be used
+	 * to marshal this column to/from the database. This defaults to the
+	 * stand-in {@link NullRefractor} class, which will behave as if "null"
+	 * were specified here (but we can't, because annotations don't let you do
+	 * that).
+	 * @return the custom refractor implementation to be used for this column
+	 * @since zerobandwidth-net/android 0.1.5 (#41)
+	 */
+	Class<? extends Refractor> refractor() default NullRefractor.class ;
+
 }

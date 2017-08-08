@@ -1,5 +1,7 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
+
 /**
  * Designates a class as a data container which can be used in a database
  * defined and managed by {@link SQLiteHouse}. This class must also be decorated

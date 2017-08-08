@@ -18,6 +18,7 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrim
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.NullRefractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.RefractorMap;
 
@@ -1196,6 +1197,11 @@ extends SQLitePortal
 
 	/**
 	 * Discovers the type of refractor needed to marshal the specified field.
+	 *
+	 * Since 0.1.5 (#41), the method will try to discover whether there is a
+	 * usable custom implementation specified in the column annotation, and
+	 * return that if such a specification exists.
+	 *
 	 * @param fld a field in a schematic class
 	 * @return the refractor which would marshal that class
 	 * @throws IntrospectionException if no refractor can be discovered
@@ -1203,6 +1209,22 @@ extends SQLitePortal
 	public Refractor<?> getRefractorForField( Field fld )
 	throws IntrospectionException
 	{
+		SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
+		Class<? extends Refractor> clsLens = antCol.refractor() ;
+		if( clsLens != NullRefractor.class ) try
+		{ // The field explicitly defines a custom refractor. Use it.
+			return clsLens.newInstance() ;
+		}
+		catch( Exception x )
+		{
+			Log.w( LOG_TAG, (new StringBuilder())
+					.append( "Cannot instantiate custom refractor class [" )
+					.append( clsLens.getCanonicalName() )
+					.append( "]." )
+					.toString(),
+				x ) ;
+		}
+
 		try { return m_mapRefractor.get( fld.getType() ).newInstance() ; }
 		catch( Exception x )
 		{
