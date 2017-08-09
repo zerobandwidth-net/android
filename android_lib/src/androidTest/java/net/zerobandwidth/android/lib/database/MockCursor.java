@@ -12,8 +12,6 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  * Mocks an actual database cursor. The {@link #m_aValues} element holds an
@@ -21,6 +19,7 @@ import java.util.Set;
  *
  * @since zerobandwidth-net/android 0.1.5 (#42)
  */
+@SuppressWarnings("unused")
 public class MockCursor
 implements Cursor
 {
