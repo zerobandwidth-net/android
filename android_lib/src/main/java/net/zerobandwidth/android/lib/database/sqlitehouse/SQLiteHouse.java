@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
@@ -502,7 +503,7 @@ extends SQLitePortal
 		}
 
 		/**
-		 * Loads contextual informaiton pertaining to a column of the table
+		 * Loads contextual information pertaining to a column of the table
 		 * already set by {@link #loadTableDef}. This operation will clear the
 		 * value of any previously-analyzed column.
 		 * @param fld the field to be set for context
@@ -522,6 +523,40 @@ extends SQLitePortal
 			this.sColumnSQLValue = null ;
 
 			return this ;
+		}
+
+		/**
+		 * Loads contextual information pertaining to a column of the table set
+		 * by {@link #loadTableDef}, by searching for that column by its name.
+		 * This operation will clear the value of any previously-analyzed
+		 * column.
+		 * @param sSoughtName the name of the column to be set for context
+		 * @return (fluid)
+		 */
+		public QueryContext<DBH> loadColumnDef( String sSoughtName )
+		{
+			if( this.clsTable == null )
+				throw new IllegalStateException( "No table loaded." ) ;
+			if( TextUtils.isEmpty(sSoughtName) )
+				return this.clearColumnDef() ;
+			//noinspection unchecked -- Multiple layers of generics confuse Java
+			List<Field> afld = ((List<Field>)
+					(this.house.m_mapFields.get( this.clsTable ))) ;
+			for( Field fld : afld )
+			{
+				SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
+				if( antCol.name().equals(sSoughtName) )
+					return this.loadColumnDef(fld) ;
+			}
+			Log.w( LOG_TAG, (new StringBuilder())
+					.append( "No column found with name [" )
+					.append( sSoughtName )
+					.append( "] in table [" )
+					.append( this.sTableName )
+					.append( "]; CLEARING loaded column data." )
+					.toString()
+				);
+			return this.clearColumnDef() ;
 		}
 
 		/**
@@ -960,16 +995,37 @@ extends SQLitePortal
 
 	/**
 	 * Inserts an object of a known schematic class into the database.
+	 *
+	 * Since v0.1.5 (#43), the method also tries to write the auto-incremented
+	 * row ID back into the object instance, if that class has a field annotated
+	 * to contain that column.
+	 *
 	 * @param o the object to be inserted
 	 * @return the row ID of the inserted record
 	 */
 	public long insert( SQLightable o )
 	{
-		return QueryBuilder.insertInto( m_db,
-							getTableName( o.getClass(), null ) )
-				.setValues( this.toContentValues(o) )
+		QueryContext<DSC> qctx = this.getQueryContext( o.getClass() ) ;
+		qctx.loadColumnDef( MAGIC_ID_COLUMN_NAME ) ;
+		ContentValues vals = this.toContentValues(o) ;
+		// Don't allow the passed object to dictate the auto-inc ID.
+		if( qctx.fldColumn != null )
+			vals.remove(MAGIC_ID_COLUMN_NAME) ;
+
+		long nID = QueryBuilder
+				.insertInto( m_db, getTableName( o.getClass(), null ) )
+				.setValues( vals )
 				.execute()
 				;
+
+		if( qctx.fldColumn != null )
+		{ // Try to write the ID back into the instance.
+			try { qctx.fldColumn.setLong( o, nID ) ; }
+			catch( IllegalAccessException xAccess )
+			{ Log.w( LOG_TAG, "Couldn't rewrite row ID into object." ) ; }
+		}
+
+		return nID ;
 	}
 
 	/**
@@ -1041,6 +1097,44 @@ extends SQLitePortal
 					.execute()
 			;
 			if( ! crs.moveToFirst() ) return null ; // No such object found.
+			return this.fromCursor( qctx, crs ) ;
+		}
+		finally
+		{ closeCursor(crs) ; }
+	}
+
+	/**
+	 * Searches the database for a row of the table represented by the supplied
+	 * schematic class, such that the primary key column value matches the value
+	 * supplied in the method call.
+	 * @param cls the schematic class being sought
+	 * @param sID the unique identifier of the row, which <i>must</i> be a
+	 *            string in this flavor of the method
+	 * @param <ROW> the schematic class being sought
+	 * @return a new instance of the schematic class, populated with values from
+	 *  a row of the database
+	 * @throws SchematicException if anything goes wrong along the way
+	 * @since zerobandwidth-net/android 0.1.5
+	 */
+	public <ROW extends SQLightable> ROW search( Class<ROW> cls, String sID )
+	throws SchematicException
+	{
+		QueryContext<DSC> qctx = this.getQueryContext(cls) ;
+		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
+		if( qctx.fldColumn == null )
+		{
+			throw new SchematicException(
+					"Can't use search(Class,String) without a key column." ) ;
+		}
+		Cursor crs = null ;
+		try
+		{
+			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
+					.where( String.format( "%s='%s'",
+							qctx.sColumnName, sID ) )
+					.execute()
+					;
+			if( ! crs.moveToFirst() ) return null ;     // No such object found.
 			return this.fromCursor( qctx, crs ) ;
 		}
 		finally
@@ -1176,6 +1270,70 @@ extends SQLitePortal
 		}
 
 		return oResult ;
+	}
+
+	/**
+	 * As {@link #fromCursor(QueryContext,Cursor)}, but by explicitly specifying
+	 * the class of object expected from the cursor, the return value is usable
+	 * directly by functions that expect the specific schematic class type.
+	 * @param qctx the context of the selection query
+	 * @param crs the cursor currently pointing at a data row
+	 * @param cls the schematic class
+	 * @param <T> the schematic class
+	 * @return an instance of the class, containing the cursor's current row
+	 * @throws SchematicException if the data class instance cannot be
+	 *  constructed for some reason
+	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 */
+	public <T extends SQLightable> T fromCursor(
+			QueryContext<DSC> qctx, Cursor crs, Class<T> cls )
+	throws SchematicException
+	{ return this.fromCursor(qctx,crs) ; }
+
+	/**
+	 * Given a result set loaded into a {@link Cursor}, iterate over that cursor
+	 * to produce a list of schematic class instances containing the rows in the
+	 * result set.
+	 * @param qctx the context of the selection query
+	 * @param crs the cursor containing a result set
+	 * @param cls the schematic class which could contain each row
+	 * @param <T> the schematic class which could contain each row
+	 * @return a list of schematic class instances, containing the rows of the
+	 *  result set
+	 * @throws SchematicException if any instance cannot be instantiated
+	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 */
+	public <T extends SQLightable> List<T> processResultSet(
+			QueryContext<DSC> qctx, Cursor crs, Class<T> cls )
+	throws SchematicException
+	{
+		List<T> aResults = new ArrayList<>() ;
+		if( crs.moveToFirst() )
+		{ // Process each element in turn, marshalling it into the list.
+			do aResults.add( this.fromCursor( qctx, crs, cls ) ) ;
+			while( crs.moveToNext() ) ;
+		}
+		return aResults ;
+	}
+
+	/**
+	 * Given a result set loaded into a {@link Cursor}, iterate over that cursor
+	 * to produce a list of schematic class instances containing the rows in the
+	 * result set.
+	 * @param cls the schematic class which could contain each row
+	 * @param crs the cursor containing the result set
+	 * @param <T> the schematic class which could contain each row
+	 * @return a list of schematic class instances, containing the rows of the
+	 *  result set
+	 * @throws SchematicException if any instance cannot be instantiated
+	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 */
+	public <T extends SQLightable> List<T> processResultSet(
+			Class<T> cls, Cursor crs )
+	throws SchematicException
+	{
+		QueryContext<DSC> qctx = this.getQueryContext(cls) ;
+		return this.processResultSet( qctx, crs, cls ) ;
 	}
 
 	/**
