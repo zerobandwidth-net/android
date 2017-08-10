@@ -27,9 +27,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 import static junit.framework.Assert.assertEquals;
@@ -204,14 +206,15 @@ public class SQLiteHouseTest
 
 		// Test discovery in Dargle class.
 		List<Field> afldDargle = dbh.m_mapFields.get( Dargle.class ) ;
-		assertEquals( 2, afldDargle.size() ) ;
+		assertEquals( 3, afldDargle.size() ) ;
 		for( Field fld : afldDargle )
 		{ // Verify that only annotated fields were discovered.
 			SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
 			assertNotNull(antCol) ;
 		}
-		assertEquals( "m_sString", afldDargle.get(0).getName() ) ;
-		assertEquals( "m_bBoolean", afldDargle.get(1).getName() ) ;
+		assertEquals( "m_nRowID", afldDargle.get(0).getName() ) ;       // (#43)
+		assertEquals( "m_sString", afldDargle.get(1).getName() ) ;
+		assertEquals( "m_bBoolean", afldDargle.get(2).getName() ) ;
 		assertEquals( "m_sString", dbh.m_mapKeys.get(Dargle.class).getName() ) ;
 
 		// Test discovery in Blargh class.
@@ -404,6 +407,32 @@ public class SQLiteHouseTest
 	}
 
 	/**
+	 * Exercises {@link SQLiteHouse#insert}, specifically examining whether the
+	 * automatic rewrite of the auto-incremented row ID works properly.
+	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 */
+	@Test
+	public void testInsertionWithIDRewrite()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		try
+		{
+			connectTo(dbh) ;
+			Dargle dargleOne = new Dargle( "one", false, 1 ) ;
+			long nOne = dbh.insert(dargleOne) ;
+			assertEquals( nOne, dargleOne.getRowID() ) ;
+			Dargle dargleTwo = new Dargle( "two", true, 2 ) ;
+			long nTwo = dbh.insert(dargleTwo) ;
+			assertEquals( nTwo, dargleTwo.getRowID() ) ;
+		}
+		finally
+		{ dbh.close() ; }
+	}
+
+	/**
 	 * Exercises {@link SQLiteHouse#update(SQLightable)}.
 	 */
 	@Test
@@ -529,6 +558,33 @@ public class SQLiteHouseTest
 	}
 
 	/**
+	 * Exercises {@link SQLiteHouse#search(Class,String)}.
+	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 */
+	@Test
+	public void testSearchByStringID()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		try
+		{
+			connectTo(dbh) ;
+			Dargle dargleOne = new Dargle( "dargle_one", true, 1 ) ;
+			dbh.insert(dargleOne) ;
+			Dargle dargleTwo = new Dargle( "dargle_two", false, 2 ) ;
+			dbh.insert(dargleTwo) ;
+			Dargle dargleResult = dbh.search( Dargle.class, "dargle_one" ) ;
+			assertTrue( dargleResult.isDargly() ) ;         // matches dargleOne
+			dargleResult = dbh.search( Dargle.class, "dargle_two" ) ;
+			assertFalse( dargleResult.isDargly() ) ;        // matches dargleTwo
+		}
+		finally
+		{ dbh.close() ; }
+	}
+
+	/**
 	 * Exercises {@link SQLiteHouse#select(Class,long)}.
 	 */
 	@Test
@@ -604,6 +660,53 @@ public class SQLiteHouseTest
 		}
 		finally
 		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#processResultSet(Class, Cursor)}, which in
+	 * turn exercises
+	 * {@link SQLiteHouse#processResultSet(SQLiteHouse.QueryContext, Cursor, Class)}.
+	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 */
+	@Test
+	public void testProcessResultSet()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		final int ITERATIONS = 10 ;                            // Tune to taste.
+		final Random RNG = new Random() ;
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		SQLiteHouse.QueryContext<ValidSpecClass> qctx =
+				dbh.getQueryContext( Fargle.class ) ;
+		Cursor crs = null ;
+		List<Fargle> aInputs = new ArrayList<>() ;
+		List<Fargle> aResults = null ;
+		try
+		{
+			connectTo(dbh) ;
+			for( int i = 0 ; i < ITERATIONS ; i++ )
+			{ // Seed the DB with a bunch of randomized data.
+				Fargle fargle = new Fargle(
+						RNG.nextInt(Integer.MAX_VALUE),
+						UUID.randomUUID().toString(),
+						RNG.nextInt(Integer.MAX_VALUE)
+					);
+				aInputs.add(fargle) ;
+				dbh.insert(fargle) ;
+			}
+			crs = dbh.selectFrom( Fargle.class )
+					.orderBy( SQLiteHouse.MAGIC_ID_COLUMN_NAME )
+					.execute()
+					;
+			aResults = dbh.processResultSet( Fargle.class, crs ) ;
+		}
+		finally
+		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }
+		assertNotNull(aResults) ;
+		assertEquals( aInputs.size(), aResults.size() ) ;
+		for( int i = 0 ; i < aInputs.size() ; i++ )
+			assertTrue( aInputs.get(i).equals( aResults.get(i) ) ) ;
 	}
 
 	/**

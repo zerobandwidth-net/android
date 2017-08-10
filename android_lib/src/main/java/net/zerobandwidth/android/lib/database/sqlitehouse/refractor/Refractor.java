@@ -11,9 +11,10 @@ import java.lang.reflect.Field;
  * Defines how data is moved between a Java data type and its corresponding
  * SQLite data type.
  *
- * This library defines several default Fresnelators, some of which are simple,
+ * This library defines several default refractors, some of which are simple,
  * and others of which exhibit varying degrees of magic hackery. Apps may also
- * define their own custom Fresnel implementations and register them in their
+ * define their own custom {@code Refractor} implementations and register them
+ * in their
  * {@link net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse}
  * descendants, after initialization but before opening a connection.
  *
@@ -21,12 +22,16 @@ import java.lang.reflect.Field;
  * implementation classes metaphorically define the rings of a Fresnel lens
  * through which the data is refracted.
  *
+ * @see Lens
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
 public interface Refractor<T>
 {
+	/** The data type token representing integer columns in SQLite. */
 	String SQLITE_TYPE_INT = "INTEGER" ;
+	/** The data type token representing decimal-numeric columns in SQLite. */
 	String SQLITE_TYPE_REAL = "REAL" ;
+	/** The data type token representing text columns in SQLite. */
 	String SQLITE_TYPE_TEXT = "TEXT" ;
 
 	/**

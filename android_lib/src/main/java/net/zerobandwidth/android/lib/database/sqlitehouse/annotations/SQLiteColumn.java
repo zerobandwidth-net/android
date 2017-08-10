@@ -1,5 +1,8 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.annotations;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.NullRefractor;
+import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,10 +12,6 @@ import java.lang.annotation.Target;
 /**
  * Correlates a member field with a corresponding column in an SQLite database
  * table.
- *
- * <p>The discovery algorithm will use the default value supplied in the member
- * field declaration to determine a {@code DEFAULT} value for the database
- * column schema.</p>
  *
  * <p>See {@link net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse}
  * for details of how this fits into the overall framework.</p>
@@ -57,6 +56,13 @@ public @interface SQLiteColumn
 	 * Specifies the <b>string</b> which would be used in a SQLite
 	 * {@code CREATE TABLE} statement to define the field's default value.
 	 *
+	 * <p><b>Field Declaration:</b> Unfortunately it is not possible to
+	 * introspectively use the default value that is declared for the field in
+	 * the class itself. However, since we specify the default in this
+	 * annotation, we also allow the consumer to intentionally define something
+	 * different from the field's declared default. Whether this freedom is of
+	 * any interesting use is left as an exercise for the reader.</p>
+	 *
 	 * <p><b>String Enclosure:</b> If the field decorated by this annotation is
 	 * a string type, then {@code SQLiteHouse} will automatically surround the
 	 * value with quotes as appropriate. An explicit value of {@code "NULL"} for
@@ -92,4 +98,16 @@ public @interface SQLiteColumn
 	 * @return the first database schema version that includes this column
 	 */
 	int since() default 1 ;
+
+	/**
+	 * Optionally specifies a custom {@link Refractor} implementation to be used
+	 * to marshal this column to/from the database. This defaults to the
+	 * stand-in {@link NullRefractor} class, which will behave as if "null"
+	 * were specified here (but we can't, because annotations don't let you do
+	 * that).
+	 * @return the custom refractor implementation to be used for this column
+	 * @since zerobandwidth-net/android 0.1.5 (#41)
+	 */
+	Class<? extends Refractor> refractor() default NullRefractor.class ;
+
 }
