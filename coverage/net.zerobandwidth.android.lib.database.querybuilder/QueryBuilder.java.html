@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>QueryBuilder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.database.querybuilder</a> &gt; <span class="el_source">QueryBuilder.java</span></div><h1>QueryBuilder.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.database.querybuilder;
+
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+
+import net.zerobandwidth.android.lib.database.SQLitePortal;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Builds a SQLite query using methods, rather than the methods from the
+ * {@link SQLiteDatabase} methods that use long lists of parameters.
+ *
+ * &lt;p&gt;This class is supposed to do very little; the consumer should use the
+ * static methods {@link #insertInto}, {@link #update}, {@link #selectFrom}, and
+ * {@link #deleteFrom}) to spawn instances of the various implementation classes
+ * corresponding to database actions ({@code INSERT}, {@code UPDATE},
+ * {@code SELECT}, and {@code DELETE}).&lt;/p&gt;
+ *
+ * &lt;p&gt;In its initial implementation, the class provides methods to set an
+ * explicit format string and parameter list for the {@code WHERE} clause,
+ * similar to the syntax used by the various Android functions in
+ * {@link SQLiteDatabase}. In the future, the API of this class will be extended
+ * to provide a grammar for constructing the conditional statement through
+ * builder methods.&lt;/p&gt;
+ *
+ * &lt;p&gt;The class builds on the foundation of {@link SQLitePortal} and derives
+ * several of its static constants and design decisions from features of that
+ * class.&lt;/p&gt;
+ *
+ * @param &lt;I&gt; The implementation class which extends {@code QueryBuilder}. This
+ *           is set explicitly in the declaration of the implementation class,
+ *           and allows the superclass to provide concrete implementations of
+ *           shared methods.
+ * @param &lt;R&gt; The return type of the underlying {@code SQLiteDatabase} function.
+ *           This is set explicitly in the declaration of the implementation
+ *           class, and will be the return type of {@link #executeOn}.
+ *
+ * @since zerobandwidth-net/android 0.1.1 (#20)
+ */
+@SuppressWarnings( &quot;unused&quot; )                              // This is a library.
+public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
+{
+/// Inner Classes //////////////////////////////////////////////////////////////
+
+	/**
+	 * Informs a consumer that the builder's {@link #execute} method was invoked
+	 * while the builder was not bound to a target database instance. When
+	 * encountering this exception in code that consumes {@code QueryBuilder},
+	 * ensure that the code either uses one of the two-argument kickoff methods
+	 * that includes a database binding, or uses {@link #onDatabase} to
+	 * define a binding, or uses {@link #executeOn} instead of {@link #execute}.
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static class UnboundException
+	extends IllegalStateException
+	{
+		protected static final String DEFAULT_MESSAGE =
+			&quot;Caller tried to execute a query without a database reference.&quot; ;
+
+		public UnboundException()
+<span class="fc" id="L67">		{ super(DEFAULT_MESSAGE) ; }</span>
+
+		public UnboundException( String sMessage )
+<span class="nc" id="L70">		{ super(sMessage) ; }</span>
+
+		public UnboundException( Throwable xCause )
+<span class="nc" id="L73">		{ super( DEFAULT_MESSAGE, xCause ) ; }</span>
+
+		public UnboundException( String sMessage, Throwable xCause )
+<span class="nc" id="L76">		{ super( sMessage, xCause ) ; }</span>
+	}
+
+/// Static constants ///////////////////////////////////////////////////////////
+
+	/**
+	 * The character that stands in for a variable value in the Android format
+	 * string that is passed to {@link SQLiteDatabase} query methods.
+	 */
+	protected static final String ANDROID_VARIABLE_MARKER = &quot;?&quot; ;
+
+	/**
+	 * SQL keyword marking the beginning of a {@code WHERE} clause.
+	 * @see InsertionBuilder#toString()
+	 * @see UpdateBuilder#toString()
+	 * @see SelectionBuilder#toString()
+	 * @see DeletionBuilder#toString()
+	 */
+	protected static final String SQL_WHERE = &quot; WHERE &quot; ;
+
+	/**
+	 * If using integer columns to store Boolean values, where {@code 1} is true
+	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
+	 * value substitutions for &quot;true&quot;.
+	 * @see SQLitePortal#boolToInt(boolean)
+	 * @see SQLitePortal#intToBool(int)
+	 * @see SQLitePortal#WHERE_TRUE
+	 */
+	public static final String WHERE_TRUE = SQLitePortal.WHERE_TRUE ;
+
+	/**
+	 * If using integer columns to store Boolean values, where {@code 1} is true
+	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
+	 * value substitutions for &quot;false&quot;.
+	 * @see SQLitePortal#boolToInt(boolean)
+	 * @see SQLitePortal#intToBool(int)
+	 * @see SQLitePortal#WHERE_FALSE
+	 */
+	public static final String WHERE_FALSE = SQLitePortal.WHERE_FALSE ;
+
+/// Static kickoff methods (starts a query of a given type) ////////////////////
+
+	/**
+	 * Kicks off construction of an {@code INSERT} query.
+	 * @param sTableName the name of the table into which rows will be inserted
+	 * @return an instance of a builder that can handle insertion queries
+	 */
+	public static InsertionBuilder insertInto( String sTableName )
+<span class="fc" id="L124">	{ return new InsertionBuilder( sTableName ) ; }</span>
+
+	/**
+	 * Kicks off construction of an {@code INSERT} query, bound to a specific
+	 * database instance.
+	 * @param db the database on which the query should be executed
+	 * @param sTableName the name of the table into which rows will be inserted
+	 * @return an instance of a builder that can handle insertion queries
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static InsertionBuilder insertInto( SQLiteDatabase db, String sTableName )
+<span class="fc" id="L135">	{ return insertInto(sTableName).onDatabase(db) ; }</span>
+
+	/**
+	 * Kicks off construction of an {@code UPDATE} query.
+	 * @param sTableName the name of the table in which rows will be updated
+	 * @return an instance of a builder that can handle update queries
+	 */
+	public static UpdateBuilder update( String sTableName )
+<span class="fc" id="L143">	{ return new UpdateBuilder( sTableName ) ; }</span>
+
+	/**
+	 * Kicks off construction of an {@code UPDATE} query, bound to a specific
+	 * database instance.
+	 * @param db the database on which the query should be executed
+	 * @param sTableName the name of the table in which rows will be updated
+	 * @return an instance of a builder that can handle update queries
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static UpdateBuilder update( SQLiteDatabase db, String sTableName )
+<span class="fc" id="L154">	{ return update(sTableName).onDatabase(db) ; }</span>
+
+	/**
+	 * Kicks off construction of a {@code SELECT} query.
+	 * @param sTableName the name of the table from which rows will be selected
+	 * @return an instance of a builder that can handle selection queries
+	 */
+	public static SelectionBuilder selectFrom( String sTableName )
+<span class="fc" id="L162">	{ return new SelectionBuilder( sTableName ) ; }</span>
+
+	/**
+	 * Kicks off construction of a {@code SELECT} query, bound to a specific
+	 * database instance.
+	 * @param db the database on which the query should be executed
+	 * @param sTableName the name of the table from which rows will be selected
+	 * @return an instance of a builder that can handle selection queries
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static SelectionBuilder selectFrom( SQLiteDatabase db, String sTableName )
+<span class="fc" id="L173">	{ return selectFrom(sTableName).onDatabase(db) ; }</span>
+
+	/**
+	 * Kicks off construction of a {@code DELETE} query.
+	 * @param sTableName the name of the table from which rows will be deleted
+	 * @return an instance of a builder that can handle deletion queries
+	 */
+	public static DeletionBuilder deleteFrom( String sTableName )
+<span class="fc" id="L181">	{ return new DeletionBuilder( sTableName ) ; }</span>
+
+	/**
+	 * Kicks off construction of a {@code DELETE} query, bound to a specific
+	 * database instance.
+	 * @param db the databse on which the query should be executed
+	 * @param sTableName the name of the table from which rows will be deleted
+	 * @return an instance of a builder that can handle deletion queries
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public static DeletionBuilder deleteFrom( SQLiteDatabase db, String sTableName )
+<span class="fc" id="L192">	{ return deleteFrom(sTableName).onDatabase(db) ; }</span>
+
+/// Other static methods ///////////////////////////////////////////////////////
+
+	/**
+	 * Returns the number of milliseconds since epoch UTC. Use this value when
+	 * comparing to timestamps stored in the database as {@code long} integers.
+	 * @return milliseconds since epoch UTC
+	 * @see SQLitePortal#now()
+	 */
+	public long now()
+<span class="nc" id="L203">	{ return SQLitePortal.now() ; }</span>
+
+	/**
+	 * Renders the key/value pairs in a set of {@link ContentValues} as a list
+	 * of input parameters to an SQL {@code INSERT} or {@code UPDATE} query's
+	 * {@code SET} clause.
+	 *
+	 * So that the fields always appear in consistent order (rather than by hash
+	 * code), the method will sort lexically by key before rendering the output
+	 * string.
+	 *
+	 * @param vals the key/value pairs to be rendered
+	 * @return an SQL {@code SET} clause body
+	 */
+	public static String toSQLInputParams( ContentValues vals )
+	{
+<span class="fc" id="L219">		StringBuilder sb = new StringBuilder() ;</span>
+<span class="fc" id="L220">		List&lt;Map.Entry&lt;String,Object&gt;&gt; aEntries =</span>
+<span class="fc" id="L221">				new ArrayList&lt;&gt;( vals.valueSet() ) ;</span>
+<span class="fc" id="L222">		Collections.sort( aEntries, new Comparator&lt;Map.Entry&lt;String,Object&gt;&gt;()</span>
+<span class="fc" id="L223">		{</span>
+			@Override
+			public int compare( Map.Entry&lt;String,Object&gt; lhs, Map.Entry&lt;String,Object&gt; rhs )
+<span class="fc" id="L226">			{ return (lhs.getKey()).compareTo(rhs.getKey()) ; }</span>
+		});
+<span class="fc bfc" id="L228" title="All 2 branches covered.">		for( Map.Entry&lt;String,Object&gt; pair : aEntries )</span>
+		{
+<span class="fc bfc" id="L230" title="All 2 branches covered.">			if( sb.length() &gt; 0 ) sb.append( &quot;, &quot; ) ;</span>
+<span class="fc" id="L231">			sb.append( pair.getKey() ).append( &quot;=&quot; ) ;</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">			if( pair.getValue() instanceof Number )</span>
+<span class="fc" id="L233">				sb.append( pair.getValue() ) ;</span>
+			else
+<span class="fc" id="L235">				sb.append( &quot;'&quot; ).append( pair.getValue() ).append( &quot;'&quot; ) ;</span>
+<span class="fc" id="L236">		}</span>
+<span class="fc" id="L237">		return sb.toString() ;</span>
+	}
+
+/// Shared member fields ///////////////////////////////////////////////////////
+
+	/** The name of the table on which the query will operate. */
+<span class="fc" id="L243">	protected String m_sTableName = null ;</span>
+
+	/**
+	 * For {@code INSERT} and {@code DELETE} operations, these are the values to
+	 * be written.
+	 */
+<span class="fc" id="L249">	protected ContentValues m_valsToWrite = null ;</span>
+
+	/**
+	 * A substitute, explicit format string for a {@code WHERE} clause, for
+	 * which {@link #m_asExplicitWhereParams} provides the values.
+	 */
+<span class="fc" id="L255">	protected String m_sExplicitWhereFormat = null ;</span>
+
+	/**
+	 * A substitute, explicit list of parameters for the {@code WHERE} clause
+	 * format specified in {@link #m_sExplicitWhereFormat}.
+	 */
+<span class="fc" id="L261">	protected String[] m_asExplicitWhereParams = null ;</span>
+
+	/**
+	 * A persistent binding to a specific database, used by {@link #execute}.
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+<span class="fc" id="L267">	protected SQLiteDatabase m_dbTarget = null ;</span>
+
+/// Shared constructor /////////////////////////////////////////////////////////
+
+	/**
+	 * Superclass's constructor, which initializes the shared member fields.
+	 * @param sTableName the name of the table on which the query will be
+	 *                   performed
+	 */
+	public QueryBuilder( String sTableName )
+<span class="fc" id="L277">	{</span>
+<span class="fc" id="L278">		m_sTableName = sTableName ;</span>
+<span class="fc" id="L279">	}</span>
+
+/// Shared methods /////////////////////////////////////////////////////////////
+
+	/**
+	 * Binds the builder to a specific database instance, to be used by
+	 * {@link #execute}.
+	 * @param db the database instance on which the query should be executed
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	@SuppressWarnings( &quot;unchecked&quot; )
+	public I onDatabase( SQLiteDatabase db )
+<span class="fc" id="L292">	{ m_dbTarget = db ; return (I)this ; }</span>
+
+	/**
+	 * Sets the table name in which the query will be executed.
+	 * @param sTableName the name of the table
+	 * @return (fluid)
+	 */
+	@SuppressWarnings( &quot;unchecked&quot; )
+	protected I setTableName( String sTableName )
+<span class="nc" id="L301">	{ m_sTableName = sTableName ; return (I)this ; }</span>
+
+	/**
+	 * Sets values to be written as part of an {@code INSERT} or {@code UPDATE}
+	 * query.
+	 * @param vals the values to be written
+	 * @return (fluid)
+	 */
+	@SuppressWarnings( &quot;unchecked&quot; )
+	public I setValues( ContentValues vals )
+	{
+<span class="fc" id="L312">		m_valsToWrite = vals ;</span>
+<span class="fc" id="L313">		return (I)this ;</span>
+	}
+
+	/**
+	 * Constructs an explicit {@code WHERE} clause for the query.
+	 *
+	 * The supplied string is used as a format string for the {@code WHERE}
+	 * clause and should contain &lt;b&gt;no&lt;/b&gt; variable substitutions. The
+	 * collection of variable values will be set to {@code null} by this method,
+	 * based on this assumption.
+	 *
+	 * @param sWhereClause the explicit {@code WHERE} clause, containing
+	 *  &lt;b&gt;no&lt;/b&gt; variable substitution placeholders
+	 * @return (fluid)
+	 */
+	@SuppressWarnings( &quot;unchecked&quot; )
+	public I where( String sWhereClause )
+	{
+<span class="fc" id="L331">		m_sExplicitWhereFormat = sWhereClause ;</span>
+<span class="fc" id="L332">		m_asExplicitWhereParams = null ;</span>
+<span class="fc" id="L333">		return (I)this ;</span>
+	}
+
+	/**
+	 * Constructs an explicit {@code WHERE} clause for the query.
+	 * @param sWhereFormat the format string for the {@code WHERE} clause; uses
+	 *                     {@code ?} for parameter substitution
+	 * @param asWhereParams the parameters for the {@code WHERE} clause
+	 * @return (fluid)
+	 */
+	@SuppressWarnings( &quot;unchecked&quot; )
+	public I where( String sWhereFormat, String... asWhereParams )
+	{
+<span class="fc" id="L346">		m_sExplicitWhereFormat = sWhereFormat ;</span>
+<span class="fc" id="L347">		m_asExplicitWhereParams = asWhereParams ;</span>
+<span class="fc" id="L348">		return (I)this ;</span>
+	}
+
+	/**
+	 * Constructs an explicit {@code WHERE} clause for the query.
+	 * @param sWhereFormat the format string for the {@code WHERE} clause; uses
+	 *                     {@code ?} for parameter substitution
+	 * @param asWhereParams the parameters for the {@code WHERE} clause
+	 * @return (fluid)
+	 */
+	@SuppressWarnings( &quot;unchecked&quot; )
+	public I where( String sWhereFormat, Collection&lt;String&gt; asWhereParams )
+	{
+<span class="nc" id="L361">		m_sExplicitWhereFormat = sWhereFormat ;</span>
+<span class="nc" id="L362">		m_asExplicitWhereParams =</span>
+<span class="nc" id="L363">			asWhereParams.toArray( new String[asWhereParams.size()] ) ;</span>
+<span class="nc" id="L364">		return (I)this ;</span>
+	}
+
+	/**
+	 * Creates the Android {@code WHERE} clause template to be passed to a
+	 * {@link SQLiteDatabase} function.
+	 * @return the {@code WHERE} clause template
+	 */
+	protected String getWhereFormat()
+	{
+<span class="fc bfc" id="L374" title="All 2 branches covered.">		if( m_sExplicitWhereFormat != null )</span>
+<span class="fc" id="L375">			return m_sExplicitWhereFormat ;</span>
+
+<span class="fc" id="L377">		return null ;</span>
+	}
+
+	/**
+	 * Creates the array of {@code WHERE} clause value substitutions to be
+	 * passed to a {@link SQLiteDatabase} function.
+	 * @return the {@code WHERE} clause template parameters
+	 */
+	protected String[] getWhereParams()
+	{
+<span class="fc bfc" id="L387" title="All 2 branches covered.">		if( m_sExplicitWhereFormat != null )</span>
+<span class="fc" id="L388">			return m_asExplicitWhereParams ; // even if THEY are null</span>
+
+<span class="fc" id="L390">		return null ;</span>
+	}
+
+	/**
+	 * Creates a raw SQLite {@code WHERE} clause based on the format and params
+	 * created for the instance.
+	 * @return a raw {@code WHERE} clause
+	 */
+	protected String getWhereClause()
+	{
+<span class="pc bpc" id="L400" title="1 of 2 branches missed.">		if( m_sExplicitWhereFormat == null ) return null ;</span>
+<span class="fc bfc" id="L401" title="All 2 branches covered.">		if( ! m_sExplicitWhereFormat.contains( &quot;?&quot; ) )</span>
+<span class="fc" id="L402">			return m_sExplicitWhereFormat ;        // Contains no substitutions.</span>
+<span class="pc bpc" id="L403" title="2 of 4 branches missed.">		if( m_asExplicitWhereParams == null || m_asExplicitWhereParams.length == 0 )</span>
+<span class="nc" id="L404">			throw new IllegalStateException( &quot;Need parameters but don't have them&quot; ) ;</span>
+<span class="fc" id="L405">		String sFormat = m_sExplicitWhereFormat.replace( &quot;?&quot;, &quot;%s&quot; ) ;</span>
+<span class="fc" id="L406">		return String.format( sFormat, ((Object[])(m_asExplicitWhereParams)) ) ;</span>
+	}
+
+/// Abstract class specification ///////////////////////////////////////////////
+
+	/**
+	 * Executes the query that has been built by the implementation class.
+	 * @param db the database instance on which the query should be executed.
+	 * @return the usual return value of the underlying method
+	 */
+	public abstract R executeOn( SQLiteDatabase db ) ;
+
+	/**
+	 * Executes the query that has been built by the implementation class, on
+	 * the database instance to which the builder has been bound, either by a
+	 * constructor, or by {@link #onDatabase}.
+	 * @return the usual return value of the underlying method
+	 * @throws QueryBuilder.UnboundException if the builder is not yet bound to
+	 *  a database instance
+	 * @since zerobandwidth-net/android 0.1.4 (#37)
+	 */
+	public final R execute()
+	throws QueryBuilder.UnboundException
+	{
+<span class="fc bfc" id="L430" title="All 2 branches covered.">		if( m_dbTarget == null )</span>
+<span class="fc" id="L431">			throw new QueryBuilder.UnboundException() ;</span>
+
+<span class="fc" id="L433">		return this.executeOn( m_dbTarget ) ;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

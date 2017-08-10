@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>NonsenseBuilder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.nonsense</a> &gt; <span class="el_source">NonsenseBuilder.java</span></div><h1>NonsenseBuilder.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.nonsense;
+
+import android.content.Context;
+
+import net.zerobandwidth.android.lib.R;
+
+import java.util.Random;
+
+/**
+ * The canonical implementation of {@link NonsenseGenerator}.
+ *
+ * &lt;p&gt;The builder will assemble a sentence of the following form:
+ * &lt;i&gt;adjective&lt;/i&gt; &lt;b&gt;subject&lt;/b&gt; &lt;i&gt;adverb&lt;/i&gt; &lt;b&gt;verb&lt;/b&gt; &lt;i&gt;adjective&lt;/i&gt;
+ * &lt;b&gt;object&lt;/b&gt; &lt;i&gt;phrase&lt;/i&gt;. The terms listed in bold (subject, verb, object)
+ * will always be rendered, while the terms in italics (adjectives, adverbs,
+ * additional phrases) will be added randomly based on the builder's
+ * configuration, which can be tuned by creating a custom instance of the
+ * {@link NonsenseBuilder.Configuration} inner class.&lt;/p&gt;
+ *
+ * &lt;p&gt;The class uses the following string resources to get its random words:&lt;/p&gt;
+ *
+ * &lt;ul&gt;
+ *     &lt;li&gt;{@link R.array#asNonsenseNouns}&lt;/li&gt;
+ *     &lt;li&gt;{@link R.array#asNonsenseVerbs}&lt;/li&gt;
+ *     &lt;li&gt;{@link R.array#asNonsenseAdjectives}&lt;/li&gt;
+ *     &lt;li&gt;{@link R.array#asNonsenseAdverbs}&lt;/li&gt;
+ *     &lt;li&gt;{@link R.array#asNonsensePhrases}&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;Applications using this class may choose to have overrides for any or all
+ * of these string resources, in order to customize the text that might be
+ * rendered in the randomized sentences.&lt;/p&gt;
+ *
+ * @since zerobandwidth-net/android 0.0.1 (#7)
+ */
+@SuppressWarnings({ &quot;unused&quot;, &quot;WeakerAccess&quot; })            // This is a library.
+public class NonsenseBuilder
+implements NonsenseGenerator
+{
+	/**
+	 * This class controls aspects of a {@link NonsenseBuilder} related to the
+	 * probability of certain random features.
+	 *
+	 * To set non-default values, construct an instance of the class, and then
+	 * use its {@code set*()} methods to change any or all of the desired
+	 * settings. This may be done inline as follows:
+	 *
+	 * &lt;pre&gt;
+	 *     NonsenseBuilder xyzzy = new NonsenseBuilder( ctx,
+	 *             (new NonsenseBuilder.Configuration())
+	 *                 .setSubjectAdjectiveChance(25)
+	 *                 .setAdverbChance( NonsenseBuilder.Configuration.ALWAYS )
+	 *                 .setObjectAdjectiveChance(42)
+	 *                 .setObjectPhraseChance( NonsenseBuilder.Configuration.NEVER )
+	 *         );
+	 * &lt;/pre&gt;
+	 *
+	 * @since zerobandwidth-net/android 0.0.1 (#7)
+	 */
+<span class="fc" id="L60">	public static class Configuration</span>
+	{
+		/**
+		 * When specifying a probability, this constant indicates that a word
+		 * should &lt;i&gt;always&lt;/i&gt; be added to the sentence.
+		 */
+		public static final int ALWAYS = 100 ;
+
+		/**
+		 * When specifying a probability, this constant indicates that a word
+		 * should &lt;i&gt;never&lt;/i&gt; be added to the sentence.
+		 */
+		public static final int NEVER = 0 ;
+
+		/**
+		 * The percentage chance that an adjective will be added to modify the
+		 * subject of the sentence.
+		 */
+<span class="fc" id="L78">		public int m_nSubjectAdjectiveChance = 50 ;</span>
+		/**
+		 * The percentage chance that an adverb will be added to modify the verb
+		 * of the sentence.
+		 */
+<span class="fc" id="L83">		public int m_nAdverbChance = 50 ;</span>
+		/**
+		 * The percentage chance that an adjective will be added to modify the
+		 * object of the sentence.
+		 */
+<span class="fc" id="L88">		public int m_nObjectAdjectiveChance = 50 ;</span>
+		/**
+		 * The percentage chance that a prepositional phrase will be added to
+		 * modify the object of the sentence.
+		 */
+<span class="fc" id="L93">		public int m_nObjectPhraseChance = 50 ;</span>
+
+		/**
+		 * Sets the probability that an adjective will be added to modify the
+		 * subject of the sentence.
+		 * If the parameter given is less than 0 or greater than 100, then the
+		 * new value will be silently ignored.
+		 * @param n an integer between 0 and 100, inclusive
+		 * @return (fluid)
+		 */
+		public Configuration setSubjectAdjectiveChance( int n )
+		{
+<span class="pc bpc" id="L105" title="2 of 4 branches missed.">			if( n &lt; 0 || n &gt; 100 ) return this ; // trivially</span>
+<span class="fc" id="L106">			m_nSubjectAdjectiveChance = n ;</span>
+<span class="fc" id="L107">			return this ;</span>
+		}
+
+		/**
+		 * Sets the probability that an adverb will be added to modify the verb
+		 * of the sentence.
+		 * If the parameter given is less than 0 or greater than 100, then the
+		 * new value will be silently ignored.
+		 * @param n an integer between 0 and 100, inclusive
+		 * @return (fluid)
+		 */
+		public Configuration setAdverbChance( int n )
+		{
+<span class="pc bpc" id="L120" title="2 of 4 branches missed.">			if( n &lt; 0 || n &gt; 100 ) return this ; // trivially</span>
+<span class="fc" id="L121">			m_nAdverbChance = n ;</span>
+<span class="fc" id="L122">			return this ;</span>
+		}
+
+		/**
+		 * Sets the probability that an adjective will be added to modify the
+		 * object of the sentence.
+		 * If the parameter given is less than 0 or greater than 100, then the
+		 * new value will be silently ignored.
+		 * @param n an integer between 0 and 100, inclusive
+		 * @return (fluid)
+		 */
+		public Configuration setObjectAdjectiveChance( int n )
+		{
+<span class="pc bpc" id="L135" title="2 of 4 branches missed.">			if( n &lt; 0 || n &gt; 100 ) return this ; // trivially</span>
+<span class="fc" id="L136">			m_nObjectAdjectiveChance = n ;</span>
+<span class="fc" id="L137">			return this ;</span>
+		}
+
+		/**
+		 * Sets the probability that a prepositional phrase will be added to
+		 * modify the object of the sentence.
+		 * If the parameter given is less than 0 or greater than 100, then the
+		 * new value will be silently ignored.
+		 * @param n an integer between 0 and 100, inclusive
+		 * @return (fluid)
+		 */
+		public Configuration setObjectPhraseChance( int n )
+		{
+<span class="pc bpc" id="L150" title="2 of 4 branches missed.">			if( n &lt; 0 || n &gt; 100 ) return this ;</span>
+<span class="fc" id="L151">			m_nObjectPhraseChance = n ;</span>
+<span class="fc" id="L152">			return this ;</span>
+		}
+	}
+
+	/**
+	 * A canonical instance of a {@link NonsenseBuilder.Configuration}, using
+	 * the default values defined in that inner class.
+	 */
+<span class="fc" id="L160">	protected static final Configuration CANONICAL_CONFIGURATION =</span>
+			new Configuration() ;
+
+	/**
+	 * The internal RNG of the builder, used to determine the value selected for
+	 * each item in the sentence, and the presence of certain optional items.
+	 */
+<span class="fc" id="L167">	protected static final Random RANDOM = new Random() ;</span>
+
+	/**
+	 * A context in which string resources are available.
+	 */
+<span class="fc" id="L172">	protected Context m_ctx = null ;</span>
+
+	/**
+	 * The configuration settings that will control the random elements of the
+	 * builder. This defaults to the {@link #CANONICAL_CONFIGURATION}.
+	 */
+<span class="fc" id="L178">	protected Configuration m_cfg = CANONICAL_CONFIGURATION ;</span>
+
+	/**
+	 * (noun) The subject of the sentence.
+	 * This is always set by the builder.
+	 */
+<span class="fc" id="L184">	protected String m_sSubject = null ;</span>
+	/**
+	 * (adjective) A modifier of the subject.
+	 * This is randomly set by the builder.
+	 */
+<span class="fc" id="L189">	protected String m_sSubjectAdjective = null ;</span>
+	/**
+	 * (verb) The action verb in the sentence.
+	 * This is always set by the builder.
+	 */
+<span class="fc" id="L194">	protected String m_sVerb = null ;</span>
+	/**
+	 * (adverb) A modifier of the sentence's verb.
+	 * This is randomly set by the builder.
+	 */
+<span class="fc" id="L199">	protected String m_sVerbAdverb = null ;</span>
+	/**
+	 * (noun) The object of the sentence.
+	 * This is always set by the builder.
+	 */
+<span class="fc" id="L204">	protected String m_sObject = null ;</span>
+	/**
+	 * (adjective) A modifier of the object of the sentence.
+	 * This is randomly set by the builder.
+	 */
+<span class="fc" id="L209">	protected String m_sObjectAdjective = null ;</span>
+	/**
+	 * (prepositional phrase) A phrase further modifying the object of the
+	 * sentence.
+	 * This is randomly set by the builder.
+	 */
+<span class="fc" id="L215">	protected String m_sObjectModifier = null ;</span>
+
+	/**
+	 * A constructor which sets the resource context.
+	 * @param ctx a context in which string resources are available
+	 */
+	public NonsenseBuilder( Context ctx )
+<span class="fc" id="L222">	{ this.setContext( ctx ) ; }</span>
+
+	/**
+	 * A constructor which sets both the resource context and a custom
+	 * configuration to control the random aspects of the builder.
+	 * @param ctx a context in which string resources are available
+	 * @param cfg the configuration parameters of the builder
+	 */
+	public NonsenseBuilder( Context ctx, NonsenseBuilder.Configuration cfg )
+<span class="fc" id="L231">	{ this.setContext( ctx ).setConfiguration( cfg ) ; }</span>
+
+	/**
+	 * Sets the configuration parameters of the builder.
+	 * @param cfg specifies the randomization parameters for the builder
+	 * @return (fluid)
+	 */
+	public NonsenseBuilder setConfiguration( NonsenseBuilder.Configuration cfg )
+	{
+<span class="pc bpc" id="L240" title="1 of 2 branches missed.">		if( cfg == null ) m_cfg = CANONICAL_CONFIGURATION ;</span>
+<span class="fc" id="L241">		else m_cfg = cfg ;</span>
+<span class="fc" id="L242">		return this ;</span>
+	}
+
+	@Override
+	public NonsenseBuilder setContext( Context ctx )
+<span class="fc" id="L247">	{ m_ctx = ctx ; return this ; }</span>
+
+	/**
+	 * Locks a value for the subject of the sentence.
+	 *
+	 * If {@code null} is specified, then the builder's subject will be
+	 * &quot;cleared&quot;, meaning that it will be chosen at random.
+	 *
+	 * @param sSubject a specific subject for the sentence, or {@code null} to
+	 *                 ensure that the subject is randomized
+	 * @return (fluid)
+	 */
+	public NonsenseBuilder setSubject( String sSubject )
+<span class="fc" id="L260">	{ m_sSubject = sSubject ; return this ; }</span>
+
+	/**
+	 * Locks a value for the adjective modifying the subject of the sentence.
+	 *
+	 * If {@code null} is specified, then the builder might or might not add a
+	 * random adjective, as specified by
+	 * {@link Configuration#m_nSubjectAdjectiveChance}.
+	 *
+	 * @param sAdj a specific adjective to modify the subject of the sentence,
+	 *             or {@code null} to randomize the presence and value of the
+	 *             adjective
+	 * @return (fluid)
+	 */
+	public NonsenseBuilder setSubjectAdjective( String sAdj )
+<span class="fc" id="L275">	{ m_sSubjectAdjective = sAdj ; return this ; }</span>
+
+	/**
+	 * Locks a value for the verb of the sentence.
+	 *
+	 * If {@code null} is specified, then the builder's verb will be &quot;cleared&quot;,
+	 * meaning that it will be chosen at random.
+	 *
+	 * @param sVerb a specific verb for the sentence, or {@code null} to ensure
+	 *              that the verb is randomized
+	 * @return (fluid)
+	 */
+	public NonsenseBuilder setVerb( String sVerb )
+<span class="fc" id="L288">	{ m_sVerb = sVerb ; return this ; }</span>
+
+	/**
+	 * Locks a value for the adverb modifying the verb of the sentence.
+	 *
+	 * If {@code null} is specified, then the builder might or might not add a
+	 * random adverb, as specified by {@link Configuration#m_nAdverbChance}.
+	 *
+	 * @param sAdverb a specific adverb to modify the verb of the sentence, or
+	 *                {@code null} to randomize the presence and value of the
+	 *                adverb
+	 * @return (fluid)
+	 */
+	public NonsenseBuilder setAdverb( String sAdverb )
+<span class="fc" id="L302">	{ m_sVerbAdverb = sAdverb ; return this ; }</span>
+
+	/**
+	 * Locks a value for the object of the sentence.
+	 *
+	 * If {@code null} is specified, then the builder's object will be
+	 * &quot;cleared&quot;, meaning that it will be chosen at random.
+	 *
+	 * @param sObject a specific object for the sentence, or {@code null} to
+	 *                ensure that the object is randomized
+	 * @return (fluid)
+	 */
+	public NonsenseBuilder setObject( String sObject )
+<span class="fc" id="L315">	{ m_sObject = sObject ; return this ; }</span>
+
+	/**
+	 * Locks a value for the adjective modifying the object of the sentence.
+	 *
+	 * If {@code null} is specified, then the builder might or might not add a
+	 * random adjective, as specified by
+	 * {@link Configuration#m_nObjectAdjectiveChance}.
+	 *
+	 * @param sAdj a specific adjective to modify the object of the sentence, or
+	 *             {@code null} to randomize the presence and value of the
+	 *             adjective
+	 * @return (fluid)
+	 */
+	public NonsenseBuilder setObjectAdjective( String sAdj )
+<span class="fc" id="L330">	{ m_sObjectAdjective = sAdj ; return this ; }</span>
+
+	/**
+	 * Locks a value for additional text (expected to be a prepositional phrase)
+	 * modifying the object of the sentence.
+	 *
+	 * If {@code null} is specified, then the builder might or might not add a
+	 * random phrase, as specified by
+	 * {@link Configuration#m_nObjectPhraseChance}.
+	 *
+	 * @param sPhrase specific text to modify the object of the sentence, or
+	 *                {@code null} to randomize the presence and value of such
+	 *                text
+	 * @return (fluid)
+	 */
+	public NonsenseBuilder setObjectModifier( String sPhrase )
+<span class="fc" id="L346">	{ m_sObjectModifier = sPhrase ; return this ; }</span>
+
+	@Override
+	public String getString()
+	{
+<span class="fc" id="L351">		StringBuilder sb = new StringBuilder() ;</span>
+
+<span class="fc" id="L353">		this.appendSubject( sb )</span>
+<span class="fc" id="L354">		    .appendVerb( sb )</span>
+<span class="fc" id="L355">		    .appendObject( sb )</span>
+		    ;
+
+<span class="fc" id="L358">		return sb.toString() ;</span>
+	}
+
+	/**
+	 * Appends the subject and its adjective (if any) to the buffer in which the
+	 * sentence is being constructed.
+	 * @param sb the buffer in which the sentence is being constructed
+	 * @return (fluid)
+	 */
+	protected NonsenseBuilder appendSubject( StringBuilder sb )
+	{
+<span class="fc bfc" id="L369" title="All 2 branches covered.">		final String sSubject = ( m_sSubject == null ?</span>
+<span class="fc" id="L370">				this.getRandomNonsense( R.array.asNonsenseNouns,</span>
+						Configuration.ALWAYS ) :
+				m_sSubject
+			);
+<span class="fc bfc" id="L374" title="All 2 branches covered.">		final String sAdj = ( m_sSubjectAdjective == null ?</span>
+<span class="fc" id="L375">				this.getRandomNonsense( R.array.asNonsenseAdjectives,</span>
+						m_cfg.m_nSubjectAdjectiveChance ) :
+				m_sSubjectAdjective
+			);
+
+<span class="fc bfc" id="L380" title="All 2 branches covered.">		if( sAdj == null )</span>
+		{ // Just capitalize and append the subject as-is and move on.
+<span class="fc" id="L382">			sb.append( sSubject.substring(0,1).toUpperCase() )</span>
+<span class="fc" id="L383">			  .append( sSubject.substring(1) )</span>
+			  ;
+		}
+<span class="fc bfc" id="L386" title="All 2 branches covered.">		else if( Utils.startsWithArticle( sSubject ) )</span>
+		{ // Split the article from the subject string and insert the adjective.
+<span class="fc" id="L388">			String[] asTokens = sSubject.split( &quot; &quot;, 2 ) ;</span>
+<span class="pc bpc" id="L389" title="5 of 13 branches missed.">			switch( asTokens[0] )</span>
+			{
+				case &quot;a&quot;:
+				case &quot;an&quot;:
+<span class="fc" id="L393">					sb.append( Utils.whichIndefiniteArticle( sAdj, true ) )</span>
+<span class="fc" id="L394">					  .append( ' ' )</span>
+					  ;
+<span class="fc" id="L396">					break ;</span>
+				case &quot;the&quot;:
+<span class="fc" id="L398">					sb.append( &quot;The &quot; ) ;</span>
+<span class="fc" id="L399">					break ;</span>
+				default:
+<span class="nc" id="L401">					sb.append( asTokens[0].substring(0,1).toUpperCase() )</span>
+<span class="nc" id="L402">					  .append( asTokens[0].substring(1) )</span>
+<span class="nc" id="L403">					  .append( ' ' )</span>
+					  ;
+			}
+<span class="fc" id="L406">			sb.append( sAdj )</span>
+<span class="fc" id="L407">			  .append( ' ' )</span>
+<span class="fc" id="L408">			  .append( asTokens[1] )</span>
+			  ;
+<span class="fc" id="L410">		}</span>
+		else
+		{ // Capitalize the adjective and stick it before the noun.
+<span class="fc" id="L413">			sb.append( sAdj.substring( 0, 1 ).toUpperCase() )</span>
+<span class="fc" id="L414">			  .append( sAdj.substring(1) )</span>
+<span class="fc" id="L415">			  .append( ' ' )</span>
+<span class="fc" id="L416">			  .append( sSubject )</span>
+			  ;
+		}
+
+<span class="fc" id="L420">		sb.append( ' ' ) ;</span>
+<span class="fc" id="L421">		return this ;</span>
+	}
+
+	/**
+	 * Appends the verb and its adverb (if any) to the buffer in which the
+	 * sentence is being constructed.
+	 * @param sb the buffer in which the sentence is being constructed
+	 * @return (fluid)
+	 */
+	protected NonsenseBuilder appendVerb( StringBuilder sb )
+	{
+<span class="fc bfc" id="L432" title="All 2 branches covered.">		final String sVerb = ( m_sVerb == null ?</span>
+<span class="fc" id="L433">				this.getRandomNonsense( R.array.asNonsenseVerbs,</span>
+						Configuration.ALWAYS ) :
+				m_sVerb
+			);
+<span class="fc bfc" id="L437" title="All 2 branches covered.">		final String sAdverb = ( m_sVerbAdverb == null ?</span>
+<span class="fc" id="L438">				this.getRandomNonsense( R.array.asNonsenseAdverbs,</span>
+						m_cfg.m_nAdverbChance ) :
+				m_sVerbAdverb
+			);
+
+<span class="fc bfc" id="L443" title="All 2 branches covered.">		if( sAdverb == null )</span>
+<span class="fc" id="L444">			sb.append( sVerb ) ;</span>
+		else
+<span class="fc" id="L446">			sb.append( sAdverb ).append( ' ' ).append( sVerb ) ;</span>
+
+<span class="fc" id="L448">		sb.append( ' ' ) ;</span>
+<span class="fc" id="L449">		return this ;</span>
+	}
+
+	/**
+	 * Appends the object and its adjective and modifier phrase (if any) to the
+	 * buffer in which the sentence is being constructed.
+	 * @param sb the buffer in which the sentence is being constructed
+	 * @return (fluid)
+	 */
+	protected NonsenseBuilder appendObject( StringBuilder sb )
+	{
+<span class="fc bfc" id="L460" title="All 2 branches covered.">		final String sObject = ( m_sObject == null ?</span>
+<span class="fc" id="L461">				this.getRandomNonsense( R.array.asNonsenseNouns,</span>
+						Configuration.ALWAYS ) :
+				m_sObject
+			);
+<span class="fc bfc" id="L465" title="All 2 branches covered.">		final String sAdj = ( m_sObjectAdjective == null ?</span>
+<span class="fc" id="L466">				this.getRandomNonsense( R.array.asNonsenseAdjectives,</span>
+						m_cfg.m_nObjectAdjectiveChance ) :
+				m_sObjectAdjective
+			);
+<span class="fc bfc" id="L470" title="All 2 branches covered.">		final String sPhrase = ( m_sObjectModifier == null ?</span>
+<span class="fc" id="L471">				this.getRandomNonsense( R.array.asNonsensePhrases,</span>
+						m_cfg.m_nObjectPhraseChance ) :
+				m_sObjectModifier
+			);
+
+<span class="fc bfc" id="L476" title="All 2 branches covered.">		if( sAdj == null )</span>
+<span class="fc" id="L477">			sb.append( sObject ) ;</span>
+<span class="fc bfc" id="L478" title="All 2 branches covered.">		else if( Utils.startsWithArticle( sObject ) )</span>
+		{
+<span class="fc" id="L480">			String[] asTokens = sObject.split( &quot; &quot;, 2 ) ;</span>
+<span class="pc bpc" id="L481" title="2 of 9 branches missed.">			switch( asTokens[0] )</span>
+			{
+				case &quot;a&quot;:
+				case &quot;an&quot;:
+<span class="fc" id="L485">					sb.append( Utils.whichIndefiniteArticle( sAdj, false ) )</span>
+<span class="fc" id="L486">					  .append( ' ' )</span>
+					  ;
+<span class="fc" id="L488">					break ;</span>
+				default:
+<span class="fc" id="L490">					sb.append( asTokens[0] ).append( ' ' ) ;</span>
+			}
+<span class="fc" id="L492">			sb.append( sAdj )</span>
+<span class="fc" id="L493">			  .append( ' ' )</span>
+<span class="fc" id="L494">			  .append( asTokens[1] )</span>
+			  ;
+<span class="fc" id="L496">		}</span>
+		else
+<span class="fc" id="L498">			sb.append( sAdj ).append( ' ' ).append( sObject ) ;</span>
+
+<span class="fc bfc" id="L500" title="All 2 branches covered.">		if( sPhrase != null )</span>
+<span class="fc" id="L501">			sb.append( ' ' ).append( sPhrase ) ;</span>
+
+<span class="fc" id="L503">		sb.append( '.' ) ;</span>
+<span class="fc" id="L504">		return this ;</span>
+	}
+
+	/**
+	 * Randomly selects a string resource from the selected string array.
+	 * @param resStrings the resource ID of a string array
+	 * @param nChance chance that we should return anything at all, expressed as
+	 *                a percentage (expected range [0,100])
+	 * @return a random string from that array of strings
+	 */
+	public String getRandomNonsense( int resStrings, int nChance )
+	{
+<span class="fc bfc" id="L516" title="All 4 branches covered.">		if( nChance &lt; Configuration.ALWAYS &amp;&amp; RANDOM.nextInt(100) &gt;= nChance )</span>
+<span class="fc" id="L517">				return null ;</span>
+
+<span class="fc" id="L519">		final String[] asStrings =</span>
+<span class="fc" id="L520">				m_ctx.getResources().getStringArray( resStrings ) ;</span>
+<span class="fc" id="L521">		final int nIndex = RANDOM.nextInt( asStrings.length ) ;</span>
+<span class="fc" id="L522">		return asStrings[nIndex] ;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

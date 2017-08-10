@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SingletonService.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.services</a> &gt; <span class="el_source">SingletonService.java</span></div><h1>SingletonService.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.services;
+
+import android.app.Service ;
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
+
+import net.zerobandwidth.android.lib.content.IntentUtils;
+
+import java.util.HashMap;
+
+/**
+ * This service provides &quot;singleton&quot; instances of any specified class. This is
+ * done as an Android {@link Service}, instead of the normal Java singleton
+ * model, because Android tends to assign multiple class loaders during the life
+ * cycle of a single app, and thus static values (like singletons) set in one
+ * {@link android.app.Activity Activity} might not be visible in another. By
+ * registering singletons with a {@code Service}, multiple {@code Activity}s
+ * can be more confident about getting their singletons from the same source.
+ * @since zerobandwidth-net/android 0.0.1 (#1)
+ */
+<span class="fc" id="L22">public class SingletonService</span>
+extends Service
+{
+    /** A logging tag. */
+<span class="fc" id="L26">    protected static final String LOG_TAG =</span>
+<span class="fc" id="L27">            SingletonService.class.getSimpleName() ;</span>
+
+	protected static final String ACTION_KICKOFF =
+		&quot;net.zerobandwidth.android.actions.services.SingletonService.KICKOFF&quot; ;
+
+	public static void kickoff( Context ctx )
+	{
+<span class="fc" id="L34">		ctx.startService(</span>
+<span class="fc" id="L35">			IntentUtils.getBoundIntent( ctx, SingletonService.class )</span>
+<span class="fc" id="L36">				.setAction( ACTION_KICKOFF ) ) ;</span>
+<span class="fc" id="L37">	}</span>
+
+    /**
+     * An implementation of the {@link android.os.Binder} class which simply
+     * returns this instance of the service.
+     * @since zerobandwidth-net/android 0.0.1 (#1)
+     */
+<span class="fc" id="L44">    public class Binder extends android.os.Binder</span>
+    implements SimpleServiceConnection.InstanceBinder&lt;SingletonService&gt;
+    {
+        @Override
+        public SingletonService getServiceInstance()
+<span class="fc" id="L49">        { return SingletonService.this ; }</span>
+    }
+
+    /** The mapping of classes to singleton instances of those classes. */
+    protected HashMap&lt;Class&lt;?&gt;,Object&gt; m_mapSingletons ;
+
+    /** A constant binder instance. */
+<span class="fc" id="L56">    protected final SingletonService.Binder m_bind =</span>
+		    new SingletonService.Binder() ;
+
+    @Override
+    public void onCreate()
+    {
+<span class="fc" id="L62">        super.onCreate() ;</span>
+<span class="fc" id="L63">        m_mapSingletons = new HashMap&lt;&gt;() ;</span>
+<span class="fc" id="L64">    }</span>
+
+    @Override
+    public SingletonService.Binder onBind( Intent sig )
+<span class="fc" id="L68">    { return m_bind ; }</span>
+
+	@Override
+	public int onStartCommand( Intent sig, int zFlags, int nStartID )
+	{
+<span class="fc" id="L73">		super.onStartCommand( sig, zFlags, nStartID ) ;</span>
+<span class="fc" id="L74">		Log.i( LOG_TAG, &quot;Started service.&quot; ) ;</span>
+<span class="fc" id="L75">		return Service.START_STICKY ;</span>
+	}
+
+	/**
+	 * Returns the singleton instance of the specified class. If no singleton
+	 * has been created yet, then {@code null} is returned. If a casting error
+	 * occurs internally, then the method returns {@code null} but also logs a
+	 * warning.
+	 * @param cls the class for which a singleton should be returned
+	 * @param &lt;T&gt; the class for which a singleton should be returned
+	 * @return the singleton instance of the class, or {@code null} if none
+	 *  can be obtained
+	 */
+    @SuppressWarnings(&quot;unchecked&quot;) // We explicitly catch ClassCastException.
+    public synchronized &lt;T&gt; T get( Class&lt;T&gt; cls )
+    {
+<span class="fc" id="L91">        T oInstance = null ;</span>
+<span class="fc" id="L92">        try { oInstance = (T)(this.m_mapSingletons.get(cls)) ; }</span>
+<span class="nc" id="L93">        catch( ClassCastException xCast )</span>
+<span class="pc" id="L94">        { Log.w( LOG_TAG, &quot;Cannot cast singleton fetched from map.&quot; ) ; }</span>
+<span class="fc" id="L95">        return oInstance ;</span>
+    }
+
+	/**
+	 * Specifies the singleton instance of a given class. If no previous
+	 * singleton has been set, then {@code null} is returned. If a casting
+	 * error occurs internally while trying to pass back the previous instance,
+	 * then {@code null} is still returned, but an error is also written to the
+	 * logs.
+	 * @param cls the class for which a singleton should be set
+	 * @param oInstance the instance to be proclaimed as the singleton instance
+	 * @param &lt;T&gt; the class for which a singleton should be set
+	 * @return any previously-set singleton instance for that class, or
+	 *  {@code null} if none can be obtained
+	 */
+    @SuppressWarnings(&quot;unchecked&quot;) // We explicitly catch ClassCastException.
+    public synchronized &lt;T&gt; T put( Class&lt;T&gt; cls, T oInstance )
+    {
+<span class="fc" id="L113">        T oPrevious = null ;</span>
+<span class="fc" id="L114">        try { oPrevious = (T)(this.m_mapSingletons.put(cls, oInstance)) ; }</span>
+<span class="nc" id="L115">        catch( ClassCastException xCast )</span>
+<span class="pc" id="L116">        { Log.w( LOG_TAG, &quot;Caught exception when casting previous instance.&quot; ) ; }</span>
+<span class="fc" id="L117">        return oPrevious ;</span>
+    }
+
+	/**
+	 * Gets the current singleton instance for the specified class, or stores
+	 * the supplied alternative as the singleton if none was previously set.
+	 * @param cls the class for which a singleton should be returned
+	 * @param oAlternative an instance to set if no previous instance is found
+	 * @param &lt;T&gt; the class for which a singleton should be returned
+	 * @return the singleton instance of the class, or the supplied alternative
+	 *  if none can be obtained
+	 */
+    public synchronized &lt;T&gt; T getOrPut( Class&lt;T&gt; cls, T oAlternative )
+    {
+<span class="fc bfc" id="L131" title="All 2 branches covered.">        if( m_mapSingletons.containsKey(cls) )</span>
+<span class="fc" id="L132">            return this.get(cls) ;</span>
+        else
+        {
+<span class="fc" id="L135">            this.put( cls, oAlternative ) ;</span>
+<span class="fc" id="L136">            return oAlternative ;</span>
+        }
+    }
+
+	/**
+	 * Indicates whether a singleton instance has been set for the specified
+	 * class.
+	 * @param cls the class for which a singleton might be set
+	 * @param &lt;T&gt; the class for which a singleton might be set
+	 * @return {@code true} if an instance has been set for the class
+	 */
+    public synchronized &lt;T&gt; boolean hasInstanceOf( Class&lt;T&gt; cls )
+<span class="fc" id="L148">    { return m_mapSingletons.containsKey(cls) ; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

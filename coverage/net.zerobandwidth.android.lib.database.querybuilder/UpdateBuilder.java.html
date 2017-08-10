@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>UpdateBuilder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.database.querybuilder</a> &gt; <span class="el_source">UpdateBuilder.java</span></div><h1>UpdateBuilder.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.database.querybuilder;
+
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+import net.zerobandwidth.android.lib.database.SQLitePortal;
+
+/**
+ * Builds a SQLite {@code UPDATE} query.
+ *
+ * &lt;h3&gt;Examples&lt;/h3&gt;
+ *
+ * Update all rows.
+ *
+ * &lt;pre&gt;
+ * long nUpdated = QueryBuilder.update( sTableName )
+ *     .setValues( vals )
+ *     .updateAll()
+ *     .executeOn( db )
+ *     ;
+ * &lt;/pre&gt;
+ *
+ * Update specific rows, specifying that conflicts should be ignored.
+ *
+ * &lt;pre&gt;
+ * long nUpdated = QueryBuilder.update( sTableName )
+ *     .setValues( vals )
+ *     .where( &quot;some_column=?&quot;, sBogusValue )
+ *     .onConflict( SQLiteDatabase.CONFLICT_IGNORE )
+ *     .executeOn( db )
+ *     ;
+ * &lt;/pre&gt;
+ *
+ * @since zerobandwidth-net/android 0.1.1 (#20)
+ * @see SQLiteDatabase#updateWithOnConflict(String, ContentValues, String, String[], int)
+ */
+@SuppressWarnings( &quot;unused&quot; )                              // This is a library.
+public class UpdateBuilder
+extends QueryBuilder&lt;UpdateBuilder,Integer&gt;
+{
+<span class="fc" id="L42">	protected static final String LOG_TAG = UpdateBuilder.class.getSimpleName();</span>
+
+	/**
+	 * Similar to the standard magic number returned when an insertion query
+	 * fails (see {@link SQLitePortal#INSERT_FAILED}, this return value from
+	 * {@link #executeOn(SQLiteDatabase)} indicates that the update operation
+	 * could not be carried out.
+	 */
+	public static final int UPDATE_FAILED = -1 ;
+
+	protected static final String SQL_UPDATE = &quot;UPDATE &quot; ;
+
+	protected static final String SQL_SET = &quot; SET &quot; ;
+
+	/**
+	 * The numeric ID of the conflict resolution algorithm provided by Android.
+	 * By default, no conflict resolution algorithm is requested.
+	 * @see SQLiteDatabase#CONFLICT_ABORT
+	 * @see SQLiteDatabase#CONFLICT_FAIL
+	 * @see SQLiteDatabase#CONFLICT_IGNORE
+	 * @see SQLiteDatabase#CONFLICT_NONE
+	 * @see SQLiteDatabase#CONFLICT_REPLACE
+	 * @see SQLiteDatabase#CONFLICT_ROLLBACK
+	 */
+<span class="fc" id="L66">	protected int m_zConflictAlgorithmID = SQLiteDatabase.CONFLICT_NONE ;</span>
+
+	public UpdateBuilder( String sTableName )
+<span class="fc" id="L69">	{ super( sTableName ) ; }</span>
+
+	/**
+	 * Convenience grammar specifying that all rows should be deleted.
+	 * @return (fluid)
+	 */
+	public UpdateBuilder updateAll()
+<span class="fc" id="L76">	{ return this.where( SQLitePortal.UPDATE_ALL ) ; }</span>
+
+	/**
+	 * Selects, by its numeric ID, the conflict resolution algorithm provided by
+	 * Android.
+	 * @param zAlgorithmID the ID of the algorithm to use
+	 * @return (fluid)
+	 */
+	public UpdateBuilder onConflict( int zAlgorithmID )
+<span class="fc" id="L85">	{ m_zConflictAlgorithmID = zAlgorithmID ; return this ; }</span>
+
+	/**
+	 * Executes an update query on the value that has been appended to the
+	 * builder.
+	 * @param db the database instance on which the query should be executed
+	 * @return the number of rows that were modified, or {@link #UPDATE_FAILED}
+	 *  if the update operation could not proceed
+	 */
+	@Override
+	public Integer executeOn( SQLiteDatabase db )
+	{
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">		if( m_valsToWrite == null ) return UPDATE_FAILED ;</span>
+		try
+		{
+<span class="fc" id="L100">			return db.updateWithOnConflict(</span>
+					m_sTableName,
+					m_valsToWrite,
+<span class="fc" id="L103">					this.getWhereFormat(),</span>
+<span class="fc" id="L104">					this.getWhereParams(),</span>
+					m_zConflictAlgorithmID
+				);
+		}
+<span class="nc" id="L108">		catch( Exception x )</span>
+		{
+<span class="nc" id="L110">			Log.e( LOG_TAG, (new StringBuilder())</span>
+<span class="nc" id="L111">					.append( &quot;Update for values [&quot; )</span>
+<span class="nc" id="L112">					.append( m_valsToWrite.toString() )</span>
+<span class="nc" id="L113">					.append( &quot;] failed: &quot; )</span>
+<span class="nc" id="L114">					.toString()</span>
+				, x ) ;
+<span class="nc" id="L116">			return UPDATE_FAILED ;</span>
+		}
+	}
+
+	@Override
+	public String toString()
+	{
+<span class="fc" id="L123">		StringBuilder sb = new StringBuilder() ;</span>
+<span class="fc" id="L124">		sb.append( SQL_UPDATE ).append( m_sTableName )</span>
+<span class="fc" id="L125">		  .append( SQL_SET )</span>
+<span class="fc" id="L126">		  .append( toSQLInputParams( m_valsToWrite ) ) // TODO might be bogus</span>
+		  ;
+<span class="fc" id="L128">		final String sWhere = this.getWhereClause() ;</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">		if( sWhere != null )</span>
+<span class="fc" id="L130">			sb.append( SQL_WHERE ).append( sWhere ) ;</span>
+<span class="fc" id="L131">		sb.append( &quot; ;&quot; ) ;</span>
+<span class="fc" id="L132">		return sb.toString() ;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>
