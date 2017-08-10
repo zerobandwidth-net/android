@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SQLiteColumnInfo.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.database</a> &gt; <span class="el_source">SQLiteColumnInfo.java</span></div><h1>SQLiteColumnInfo.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.database;
+
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Contains information returned by the {@code table_info} pragma in SQLite.
+ * @since zerobandwidth-net/android 0.1.4 (#26)
+ */
+<span class="fc" id="L15">public class SQLiteColumnInfo</span>
+{
+	/**
+	 * Gathers information about the columns in the specified table, and returns
+	 * the column descriptions in a list.
+	 * @param db the database to be analyzed
+	 * @param sTableName the name of the table to be analyzed
+	 * @return a list of objects describing the columns of the table
+	 * @see SQLitePortal#getColumnListForTable
+	 */
+	public static List&lt;SQLiteColumnInfo&gt; gatherColumnList(
+			SQLiteDatabase db, String sTableName )
+	{
+<span class="fc" id="L28">		Cursor crs = null ;</span>
+<span class="fc" id="L29">		List&lt;SQLiteColumnInfo&gt; aInfo = new ArrayList&lt;&gt;() ;</span>
+		try
+		{
+<span class="fc" id="L32">			crs = db.rawQuery(</span>
+<span class="fc" id="L33">					String.format( &quot;PRAGMA main.table_info('%s')&quot;, sTableName ),</span>
+					null ) ;
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">			if( crs.moveToFirst() )</span>
+			{
+				do
+				{
+<span class="fc" id="L39">					SQLiteColumnInfo info = new SQLiteColumnInfo() ;</span>
+<span class="fc" id="L40">					info.sTableName = sTableName ;</span>
+<span class="fc" id="L41">					info.nColumnID = crs.getInt(0) ;</span>
+<span class="fc" id="L42">					info.sColumnName = crs.getString(1) ;</span>
+<span class="fc" id="L43">					info.sColumnType = crs.getString(2) ;</span>
+<span class="fc" id="L44">					info.bNotNull = SQLitePortal.intToBool( crs.getInt(3) ) ;</span>
+<span class="fc" id="L45">					info.sDefault = crs.getString(4) ;</span>
+<span class="fc" id="L46">					info.bPrimaryKey = SQLitePortal.intToBool( crs.getInt(5) ) ;</span>
+<span class="fc" id="L47">					aInfo.add(info) ;</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">				} while( crs.moveToNext() ) ;</span>
+			}
+		}
+		finally
+<span class="pc" id="L52">		{ SQLitePortal.closeCursor(crs) ; }</span>
+
+<span class="fc" id="L54">		return aInfo ;</span>
+	}
+
+	/**
+	 * Gathers information about the columns in the specified table, and returns
+	 * the column descriptions in a map.
+	 * @param db the database to be analyzed
+	 * @param sTableName the name of the table to be analyzed
+	 * @return a map of column names to objects describing those columns
+	 * @see SQLitePortal#getColumnMapForTable
+	 */
+	public static Map&lt;String,SQLiteColumnInfo&gt; gatherColumnMap(
+			SQLiteDatabase db, String sTableName )
+	{
+<span class="fc" id="L68">		List&lt;SQLiteColumnInfo&gt; aInfo = gatherColumnList( db, sTableName ) ;</span>
+<span class="fc" id="L69">		Map&lt;String,SQLiteColumnInfo&gt; mapInfo = new HashMap&lt;&gt;() ;</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">		for( SQLiteColumnInfo info : aInfo )</span>
+<span class="fc" id="L71">			mapInfo.put( info.sColumnName, info ) ;</span>
+<span class="fc" id="L72">		return mapInfo ;</span>
+	}
+
+	/** The name of the table containing this column. */
+<span class="fc" id="L76">	public String sTableName = null ;</span>
+
+	/** The numeric ID of the column in any given row. */
+<span class="fc" id="L79">	public int nColumnID = -1 ;</span>
+
+	/** The name of the column in the table definition. */
+<span class="fc" id="L82">	public String sColumnName = null ;</span>
+
+	/** The magic SQLite token indicating this column's data type. */
+<span class="fc" id="L85">	public String sColumnType = null ;</span>
+
+	/** Indicates whether the column is defined {@code NOT NULL}. */
+<span class="fc" id="L88">	public boolean bNotNull = false ;</span>
+
+	/** The default value of the column, as a string. */
+<span class="fc" id="L91">	public String sDefault = null ;</span>
+
+	/** Indicates whether the column is the table's primary key. */
+<span class="fc" id="L94">	public boolean bPrimaryKey = false ;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

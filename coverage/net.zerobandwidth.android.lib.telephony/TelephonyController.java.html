@@ -1,0 +1,693 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>TelephonyController.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.telephony</a> &gt; <span class="el_source">TelephonyController.java</span></div><h1>TelephonyController.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.telephony;
+
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Binder;
+import android.os.IBinder;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+
+import net.zerobandwidth.android.lib.telephony.exceptions.ControllerConstructionException;
+import net.zerobandwidth.android.lib.telephony.exceptions.ControllerInvocationException;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+/**
+ * Provides programmatic access to common call control tasks.
+ *
+ * &lt;h3&gt;As an Instance&lt;/h3&gt;
+ *
+ * An instance of this class provides programmatic access to the Android OS
+ * internal telephony controller.
+ *
+ * This class is based on several interesting StackOverflow posts and is still
+ * highly experimental.
+ *
+ * The member functions represent a large portion of the {@code ITelephony}
+ * interface as discovered in the Android open source repository. However, in
+ * this class, several of those methods are marked as deprecated. For each of
+ * these deprecated methods, there is a static alternative that does not require
+ * the reflexive workarounds of this class, and which will likely be more
+ * efficient. Though marked as deprecated, there is no plan to remove them from
+ * this library; the deprecation is merely an encouragement to choose
+ * alternatives.
+ *
+ * &lt;h3&gt;As a Static Utils Class&lt;/h3&gt;
+ *
+ * Static methods of the class are a more intuitive shorthand for &quot;normal&quot;
+ * operations related to call control, and do not require the construction of an
+ * instance.
+ *
+ * @see &lt;a href=&quot;http://stackoverflow.com/questions/599443/how-to-hang-up-outgoing-call-in-android&quot;&gt;
+ *     StackOverflow Q.599443: How to hang up outgoing call in Android?&lt;/a&gt;
+ * @see &lt;a href=&quot;http://stackoverflow.com/questions/2001146/reflection-to-access-advanced-telephony-features&quot;&gt;
+ *     StackOverflow Q.2001146: Reflection to access advanced telephony features&lt;/a&gt;
+ * @see &lt;a href=&quot;http://prasanta-paul.blogspot.com/2010/09/call-control-in-android.html&quot;&gt;
+ *     Prasanta Paul, &quot;Call Control in Android&quot;, 2010-09-03&lt;/a&gt;
+ * @see &lt;a href=&quot;https://android.googlesource.com/platform/frameworks/base/+/master/telephony/java/com/android/internal/telephony/ITelephony.aidl&quot;&gt;
+ *     Android Source: com.android.internal.telephony.ITelephony&lt;/a&gt;
+ * @see &lt;a href=&quot;http://stackoverflow.com/questions/4816683/how-to-make-a-phone-call-programatically&quot;&gt;
+ *     StackOverflow Q.4816683: How to make a phone call programmatically&lt;/a&gt;
+ *
+ * @since zerobandwidth-net/android 0.0.5 (#16)
+ */
+@SuppressWarnings( &quot;unused&quot; )                              // This is a library.
+public class TelephonyController
+{
+/// STATIC API - Provides static utility functions for telephony tasks. ////////
+
+	/**
+	 * Fetches an instance of the device's telephony manager.
+	 * @param ctx the context in which services are available
+	 * @return the device's telephony manager service
+	 */
+	public static TelephonyManager getManager( Context ctx )
+	{
+<span class="nc" id="L68">		return ((TelephonyManager)</span>
+<span class="nc" id="L69">				( ctx.getSystemService( Context.TELEPHONY_SERVICE ) )) ;</span>
+	}
+
+	/**
+	 * Indicates the current call state.
+	 *
+	 * Equivalent to calling {@link TelephonyManager#getCallState} on an
+	 * existing instance of the manager.
+	 *
+	 * This method &lt;b&gt;requires&lt;/b&gt; the
+	 * {@code android.permission.READ_PHONE_STATE} permission, and will throw a
+	 * {@link SecurityException} if the permission is not granted at runtime.
+	 *
+	 * @param ctx the context in which to check call state
+	 * @return one of the call state indicators provided by
+	 *  {@code TelephonyManager}:
+	 *  {@link TelephonyManager#CALL_STATE_RINGING CALL_STATE_RINGING},
+	 *  {@link TelephonyManager#CALL_STATE_OFFHOOK CALL_STATE_OFFHOOK}, or
+	 *  {@link TelephonyManager#CALL_STATE_IDLE CALL_STATE_IDLE}
+	 * @throws SecurityException if the
+	 *  {@code android.permission.READ_PHONE_STATE} permission is not granted to
+	 *  the app at runtime
+	 */
+	public static int getCallState( Context ctx )
+	throws SecurityException
+<span class="nc" id="L94">	{ return getManager(ctx).getCallState() ; }</span>
+
+	/**
+	 * Indicates whether the phone is in &quot;idle&quot; state &amp;mdash; that is, no
+	 * outbound or inbound calls are in progress.
+	 * @param ctx the context in which to check call state
+	 * @return {@code true} if the call state is &quot;idle&quot;
+	 * @throws SecurityException if the
+	 *  {@code android.permission.READ_PHONE_STATE} permission is not granted to
+	 *  the app at runtime
+	 */
+	public static boolean isIdle( Context ctx )
+	throws SecurityException
+<span class="nc bnc" id="L107" title="All 2 branches missed.">	{ return( getCallState(ctx) == TelephonyManager.CALL_STATE_IDLE ) ; }</span>
+
+	/**
+	 * Indicates whether the phone is &quot;off-hook&quot; &amp;mdash; that is, waiting for a
+	 * call to complete, or fully engaged with an active call.
+	 * @param ctx the context in which to check call state
+	 * @return {@code true} if the call state is &quot;off-hook&quot;
+	 * @throws SecurityException if the
+	 *  {@code android.permission.READ_PHONE_STATE} permission is not granted to
+	 *  the app at runtime
+	 */
+	public static boolean isOffhook( Context ctx )
+	throws SecurityException
+<span class="nc bnc" id="L120" title="All 2 branches missed.">	{ return( getCallState(ctx) == TelephonyManager.CALL_STATE_OFFHOOK ) ; }</span>
+
+	/**
+	 * Indicates whether there is currently an incoming call that is causing
+	 * either a ring tone or a call waiting tone.
+	 * @param ctx the context in which to check call state
+	 * @return {@code true} if the call state is &quot;ringing&quot;
+	 * @throws SecurityException if the
+	 *  {@code android.permission.READ_PHONE_STATE} permission is not granted to
+	 *  the app at runtime
+	 */
+	public static boolean isRinging( Context ctx )
+	throws SecurityException
+<span class="nc bnc" id="L133" title="All 2 branches missed.">	{ return( getCallState(ctx) == TelephonyManager.CALL_STATE_RINGING ) ; }</span>
+
+	/**
+	 * Indicates the current call state.
+	 *
+	 * Equivalent to calling {@link TelephonyManager#getDataState} on an
+	 * existing instance of the manager.
+	 *
+	 * @param ctx the context in which to check data state
+	 * @return one of the data state indicators provided by
+	 *  {@code TelephonyManager}:
+	 *  {@link TelephonyManager#DATA_DISCONNECTED},
+	 *  {@link TelephonyManager#DATA_CONNECTING},
+	 *  {@link TelephonyManager#DATA_CONNECTED}, or
+	 *  {@link TelephonyManager#DATA_SUSPENDED}
+	 */
+	public static int getDataState( Context ctx )
+<span class="nc" id="L150">	{ return getManager(ctx).getDataState() ; }</span>
+
+	/**
+	 * Places an outbound call to the specified telephone number.
+	 *
+	 * This method &lt;b&gt;requires&lt;/b&gt; the {@code android.permission.CALL_PHONE}
+	 * permission, and will throw a {@link SecurityException} if the permission
+	 * is not granted at runtime.
+	 *
+	 * @param ctx the context in which to initiate the call
+	 * @param sNumber a telephone number
+	 * @throws SecurityException if the {@code android.permission.CALL_PHONE}
+	 *  permission is not granted to the app at runtime
+	 * @see net.zerobandwidth.android.lib.security.PermissionCheckpoint#checkPermission
+	 */
+	@SuppressWarnings( &quot;MissingPermission&quot; ) // android.permission.CALL_PHONE
+	public static void placeCall( Context ctx, String sNumber )
+	throws SecurityException
+	{
+<span class="nc" id="L169">		Intent sig = new Intent( Intent.ACTION_CALL ) ;</span>
+<span class="nc" id="L170">		sig.setData( Uri.parse( &quot;tel:&quot; + sNumber ) ) ;</span>
+<span class="nc" id="L171">		sig.addFlags( Intent.FLAG_ACTIVITY_NEW_TASK ) ;</span>
+<span class="nc" id="L172">		ctx.startActivity( sig ) ;</span>
+<span class="nc" id="L173">	}</span>
+
+/// INSTANCE API - Provides workaround access to native telephony functions. ///
+/*
+	Note: All functions from the ITelephony AIDL were indiscriminately added
+	until line 266, when time started running short for the day and I decided to
+	just cherry-pick the most interesting methods below that point. There would
+	be a lot more tedious work to add the remaining functions from that
+	interface, and many of those don't seem worthwhile because there are open
+	alternatives provided by TelephonyManager.
+*/
+
+<span class="nc" id="L185">	public static final String LOG_TAG =</span>
+<span class="nc" id="L186">		TelephonyController.class.getSimpleName() ;</span>
+
+	public static final String SERVICE_MANAGER_CLASS =
+			&quot;android.os.ServiceManager&quot; ;
+	public static final String SERVICE_MANAGER_NATIVE_CLASS =
+			&quot;android.os.ServiceManagerNative&quot; ;
+	public static final String TELEPHONY_INTERFACE =
+			&quot;com.android.internal.telephony.ITelephony&quot; ;
+
+	/**
+	 * The context in which the controller operates. Must be supplied in the
+	 * constructor, and cannot be null.
+	 */
+<span class="nc" id="L199">	protected Context m_ctx = null ;</span>
+
+	/**
+	 * A persistent reference to the Android internal service manager.
+	 */
+<span class="nc" id="L204">	protected Object m_mgrServices = null ;</span>
+
+	/**
+	 * A persistent reflection into the Android internal telephony controller.
+	 */
+<span class="nc" id="L209">	protected Class&lt;?&gt; m_clsITelephony = null ;</span>
+
+	/**
+	 * A persistent reference to the Android internal telephony controller.
+	 * Member methods in this class will consume its interface via reflection.
+	 */
+<span class="nc" id="L215">	protected Object m_mgrTelephony = null ;</span>
+
+	/**
+	 * Initializes the controller in the given context.
+	 * @param ctx the context in which the controller will operate
+	 * @throws ControllerConstructionException if any failures occur under the
+	 *  hood
+	 * @see #init()
+	 */
+	public TelephonyController( Context ctx )
+	throws ControllerConstructionException
+<span class="nc" id="L226">	{</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">		if( ctx == null ) throw new ControllerConstructionException(</span>
+				&quot;Cannot create telephony controller without a context.&quot; ) ;
+
+<span class="nc" id="L230">		m_ctx = ctx ;</span>
+
+<span class="nc" id="L232">		try { this.init() ; }</span>
+<span class="nc" id="L233">		catch( Exception x )</span>
+<span class="nc" id="L234">		{ throw new ControllerConstructionException( x ) ; }</span>
+<span class="nc" id="L235">	}</span>
+
+	/**
+	 * Initializes the member object that represents the Android telephony
+	 * controller.
+	 * @return (fluid)
+	 * @throws ClassNotFoundException if any of the various classes cannot be
+	 *  found via reflection
+	 * @throws NoSuchMethodException if any of the various methods cannot be
+	 *  found via reflection
+	 * @throws IllegalAccessException if a method invocation is forbidden
+	 * @throws InvocationTargetException if a method cannot be invoked
+	 */
+	protected TelephonyController init()
+	throws ClassNotFoundException,
+			NoSuchMethodException,
+			IllegalAccessException,
+			InvocationTargetException
+	{
+<span class="nc" id="L254">		m_clsITelephony = Class.forName(TELEPHONY_INTERFACE) ;</span>
+<span class="nc" id="L255">		Class&lt;?&gt; clsStub = m_clsITelephony.getClasses()[0] ;</span>
+<span class="nc" id="L256">		Class&lt;?&gt; clsServiceManager = Class.forName(SERVICE_MANAGER_CLASS) ;</span>
+<span class="nc" id="L257">		Class&lt;?&gt; clsServiceManagerNative =</span>
+<span class="nc" id="L258">				Class.forName(SERVICE_MANAGER_NATIVE_CLASS) ;</span>
+
+<span class="nc" id="L260">		Binder bindServiceManager = new Binder() ;</span>
+<span class="nc" id="L261">		bindServiceManager.attachInterface( null, &quot;foo&quot; ) ;</span>
+<span class="nc" id="L262">		Method mthGetService = // ServiceManager.getService( String sServiceName )</span>
+<span class="nc" id="L263">				clsServiceManager.getMethod( &quot;getService&quot;, String.class ) ;</span>
+<span class="nc" id="L264">		Method mthAsInterface = // ServiceManagerNative.asInterface( Class&lt;?&gt; clsService )</span>
+<span class="nc" id="L265">				clsServiceManagerNative.getMethod( &quot;asInterface&quot;, IBinder.class ) ;</span>
+<span class="nc" id="L266">		m_mgrServices = mthAsInterface.invoke( null, bindServiceManager ) ;</span>
+<span class="nc" id="L267">		IBinder bindTelephonyService =</span>
+<span class="nc" id="L268">				((IBinder)( mthGetService.invoke( m_mgrServices, &quot;phone&quot; ) )) ;</span>
+<span class="nc" id="L269">		Method mthGetITelephony = // ITelephony.Stub.asInterface( Class&lt;?&gt; clsBinder )</span>
+<span class="nc" id="L270">				clsStub.getMethod( &quot;asInterface&quot;, IBinder.class ) ;</span>
+
+<span class="nc" id="L272">		m_mgrTelephony = mthGetITelephony.invoke( null, bindTelephonyService ) ;</span>
+
+//		this.dumpDiscoveredMethods() ;    // Comment this out for normal builds.
+
+<span class="nc" id="L276">		return this ;</span>
+	}
+
+	/**
+	 * Used to discover the actual definition of the {@code ITelephony}
+	 * interface as visible to the current app.
+	 * @since zerobandwidth-net/android 0.0.6 (#17)
+	 */
+	@SuppressWarnings( &quot;unused&quot; )               // For diagnostic purposes only.
+	protected void dumpDiscoveredMethods()
+	{
+<span class="nc" id="L287">		Method[] amthITelephony = m_clsITelephony.getMethods() ;</span>
+<span class="nc" id="L288">		StringBuilder sb = new StringBuilder() ;</span>
+<span class="nc" id="L289">		sb.append( &quot;*** DEBUG *** Methods discovered in ITelephony:&quot; ) ;</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">		for( Method mth : amthITelephony )</span>
+<span class="nc" id="L291">			sb.append( &quot;\n&quot; ).append( mth.toString() ) ;</span>
+<span class="nc" id="L292">		Log.d( LOG_TAG, sb.toString() ) ;</span>
+<span class="nc" id="L293">	}</span>
+
+	/**
+	 * Standard method of reflectively invoking a method of the telephony
+	 * manager.
+	 * @param sMethod the name of the underlying method being invoked
+	 * @param aclsTypes an array of parameter types, corresponding to the
+	 *                  paramters given in {@code aoParams}
+	 *                  (since zerobandwidth-net/android 0.0.6 (#17))
+	 * @param aoParams any parameters that would be passed to the underlying
+	 *                method, corresponding to the types given in
+	 *                {@code aclsTypes}
+	 *                (since zerobandwidth-net/android 0.0.6 (#17))
+	 * @return the return value of the underlying method
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	protected Object invoke( String sMethod, Class&lt;?&gt;[] aclsTypes, Object[] aoParams )
+	throws ControllerInvocationException
+	{
+		try
+		{
+<span class="nc" id="L314">			return m_clsITelephony.getMethod( sMethod, aclsTypes )</span>
+<span class="nc" id="L315">						.invoke( m_mgrTelephony, aoParams ) ;</span>
+		}
+<span class="nc" id="L317">		catch( Exception x )</span>
+<span class="nc" id="L318">		{ throw new ControllerInvocationException( sMethod, x ) ; }</span>
+	}
+
+	/**
+	 * Answers an incoming call.
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public void answerRingingCall()
+	throws ControllerInvocationException
+<span class="nc" id="L327">	{ this.invoke( &quot;answerRingingCall&quot;, null, null ) ; }</span>
+
+	/**
+	 * Answers an incoming call on behalf of a subscriber.
+	 * @param id the subscriber ID
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public void answerRingingCallForSubscriber( int id )
+	{
+<span class="nc" id="L336">		this.invoke( &quot;answerRingingCallForSubscriber&quot;,</span>
+				new Class&lt;?&gt;[] { Integer.class },
+<span class="nc" id="L338">				new Integer[] { id }</span>
+			);
+<span class="nc" id="L340">	}</span>
+
+	/**
+	 * Dials the specified number and initiates an outbound call.
+	 * @param pkgCaller the code package that is requesting the call
+	 * @param sNumber the target phone number
+	 * @throws ControllerInvocationException if the invocation fails
+	 * @deprecated Use {@link #placeCall} instead.
+	 */
+	public void call( String pkgCaller, String sNumber )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L352">		this.invoke( &quot;call&quot;,</span>
+				new Class&lt;?&gt;[] { String.class, String.class },
+				new String[] { pkgCaller, sNumber }
+			);
+<span class="nc" id="L356">	}</span>
+
+	/**
+	 * Dials the specified number, but does not call it.
+	 * @param sNumber the target phone number
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public void dial( String sNumber )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L366">		this.invoke( &quot;dial&quot;,</span>
+				new Class&lt;?&gt;[] { String.class },
+				new String[] { sNumber }
+			);
+<span class="nc" id="L370">	}</span>
+
+	/**
+	 * Disables the data connection over the cell radio.
+	 * @return (undocumented) indicates success?
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean disableDataConnectivity()
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L380">		return ((boolean)</span>
+<span class="nc" id="L381">				( this.invoke( &quot;disableDataConnectivity&quot;, null, null ) )) ;</span>
+	}
+
+	/**
+	 * Enables the data connection over the cell radio.
+	 * @return (undocumented) indicates success?
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean enableDataConnectivity()
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L392">		return ((boolean)</span>
+<span class="nc" id="L393">				( this.invoke( &quot;enableDataConnectivity&quot;, null, null ) )) ;</span>
+	}
+
+	/**
+	 * Terminates a call in progress.
+	 * @return an indication of whether the call actually hung up
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean endCall()
+	throws ControllerInvocationException
+<span class="nc" id="L403">	{ return ((boolean)( this.invoke( &quot;endCall&quot;, null, null ) )) ; }</span>
+
+	/**
+	 * Terminates a call in progress on behalf of a subscriber.
+	 * @param id the subscriber ID
+	 * @return an indication of whether the call actually hung up
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean endCallForSubscriber( int id )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L414">		final Object o = this.invoke( &quot;endCallForSubscriber&quot;,</span>
+				new Class&lt;?&gt;[] { Integer.class },
+<span class="nc" id="L416">				new Integer[] { id }</span>
+			);
+<span class="nc" id="L418">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Indicates the state of the data connection.
+	 * @return (undocumented)
+	 * @throws ControllerInvocationException if the invocation fails
+	 * @deprecated Use {@link #getDataState(Context)} instead.
+	 */
+	public int getDataState()
+	throws ControllerInvocationException
+<span class="nc" id="L429">	{ return ((int)( this.invoke( &quot;getDataState&quot;, null, null ) )) ; }</span>
+
+	/**
+	 * Indicates whether the cell radio supports data connectivity.
+	 * @return duh, consult name of method
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean isDataConnectivityPossible()
+	throws ControllerInvocationException
+<span class="nc" id="L438">	{ return ((boolean)( this.invoke( &quot;isDataConnectivityPossible&quot;, null, null ) )) ; }</span>
+
+	/**
+	 * Indicates whether the phone is in &quot;idle&quot; state &amp;mdash; that is, no
+	 * outbound or inbound calls are in progress.
+	 * @param pkgCaller the code package making the inquiry
+	 * @return {@code true} if the phone state is &quot;idle&quot;
+	 * @throws ControllerInvocationException if the invocation fails
+	 * @deprecated Use {@link #getCallState} or {@link #isIdle(Context)}
+	 *  instead.
+	 */
+	public boolean isIdle( String pkgCaller )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L452">		final Object o = this.invoke( &quot;isIdle&quot;,</span>
+				new Class&lt;?&gt;[] { String.class },
+				new String[] { pkgCaller }
+			);
+<span class="nc" id="L456">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Indicates whether the phone is in &quot;idle&quot; state &amp;mdash; that is, no
+	 * outbound or inbound calls are in progress.
+	 * @param id the subscriber ID
+	 * @param pkgCaller the code package making the inquiry
+	 * @return {@code true} if the phone state is &quot;idle&quot;
+	 * @throws ControllerInvocationException if the invocation fails
+	 * @deprecated Use {@link #getCallState} or {@link #isIdle(Context)}
+	 *  instead.
+	 */
+	public boolean isIdleForSubscriber( int id, String pkgCaller )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L472">		final Object o = this.invoke( &quot;isIdleForSubscriber&quot;,</span>
+				new Class&lt;?&gt;[] { Integer.class, String.class },
+<span class="nc" id="L474">				new Object[] { id, pkgCaller }</span>
+			);
+<span class="nc" id="L476">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Indicates whether the phone is &quot;off-hook&quot; &amp;mdash; that is, waiting for a
+	 * call to complete, or fully engaged with an active call
+	 * @param pkgCaller the code package that is requesting the function
+	 * @return {@code true} if the phone state is &quot;off-hook&quot;
+	 * @throws ControllerInvocationException if the invocation fails
+	 * @deprecated Use {@link #getCallState} or {@link #isOffhook(Context)}
+	 *  instead.
+	 */
+	public boolean isOffhook( String pkgCaller )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L491">		final Object o = this.invoke( &quot;isOffhook&quot;,</span>
+				new Class&lt;?&gt;[] { String.class },
+				new String[] { pkgCaller }
+			);
+<span class="nc" id="L495">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Indicates whether the phone is &quot;off-hook&quot; &amp;mdash; that is, waiting for a
+	 * call to complete, or fully engaged with an active call
+	 * @param id the subscriber ID
+	 * @param pkgCaller the code package making the inquiry
+	 * @return {@code true} if the phone state is &quot;off-hook&quot;
+	 * @throws ControllerInvocationException if the invocation fails
+	 * @deprecated Use {@link #getCallState} or {@link #isOffhook(Context)}
+	 *  instead.
+	 */
+	public boolean isOffhookForSubscriber( int id, String pkgCaller )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L511">		final Object o = this.invoke( &quot;isOffhookForSubscriber&quot;,</span>
+				new Class&lt;?&gt;[] { Integer.class, String.class },
+<span class="nc" id="L513">				new Object[] { id, pkgCaller }</span>
+			);
+<span class="nc" id="L515">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Indicates whether the cell radio is active.
+	 * @param pkgCaller the code package making the inquiry
+	 * @return {@code true} if the cell radio is active
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean isRadioOn( String pkgCaller )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L527">		final Object o = this.invoke( &quot;isRadioOn&quot;,</span>
+				new Class&lt;?&gt;[] { String.class },
+				new String[] { pkgCaller }
+			);
+<span class="nc" id="L531">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Indicates whether the cell radio is active.
+	 * @param id the subscriber ID
+	 * @param pkgCaller the code package making the inquiry
+	 * @return {@code true} if the cell radio is active
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean isRadioOnForSubscriber( int id, String pkgCaller )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L544">		final Object o = this.invoke( &quot;isRadioOnForSubscriber&quot;,</span>
+				new Class&lt;?&gt;[] { Integer.class, String.class },
+<span class="nc" id="L546">				new Object[] { id, pkgCaller }</span>
+			);
+<span class="nc" id="L548">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Indicates whether there is currently an incoming call that is causing
+	 * either a ring tone or a call waiting tone.
+	 * @param pkgCaller the code package making the inquiry
+	 * @return {@code true} if the phone state is &quot;ringing&quot;
+	 * @throws ControllerInvocationException if the invocation fails
+	 * @deprecated Use {@link #getCallState} or {@link #isRinging(Context)}
+	 *  instead.
+	 */
+	public boolean isRinging( String pkgCaller )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L563">		final Object o = this.invoke( &quot;isRinging&quot;,</span>
+				new Class&lt;?&gt;[] { String.class },
+				new String[] { pkgCaller }
+			);
+<span class="nc" id="L567">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Indicates whether there is currently an incoming call that is causing
+	 * either a ring tone or a call waiting tone.
+	 * @param id the subscriber ID
+	 * @param pkgCaller the code package making the inquiry
+	 * @return {@code true} if the phone state is &quot;ringing&quot;
+	 * @throws ControllerInvocationException if the invocation fails
+	 * @deprecated Use {@link #getCallState} or {@link #isRinging(Context)}
+	 *  instead.
+	 */
+	public boolean isRingingForSubscriber( int id, String pkgCaller )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L583">		final Object o = this.invoke( &quot;isRingingForSubscriber&quot;,</span>
+				new Class&lt;?&gt;[] { Integer.class, String.class },
+<span class="nc" id="L585">				new Object[] { id, pkgCaller }</span>
+			);
+<span class="nc" id="L587">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Sets the cell radio on or off.
+	 * @param bEnabled {@code true} to enable; {@code false} to disable
+	 * @return (undocumented)
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean setRadio( boolean bEnabled )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L599">		final Object o = this.invoke( &quot;setRadio&quot;,</span>
+				new Class&lt;?&gt;[] { Boolean.class },
+<span class="nc" id="L601">				new Boolean[] { bEnabled }</span>
+			);
+<span class="nc" id="L603">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Silences the ringer if an incoming call is ringing. Also silences the
+	 * vibrator.
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public void silenceRinger()
+	throws ControllerInvocationException
+<span class="nc" id="L613">	{ this.invoke( &quot;silenceRinger&quot;, null, null ) ; }</span>
+
+	/**
+	 * Supply a PIN to unlock the phone's SIM card.
+	 * @param sPIN the PIN to be checked
+	 * @return indicates whether the operation succeeded
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean supplyPin( String sPIN )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L624">		final Object o = this.invoke( &quot;supplyPin&quot;,</span>
+				new Class&lt;?&gt;[] { String.class },
+				new String[] { sPIN }
+			);
+<span class="nc" id="L628">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Supply a PIN to unlock the phone's SIM card.
+	 * @param id the subscriber ID
+	 * @param sPIN the PIN to be checked
+	 * @return indicates whether the operation succeeded
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean supplyPinForSubscriber( int id, String sPIN )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L641">		final Object o = this.invoke( &quot;supplyPinForSubscriber&quot;,</span>
+				new Class&lt;?&gt;[] { Integer.class, String.class },
+<span class="nc" id="L643">				new Object[] { id, sPIN }</span>
+			);
+<span class="nc" id="L645">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Supply a PUK (Personal Unlocking Key) to unlock the SIM and set its PIN
+	 * to a new value.
+	 * @param sPUK the unlock key
+	 * @param sPIN the new PIN to set
+	 * @return indicates whether the operation succeeded
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean supplyPuk( String sPUK, String sPIN )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L659">		final Object o = this.invoke( &quot;supplyPuk&quot;,</span>
+				new Class&lt;?&gt;[] { String.class, String.class },
+				new String[] { sPUK, sPIN }
+			);
+<span class="nc" id="L663">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Supply a PUK (Personal Unlocking Key) to unlock the SIM and set its PIN
+	 * to a new value.
+	 * @param id the subscriber ID
+	 * @param sPUK the unlock key
+	 * @param sPIN the new PIN to set
+	 * @return indicates whether the operation succeeded
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public boolean supplyPukForSubscriber( int id, String sPUK, String sPIN )
+	throws ControllerInvocationException
+	{
+<span class="nc" id="L678">		final Object o = this.invoke( &quot;supplyPukForSubscriber&quot;,</span>
+				new Class&lt;?&gt;[] { Integer.class, String.class, String.class },
+<span class="nc" id="L680">				new Object[] { id, sPUK, sPIN }</span>
+			);
+<span class="nc" id="L682">		return (boolean)o ;</span>
+	}
+
+	/**
+	 * Toggles the state of the cell radio.
+	 * @throws ControllerInvocationException if the invocation fails
+	 */
+	public void toggleRadio()
+	throws ControllerInvocationException
+<span class="nc" id="L691">	{ this.invoke( &quot;toggleRadioOnOff&quot;, null, null ) ; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

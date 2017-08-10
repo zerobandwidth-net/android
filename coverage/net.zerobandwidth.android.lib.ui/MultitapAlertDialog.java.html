@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>MultitapAlertDialog.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.ui</a> &gt; <span class="el_source">MultitapAlertDialog.java</span></div><h1>MultitapAlertDialog.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.ui;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Build;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+
+import net.zerobandwidth.android.lib.R;
+import net.zerobandwidth.android.lib.app.AppUtils;
+
+/**
+ * Allows specification of a number of multiple taps before the positive button
+ * takes action.
+ *
+ * Unlike the standard {@link AlertDialog}, this class is its own builder.
+ *
+ * Special thanks to &lt;code&gt;&lt;b&gt;@dapayne1&lt;/b&gt;&lt;/code&gt; for the original inspiration.
+ *
+ * When using the Android Compatibility Library, see also
+ * {@link MultitapAlertCompatDialog}.
+ *
+ * @since zerobandwidth-net/android 0.1.1 (#21)
+ */
+@SuppressWarnings( &quot;unused&quot; )                              // This is a library.
+public class MultitapAlertDialog
+extends AlertDialog
+implements DialogInterface.OnClickListener
+{
+<span class="nc" id="L32">	public static final String LOG_TAG =</span>
+<span class="nc" id="L33">			MultitapAlertDialog.class.getSimpleName() ;</span>
+
+	/**
+	 * Specifies the default number of taps required on the positive button
+	 * before its action is executed.
+	 */
+	public static final int DEFAULT_TAPS_REQUIRED = 5 ;
+
+	/** The number of times that the positive button has been tapped so far. */
+<span class="nc" id="L42">	protected int m_nTapsCurrent = 0 ;</span>
+
+	/** The number of taps required to execute the positive button's action. */
+<span class="nc" id="L45">	protected int m_nTapsRequired = DEFAULT_TAPS_REQUIRED ;</span>
+
+	/**
+	 * The resource ID of the string which formats the positive button's label.
+	 * This defaults to a left-to-right format, but may be changed to a
+	 * right-to-left format at runtime if the context demands it.
+	 * @see R.string#label_btnMultitapPositive_LTR
+	 * @see R.string#label_btnMultitapPositive_RTL
+	 */
+<span class="nc" id="L54">	protected int m_resPositiveLabelFormat =</span>
+			R.string.label_btnMultitapPositive_LTR ;
+
+	/**
+	 * The positive button label. This will be used as the first part of the
+	 * string format.
+	 * @see #m_resPositiveLabelFormat
+	 * @see R.string#label_btnMultitapPositive_LTR
+	 * @see R.string#label_btnMultitapPositive_RTL
+	 */
+<span class="nc" id="L64">	protected String m_sPositiveLabel = null ;</span>
+
+	/** The task to be executed if the positive button is tapped sufficiently. */
+<span class="nc" id="L67">	protected Runnable m_taskPositive = null ;</span>
+
+	/** The task to be executed if the negative button is tapped. */
+<span class="nc" id="L70">	protected Runnable m_taskNegative = null ;</span>
+
+	/**
+	 * Once the dialog is constructed, this will hold a persistent reference to
+	 * the positive button itself, so that we can dynamically update its text.
+	 */
+<span class="nc" id="L76">	protected Button m_btnPositive = null ;</span>
+
+	/**
+	 * Additional constructor allowing initial setup of title and message.
+	 * @param ctx the context that will spawn the dialog
+	 * @param resTitle the resource ID of the title string
+	 * @param resMessage the resource ID of the message string
+	 */
+	public MultitapAlertDialog( Context ctx, int resTitle, int resMessage )
+	{
+<span class="nc" id="L86">		super(ctx) ;</span>
+<span class="nc" id="L87">		this.setTitle( resTitle ) ;</span>
+<span class="nc" id="L88">		this.setMessage( ctx.getString( resMessage ) ) ;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">		if( Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.JELLY_BEAN_MR1 )</span>
+		{
+<span class="nc bnc" id="L91" title="All 2 branches missed.">			m_resPositiveLabelFormat = ( AppUtils.isTextRTL(ctx) ?</span>
+					R.string.label_btnMultitapPositive_RTL :
+					R.string.label_btnMultitapPositive_LTR )
+				;
+		}
+<span class="nc" id="L96">		else m_resPositiveLabelFormat = R.string.label_btnMultitapPositive_LTR ;</span>
+<span class="nc" id="L97">	}</span>
+
+	/**
+	 * Sets the number of taps required to execute the positive action.
+	 * @param nTaps the number of taps required
+	 * @return (fluid)
+	 */
+	public MultitapAlertDialog setPositiveTapsRequired( int nTaps )
+<span class="nc" id="L105">	{ this.m_nTapsRequired = nTaps ; return this ; }</span>
+
+	/**
+	 * Add a positive button with the specified label, such that the specified
+	 * task is executed when tapped the requisite number of times.
+	 * @param resLabel the label for the button
+	 * @param task the task to be executed
+	 * @return (fluid)
+	 */
+	public MultitapAlertDialog setPositiveButton( int resLabel, Runnable task )
+	{
+<span class="nc" id="L116">		final Context ctx = this.getContext() ;</span>
+<span class="nc" id="L117">		m_taskPositive = task ;</span>
+<span class="nc" id="L118">		m_sPositiveLabel = ctx.getString( resLabel ) ;</span>
+<span class="nc" id="L119">		this.setButton( AlertDialog.BUTTON_POSITIVE, m_sPositiveLabel, this ) ;</span>
+<span class="nc" id="L120">		return this ;</span>
+	}
+
+	/**
+	 * Add a positive button which will execute the specified task when tapped
+	 * the requisite number of times.
+	 *
+	 * The Android standard &quot;OK&quot; text ({@link android.R.string#ok}) will be used
+	 * as the button label.
+	 *
+	 * @param task the task to be executed
+	 * @return (fluid)
+	 */
+	public MultitapAlertDialog setPositiveButton( Runnable task )
+<span class="nc" id="L134">	{ return this.setPositiveButton( android.R.string.ok, task ) ; }</span>
+
+	/**
+	 * Add a negative button with the specified label, such that the specified
+	 * task is executed when tapped &lt;i&gt;once&lt;/i&gt;.
+	 * @param resLabel the label for the button
+	 * @param task the task to be executed
+	 * @return (fluid)
+	 */
+	public MultitapAlertDialog setNegativeButton( int resLabel, Runnable task )
+	{
+<span class="nc" id="L145">		final Context ctx = this.getContext() ;</span>
+<span class="nc" id="L146">		m_taskNegative = task ;</span>
+<span class="nc" id="L147">		final String sNegativeLabel = ctx.getString( resLabel ) ;</span>
+<span class="nc" id="L148">		this.setButton( AlertDialog.BUTTON_NEGATIVE, sNegativeLabel, this ) ;</span>
+<span class="nc" id="L149">		return this ;</span>
+	}
+
+	/**
+	 * Add a negative button which will execute the specified task when tapped
+	 * &lt;i&gt;once&lt;/i&gt;.
+	 *
+	 * The Android standard &quot;Cancel&quot; ({@link android.R.string#cancel}) will be
+	 * used as the button label.
+	 *
+	 * @param task the task to be executed
+	 * @return (fluid)
+	 */
+	public MultitapAlertDialog setNegativeButton( Runnable task )
+<span class="nc" id="L163">	{ return this.setNegativeButton( android.R.string.cancel, task ) ; }</span>
+
+	/**
+	 * Sets up a standard &quot;OK&quot; positive button and a standard &quot;Cancel&quot; negative
+	 * button, using the specified tasks.
+	 * @param taskPositive the task to be executed if the positive button is
+	 *                     tapped the requisite number of times
+	 * @param taskNegative the task to be executed if the negative button is
+	 *                     tapped &lt;i&gt;once&lt;/i&gt;
+	 * @return (fluid)
+	 */
+	public MultitapAlertDialog setStandardButtons( Runnable taskPositive, Runnable taskNegative )
+	{
+<span class="nc" id="L176">		return this.setPositiveButton( taskPositive )</span>
+<span class="nc" id="L177">		           .setNegativeButton( taskNegative )</span>
+				;
+	}
+
+	/**
+	 * Regenerates the label of the positive button, showing the difference
+	 * between the number of taps required and the number of taps already
+	 * intercepted.
+	 * @return the positive button label
+	 */
+	protected MultitapAlertDialog regeneratePositiveLabel()
+	{
+<span class="nc" id="L189">		final int nTapsRemaining = m_nTapsRequired - m_nTapsCurrent ;</span>
+<span class="nc" id="L190">		final String sLabel = this.getContext().getString(</span>
+				m_resPositiveLabelFormat,
+<span class="nc" id="L192">				m_sPositiveLabel, Integer.toString( nTapsRemaining )</span>
+			);
+<span class="nc" id="L194">		m_btnPositive.setText( sLabel ) ;</span>
+
+<span class="nc" id="L196">		return this ;</span>
+	}
+
+	@Override
+	public void onClick( DialogInterface dia, int zButtonID )
+	{
+<span class="nc bnc" id="L202" title="All 2 branches missed.">		switch( zButtonID )</span>
+		{
+			case AlertDialog.BUTTON_POSITIVE:
+			{
+<span class="nc" id="L206">				Log.d( LOG_TAG, &quot;Dismissing after positive press.&quot; ) ;</span>
+<span class="nc" id="L207">				this.dismiss() ;</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">				if( m_taskPositive != null ) m_taskPositive.run() ;</span>
+			} break ;
+			case AlertDialog.BUTTON_NEGATIVE:
+			default:
+			{
+<span class="nc" id="L213">				Log.d( LOG_TAG, (new StringBuilder())</span>
+<span class="nc" id="L214">						.append( &quot;Clicked the negative button with &quot; )</span>
+<span class="nc" id="L215">						.append( m_nTapsCurrent )</span>
+<span class="nc" id="L216">						.append( &quot; prior taps.&quot; )</span>
+<span class="nc" id="L217">						.toString()</span>
+					);
+<span class="nc" id="L219">				this.dismiss() ;</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">				if( m_taskNegative != null ) m_taskNegative.run() ;</span>
+			}
+		}
+<span class="nc" id="L223">	}</span>
+
+	@Override
+	public void show()
+	{
+<span class="nc" id="L228">		super.show() ;</span>
+<span class="nc" id="L229">		m_nTapsCurrent = 0 ; // Just in case a value weirdly persisted.</span>
+<span class="nc" id="L230">		m_btnPositive = this.getButton( AlertDialog.BUTTON_POSITIVE ) ;</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">		if( m_btnPositive != null )</span>
+		{ // Override the dialog's click listener with our own.
+<span class="nc" id="L233">			this.regeneratePositiveLabel() ;</span>
+<span class="nc" id="L234">			m_btnPositive.setOnClickListener( new Button.OnClickListener()</span>
+<span class="nc" id="L235">			{</span>
+<span class="nc" id="L236">				protected final MultitapAlertDialog m_dia =</span>
+						MultitapAlertDialog.this ;
+
+				@Override
+				public void onClick( View w )
+				{
+<span class="nc bnc" id="L242" title="All 2 branches missed.">					if( ++(m_dia.m_nTapsCurrent) &gt;= m_dia.m_nTapsRequired )</span>
+<span class="nc" id="L243">						m_dia.onClick( m_dia, AlertDialog.BUTTON_POSITIVE ) ;</span>
+					else
+<span class="nc" id="L245">						m_dia.regeneratePositiveLabel() ;</span>
+<span class="nc" id="L246">				}</span>
+			});
+		}
+<span class="nc" id="L249">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>
