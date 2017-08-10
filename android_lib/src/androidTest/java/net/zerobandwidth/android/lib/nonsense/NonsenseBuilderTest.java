@@ -40,7 +40,7 @@ public class NonsenseBuilderTest
 
 	/**
 	 * Exercises the context-only constructor, verifying that the context
-	 * supplied in {@link #setUp)} is the same one reported by the builder.
+	 * supplied in {@link #setUp} is the same one reported by the builder.
 	 *
 	 * Since this constructor invokes {@link NonsenseBuilder#setContext}, there
 	 * is no need to separately test that method.

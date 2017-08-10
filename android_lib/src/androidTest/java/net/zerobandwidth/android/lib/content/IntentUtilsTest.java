@@ -36,7 +36,7 @@ public class IntentUtilsTest
 		assertEquals( Activity.class.getName(), sig.getComponent().getClassName() ) ;
 	}
 
-	/** Exercises {@link IntentUtils#getBoundIntent(Context,Class,String) */
+	/** Exercises {@link IntentUtils#getBoundIntent(Context,Class,String)} */
 	@Test
 	public void testGetBoundIntentWithAction()
 	{
