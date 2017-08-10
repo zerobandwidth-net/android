@@ -1268,6 +1268,7 @@ extends SQLitePortal
 							.append( "]:" )
 							.toString()
 						, SchematicException.columnNotFound(
+							qctx.clsTable.getSimpleName(),
 							fld.getName(), qctx.sTableName, null )
 					);
 				continue ;
@@ -1288,6 +1289,7 @@ extends SQLitePortal
 			catch( IllegalStateException xState )
 			{
 				throw SchematicException.columnNotFound(
+						qctx.clsTable.getSimpleName(),
 						fld.getName(), qctx.sTableName, xState ) ;
 			}
 		}
