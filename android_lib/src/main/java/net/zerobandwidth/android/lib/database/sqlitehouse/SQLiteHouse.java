@@ -553,6 +553,8 @@ extends SQLitePortal
 					.append( sSoughtName )
 					.append( "] in table [" )
 					.append( this.sTableName )
+					.append( "] defined by class [" )
+					.append( this.clsTable.getCanonicalName() )
 					.append( "]; CLEARING loaded column data." )
 					.toString()
 				);
