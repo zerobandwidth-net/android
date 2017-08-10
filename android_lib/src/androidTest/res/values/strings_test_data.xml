@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="sMultitapAlertDialogTitle">Test Dialog</string>
+    <string name="sMultitapAlertDialogMessage">This is a test dialog.</string>
+    <string name="sMultitapAlertConfirmButton">Yep</string>
+    <string name="sMultitapAlertCancelButton">Nope</string>
+
+</resources>

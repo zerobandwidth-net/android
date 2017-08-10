@@ -3,6 +3,7 @@ package net.zerobandwidth.android.lib.app;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.support.v4.text.TextUtilsCompat;
 import android.support.v4.view.ViewCompat;
@@ -12,6 +13,8 @@ import android.util.Log;
 import android.view.View;
 
 import net.zerobandwidth.android.lib.R;
+
+import java.util.Locale;
 
 /**
  * Provides utilities for dealing with common Android app tasks.
@@ -159,9 +162,23 @@ public class AppUtils
      */
     public static boolean isTextCompatRTL( Context ctx )
     {
-        return TextUtilsCompat.getLayoutDirectionFromLocale(
-                ctx.getResources().getConfiguration().locale )
-                    != ViewCompat.LAYOUT_DIRECTION_LTR ;
+        Configuration cfg = ctx.getResources().getConfiguration() ;
+
+        if( Build.VERSION.SDK_INT < 17 )
+            return legacyIsTextRTL(cfg) ;
+
+        Locale loc ;
+        if( Build.VERSION.SDK_INT < 24 )
+        { // The `locale` property was deprecated in API 24.
+            //noinspection deprecation
+            loc = cfg.locale ;
+        }
+        else
+            loc = cfg.getLocales().get(0) ;
+
+        int nLayoutDirection =
+                TextUtilsCompat.getLayoutDirectionFromLocale(loc) ;
+        return ( nLayoutDirection != ViewCompat.LAYOUT_DIRECTION_LTR ) ;
     }
 
 	/**
@@ -174,11 +191,41 @@ public class AppUtils
      * @see <a href="http://stackoverflow.com/a/23203698">Stack Overflow answer #23203698</a>
      * @since zerobandwidth-net/android 0.0.2 (#8)
      */
-    @android.support.annotation.RequiresApi( api = Build.VERSION_CODES.JELLY_BEAN_MR1 )
     public static boolean isTextRTL( Context ctx )
     {
-        return TextUtils.getLayoutDirectionFromLocale(
-                ctx.getResources().getConfiguration().locale )
-                    != View.LAYOUT_DIRECTION_LTR ;
+        Configuration cfg = ctx.getResources().getConfiguration() ;
+
+        if( Build.VERSION.SDK_INT < 17 )
+            return legacyIsTextRTL(cfg) ;
+
+        Locale loc ;
+        if( Build.VERSION.SDK_INT < 24 )
+        { // The `locale` property was deprecated in API 24.
+            //noinspection deprecation
+            loc = cfg.locale ;
+        }
+        else
+            loc = cfg.getLocales().get(0) ;
+
+        int nLayoutDirection = TextUtils.getLayoutDirectionFromLocale(loc) ;
+        return ( nLayoutDirection != View.LAYOUT_DIRECTION_LTR ) ;
+    }
+
+    /**
+     * (prior to API 17) Determines whether the current text layout is
+     * right-to-left.
+     * Consumed by {@link #isTextRTL} and {@link #isTextCompatRTL}.
+     * @param cfg the current context's configuration
+     * @return {@code true} if text layout is right-to-left
+     * @see <a href="http://stackoverflow.com/a/23203698">Stack Overflow answer #23203698</a>
+     * @since zerobandwidth-net/android 0.1.5 (#32)
+     */
+    @SuppressWarnings( "deprecation" ) // locale was not dep'd until API 24
+    protected static boolean legacyIsTextRTL( Configuration cfg )
+    {
+        int nDir = Character.getDirectionality(
+                cfg.locale.getDisplayName().charAt(0) ) ;
+        return( nDir == Character.DIRECTIONALITY_RIGHT_TO_LEFT
+             || nDir == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC ) ;
     }
 }

@@ -40,7 +40,7 @@ public class NonsenseBuilderTest
 
 	/**
 	 * Exercises the context-only constructor, verifying that the context
-	 * supplied in {@link #setUp)} is the same one reported by the builder.
+	 * supplied in {@link #setUp} is the same one reported by the builder.
 	 *
 	 * Since this constructor invokes {@link NonsenseBuilder#setContext}, there
 	 * is no need to separately test that method.
@@ -78,6 +78,7 @@ public class NonsenseBuilderTest
 	/**
 	 * Exercises the locking methods for each of the sentence segments.
 	 */
+	@Test
 	public void testLockingMethods()
 	{
 		m_xyzzy.setSubject( "the fox" )
@@ -103,6 +104,7 @@ public class NonsenseBuilderTest
 	 * generated, which, in Android Studio, is far more troublesome than you'd
 	 * think.
 	 */
+	@Test
 	public void testRandomOutputs()
 	{
 		final int ITERATIONS = 25 ;

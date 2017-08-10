@@ -36,7 +36,7 @@ public class PreferencePortalTest
 		m_prefs = PreferenceManager.getDefaultSharedPreferences(m_ctx) ;
 	}
 
-	/** Exercises {@link PreferencePortal#getStringifiedInt(SharedPreferences,String,int) */
+	/** Exercises {@link PreferencePortal#getStringifiedInt(SharedPreferences,String,int)} */
 	@SuppressLint("ApplySharedPref")
 	@Test
 	public void testStaticGetStringifiedInt()

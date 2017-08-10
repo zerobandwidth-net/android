@@ -383,14 +383,14 @@ implements NonsenseGenerator
 			  .append( sSubject.substring(1) )
 			  ;
 		}
-		else if( hasArticle( sSubject ) )
+		else if( Utils.startsWithArticle( sSubject ) )
 		{ // Split the article from the subject string and insert the adjective.
 			String[] asTokens = sSubject.split( " ", 2 ) ;
 			switch( asTokens[0] )
 			{
 				case "a":
 				case "an":
-					sb.append( whichIndefiniteArticle( sAdj, true ) )
+					sb.append( Utils.whichIndefiniteArticle( sAdj, true ) )
 					  .append( ' ' )
 					  ;
 					break ;
@@ -475,14 +475,14 @@ implements NonsenseGenerator
 
 		if( sAdj == null )
 			sb.append( sObject ) ;
-		else if( hasArticle( sObject ) )
+		else if( Utils.startsWithArticle( sObject ) )
 		{
 			String[] asTokens = sObject.split( " ", 2 ) ;
 			switch( asTokens[0] )
 			{
 				case "a":
 				case "an":
-					sb.append( whichIndefiniteArticle( sAdj, false ) )
+					sb.append( Utils.whichIndefiniteArticle( sAdj, false ) )
 					  .append( ' ' )
 					  ;
 					break ;
@@ -522,43 +522,4 @@ implements NonsenseGenerator
 		return asStrings[nIndex] ;
 	}
 
-	/**
-	 * Given a string, indicates whether that string begins with an article,
-	 * which must be split from the front of the subject/object string to insert
-	 * an adjective
-	 * @param sNoun the subject or object resource which might begin with an
-	 *              article
-	 * @return true iff the string resource begins with an article
-	 */
-	protected static boolean hasArticle( String sNoun )
-	{
-		return( sNoun.startsWith( "a " )
-		     || sNoun.startsWith( "an " )
-		     || sNoun.startsWith( "the " )
-		    );
-	}
-
-	/**
-	 * Used to re-evaluate which indefinite article should be appended to the
-	 * sentence, given a new "next word" which must be inserted.
-	 * @param sNextWord the new "next word" in the sentence, which wasn't the
-	 *                  noun we thought we were going to get
-	 * @param bCapitalize indicates whether the article should be capitalized
-	 * @return "a" or "an"
-	 */
-	protected static String whichIndefiniteArticle( String sNextWord, boolean bCapitalize )
-	{
-		final String sLowered = sNextWord.toLowerCase() ;
-		if( sNextWord.startsWith( "a" )
-		 || sNextWord.startsWith( "e" )
-		 || sNextWord.startsWith( "i" )
-		 || sNextWord.startsWith( "o" )
-		 || sNextWord.startsWith( "u" )
-		  )
-		{
-			return ( bCapitalize ? "An" : "an" ) ;
-		}
-		else
-			return ( bCapitalize ? "A" : "a" ) ;
-	}
 }

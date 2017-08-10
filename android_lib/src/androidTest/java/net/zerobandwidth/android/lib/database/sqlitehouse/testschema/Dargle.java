@@ -2,6 +2,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.testschema;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
@@ -19,6 +20,13 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTabl
 public class Dargle
 implements SQLightable
 {
+	/**
+	 * Contains the auto-incremented ID of the row.
+	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 */
+	@SQLiteColumn( name = SQLiteHouse.MAGIC_ID_COLUMN_NAME, index = 0 )
+	protected long m_nRowID = -1 ;
+
 	/**
 	 * Should be discovered as column {@code dargle_string} of type {@code TEXT}
 	 * and default value {@code "dargle"}.
@@ -40,6 +48,9 @@ implements SQLightable
 	 */
 	protected int m_zIgnoreThisField = -1 ;
 
+	/** @since zerobandwidth-net/android 0.1.5 (#43) */
+	public Dargle() {}
+
 	/**
 	 * Fully initializes an instance.
 	 * @param s a string
@@ -54,11 +65,27 @@ implements SQLightable
 	}
 
 	/**
+	 * Accessor for the auto-incremented row ID, if set.
+	 * @return the table row ID
+	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 */
+	public long getRowID()
+	{ return m_nRowID ; }
+
+	/**
 	 * Accesses the string.
 	 * @return the string member
 	 */
 	public String getString()
 	{ return m_sString ; }
+
+	/**
+	 * Accesses the Boolean member.
+	 * @return the Boolean member
+	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 */
+	public boolean isDargly()
+	{ return m_bBoolean ; }
 
 	/**
 	 * Toggles the Boolean member.

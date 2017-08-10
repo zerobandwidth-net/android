@@ -14,6 +14,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+
 import static junit.framework.Assert.* ;
 
 import static net.zerobandwidth.android.lib.database.MinimalUnitTestDBPortal.TEST_TABLE_NAME ;
@@ -364,20 +366,44 @@ public class QueryBuilderTest
 			QueryBuilder.insertInto( TEST_TABLE_NAME )
 		            .setValues( vals ).executeOn( m_db ) ;
 		}
-		SelectionBuilder bldr = QueryBuilder.selectFrom( TEST_TABLE_NAME )
-				.distinct()
-				.columns( "id", "a_string_field", "a_int_field" )
-				.where( "a_boolint_field=1" )
-				.groupBy( "id" )
-				.orderBy( "id", SelectionBuilder.ORDER_ASC )
-				;
-		assertEquals( "SELECT id, a_string_field, a_int_field FROM unittestdata WHERE a_boolint_field=1 GROUP BY id ORDER BY id ASC ;",
-				bldr.toString() ) ;
+
+		// Normally, all these calls to methods of "bldr" would be fluidly
+		// chained together, but here we want to poke each one in turn.
+
+		SelectionBuilder bldr = QueryBuilder.selectFrom( TEST_TABLE_NAME ) ;
+
+		bldr.distinct() ;
 		assertTrue( bldr.m_bDistinct ) ;
+
+		bldr.columns( "id", "a_string_field", "a_int_field" ) ;
+		assertEquals( 3, bldr.m_vColumns.size() ) ;
+		assertTrue( bldr.m_vColumns.contains( "id" ) ) ;
+		assertTrue( bldr.m_vColumns.contains( "a_string_field" ) ) ;
+		assertTrue( bldr.m_vColumns.contains( "a_int_field" ) ) ;
+
+		ArrayList<String> asCols = new ArrayList<>() ;
+		asCols.add( "id" ) ;
+		asCols.add( "a_string_field" ) ;
+		asCols.add( "a_int_field" ) ;
+		bldr.columns( asCols ) ;
+		assertEquals( 3, bldr.m_vColumns.size() ) ;
+		assertTrue( bldr.m_vColumns.contains( "id" ) ) ;
+		assertTrue( bldr.m_vColumns.contains( "a_string_field" ) ) ;
+		assertTrue( bldr.m_vColumns.contains( "a_int_field" ) ) ;
+
+		bldr.where( "a_boolint_field=1" ) ;
 		assertEquals( "a_boolint_field=1", bldr.getWhereFormat() ) ;
 		assertEquals( null, bldr.getWhereParams() ) ;
+
+		bldr.groupBy( "id" ) ;
 		assertEquals( "id", bldr.m_sGroupBy ) ;
+		bldr.orderBy( "id", SelectionBuilder.ORDER_ASC ) ;
 		assertEquals( SelectionBuilder.ORDER_ASC, bldr.m_mapOrderBy.get("id") ) ;
+
+		// Final check of the whole SQL statement:
+		assertEquals( "SELECT id, a_string_field, a_int_field FROM unittestdata WHERE a_boolint_field=1 GROUP BY id ORDER BY id ASC ;",
+				bldr.toString() ) ;
+
 		Cursor crs = bldr.executeOn( m_db ) ;
 		assertNotNull( crs ) ;
 		if( crs.moveToFirst() )
