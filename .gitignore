@@ -1,1 +1,5 @@
 *.swp
+
+# Local renders of the site
+Gemfile.lock
+_site/
