@@ -238,7 +238,7 @@ extends SQLitePortal
 	 *
 	 * <h3>Usage</h3>
 	 *
-	 * <p>Given a {@code Context ctx} and {@code SQLiteDatbase.CursorFactory cf}
+	 * <p>Given a {@code Context ctx} and {@code SQLiteDatabase.CursorFactory cf}
 	 * (which may be null):</p>
 	 *
 	 * <pre>
@@ -287,7 +287,7 @@ extends SQLitePortal
 		protected SQLiteDatabase.CursorFactory m_cf = null ;
 
 		/**
-		 * The current schema version of the databsae. The factory will glean
+		 * The current schema version of the database. The factory will glean
 		 * this from the {@link SQLiteDatabaseSpec} annotation of the class that
 		 * is passed into the {@link #getInstance} method.
 		 *
@@ -553,6 +553,8 @@ extends SQLitePortal
 					.append( sSoughtName )
 					.append( "] in table [" )
 					.append( this.sTableName )
+					.append( "] defined by class [" )
+					.append( this.clsTable.getCanonicalName() )
 					.append( "]; CLEARING loaded column data." )
 					.toString()
 				);
@@ -603,7 +605,10 @@ extends SQLitePortal
 			catch( IllegalAccessException xAccess )
 			{
 				throw SchematicException.fieldWasInaccessible(
-						this.fldColumn.getName(), xAccess ) ;
+						this.clsTable.getSimpleName(),
+						this.fldColumn.getName(),
+						xAccess
+					);
 			}
 
 			return this ;
@@ -1257,6 +1262,19 @@ extends SQLitePortal
 		for( Field fld : afldResult )
 		{
 			qctx.loadColumnDef(fld) ;
+			if( qctx.fldColumn == null )
+			{ // The field/column mapping is broken.
+				Log.e( LOG_TAG, (new StringBuilder())
+							.append( "Skipping column [" )
+							.append( fld.getName() )
+							.append( "]:" )
+							.toString()
+						, SchematicException.columnNotFound(
+							qctx.clsTable.getSimpleName(),
+							fld.getName(), qctx.sTableName, null )
+					);
+				continue ;
+			}
 			try
 			{
 				fld.set( oResult,
@@ -1265,7 +1283,16 @@ extends SQLitePortal
 			catch( IllegalAccessException xAccess )
 			{
 				throw SchematicException.fieldWasInaccessible(
-						qctx.fldColumn.getName(), xAccess ) ;
+						qctx.clsTable.getSimpleName(),
+						qctx.fldColumn.getName(),
+						xAccess
+					);
+			}
+			catch( IllegalStateException xState )
+			{
+				throw SchematicException.columnNotFound(
+						qctx.clsTable.getSimpleName(),
+						fld.getName(), qctx.sTableName, xState ) ;
 			}
 		}
 
@@ -1278,13 +1305,16 @@ extends SQLitePortal
 	 * directly by functions that expect the specific schematic class type.
 	 * @param qctx the context of the selection query
 	 * @param crs the cursor currently pointing at a data row
-	 * @param cls the schematic class
+	 * @param cls the schematic class, ignored because the subordinate method
+	 *            already accounts for it; this is purely to help the Java VM
+	 *            and compiler figure themselves out
 	 * @param <T> the schematic class
 	 * @return an instance of the class, containing the cursor's current row
 	 * @throws SchematicException if the data class instance cannot be
 	 *  constructed for some reason
 	 * @since zerobandwidth-net/android 0.1.5 (#43)
 	 */
+	@SuppressWarnings( "UnusedParameters" ) // see note above
 	public <T extends SQLightable> T fromCursor(
 			QueryContext<DSC> qctx, Cursor crs, Class<T> cls )
 	throws SchematicException
@@ -1345,9 +1375,9 @@ extends SQLitePortal
 	{ return new QueryContext<>( (DSC)this ) ; }
 
 	/**
-	 * Creates a query context bound to this database helper, and preloads the
+	 * Creates a query context bound to this database helper, and pre-loads the
 	 * information for a specified table.
-	 * @param clsTable the schematic table to be preloaded
+	 * @param clsTable the schematic table to be pre-loaded
 	 * @return a context object
 	 */
 	public QueryContext<DSC> getQueryContext( Class<? extends SQLightable> clsTable )
@@ -1424,7 +1454,10 @@ extends SQLitePortal
 			catch( IllegalAccessException xAccess )
 			{
 				throw SchematicException.fieldWasInaccessible(
-						fld.getName(), xAccess ) ;
+						qctx.clsTable.getSimpleName(),
+						fld.getName(),
+						xAccess
+					);
 			}
 			catch( SchematicException xSchema )
 			{
