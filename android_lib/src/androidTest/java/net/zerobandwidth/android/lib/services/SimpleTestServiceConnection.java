@@ -52,7 +52,6 @@ extends SimpleServiceConnection<S>
         }
         int i = 0 ;
         IBinder binder = null ;
-        //noinspection StatementWithEmptyBody
         while( binder == null && i++ < MAX_CONNECTION_RETRIES )
         {
             Intent sig = new Intent(

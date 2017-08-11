@@ -677,8 +677,6 @@ public class SQLiteHouseTest
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
 				ValidSpecClass.class, getTestContext(), null ) ;
-		SQLiteHouse.QueryContext<ValidSpecClass> qctx =
-				dbh.getQueryContext( Fargle.class ) ;
 		Cursor crs = null ;
 		List<Fargle> aInputs = new ArrayList<>() ;
 		List<Fargle> aResults = null ;

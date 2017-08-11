@@ -220,7 +220,7 @@ public class AppUtils
      * @see <a href="http://stackoverflow.com/a/23203698">Stack Overflow answer #23203698</a>
      * @since zerobandwidth-net/android 0.1.5 (#32)
      */
-    @SuppressWarnings( "deprecation" ) // locale was not dep'd until API 24
+    @SuppressWarnings( "deprecation" ) // locale deprecated only after API 24
     protected static boolean legacyIsTextRTL( Configuration cfg )
     {
         int nDir = Character.getDirectionality(

@@ -38,7 +38,7 @@ public class QueryBuilderTest
 	/** Persistent handle on the test DB portal. */
 	private MinimalUnitTestDBPortal m_dbh ;
 
-	/** Persistent handle on the databse under the portal. */
+	/** Persistent handle on the database under the portal. */
 	private SQLiteDatabase m_db ;
 
 	/** Creates the database portal for each test. */

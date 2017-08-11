@@ -238,7 +238,7 @@ extends SQLitePortal
 	 *
 	 * <h3>Usage</h3>
 	 *
-	 * <p>Given a {@code Context ctx} and {@code SQLiteDatbase.CursorFactory cf}
+	 * <p>Given a {@code Context ctx} and {@code SQLiteDatabase.CursorFactory cf}
 	 * (which may be null):</p>
 	 *
 	 * <pre>
@@ -287,7 +287,7 @@ extends SQLitePortal
 		protected SQLiteDatabase.CursorFactory m_cf = null ;
 
 		/**
-		 * The current schema version of the databsae. The factory will glean
+		 * The current schema version of the database. The factory will glean
 		 * this from the {@link SQLiteDatabaseSpec} annotation of the class that
 		 * is passed into the {@link #getInstance} method.
 		 *
@@ -1375,9 +1375,9 @@ extends SQLitePortal
 	{ return new QueryContext<>( (DSC)this ) ; }
 
 	/**
-	 * Creates a query context bound to this database helper, and preloads the
+	 * Creates a query context bound to this database helper, and pre-loads the
 	 * information for a specified table.
-	 * @param clsTable the schematic table to be preloaded
+	 * @param clsTable the schematic table to be pre-loaded
 	 * @return a context object
 	 */
 	public QueryContext<DSC> getQueryContext( Class<? extends SQLightable> clsTable )
