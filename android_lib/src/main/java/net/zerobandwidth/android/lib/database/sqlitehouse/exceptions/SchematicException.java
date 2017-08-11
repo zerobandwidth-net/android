@@ -15,8 +15,8 @@ extends RuntimeException
 	 * Returns a new exception that notes a condition that can't happen: namely,
 	 * that a field we had previously made accessible wasn't accessible when
 	 * subsequently accessed.
-	 * @param sClassName the name of the schematic class
-	 * @param sFieldName the name of the field
+	 * @param sClassName the name of the schematic class (since 0.1.6 #47)
+	 * @param sFieldName the name of the field (since 0.1.6 #47)
 	 * @param xAccess the exception
 	 * @return a new exception with an appropriate message.
 	 */
@@ -42,6 +42,7 @@ extends RuntimeException
 	 * @param sTableName the table in which the column was expected
 	 * @param x root-cause exception, if any
 	 * @return a new exception with an informative message
+	 * @since zerobandwidth-net/android 0.1.6 (#47)
 	 */
 	public static SchematicException columnNotFound(
 			String sClassName, String sFieldName, String sTableName, Exception x )
