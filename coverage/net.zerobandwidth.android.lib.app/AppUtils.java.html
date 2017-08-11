@@ -220,7 +220,7 @@ import java.util.Locale;
      * @see &lt;a href=&quot;http://stackoverflow.com/a/23203698&quot;&gt;Stack Overflow answer #23203698&lt;/a&gt;
      * @since zerobandwidth-net/android 0.1.5 (#32)
      */
-    @SuppressWarnings( &quot;deprecation&quot; ) // locale was not dep'd until API 24
+    @SuppressWarnings( &quot;deprecation&quot; ) // locale deprecated only after API 24
     protected static boolean legacyIsTextRTL( Configuration cfg )
     {
 <span class="nc" id="L226">        int nDir = Character.getDirectionality(</span>
