@@ -49,6 +49,7 @@ implements SQLightable
 	protected int m_zIgnoreThisField = -1 ;
 
 	/** @since zerobandwidth-net/android 0.1.5 (#43) */
+	@SuppressWarnings( "unused" ) // Invoked implicitly by reflection.
 	public Dargle() {}
 
 	/**
