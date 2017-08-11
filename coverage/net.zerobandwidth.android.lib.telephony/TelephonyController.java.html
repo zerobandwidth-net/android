@@ -297,7 +297,7 @@ public class TelephonyController
 	 * manager.
 	 * @param sMethod the name of the underlying method being invoked
 	 * @param aclsTypes an array of parameter types, corresponding to the
-	 *                  paramters given in {@code aoParams}
+	 *                  parameters given in {@code aoParams}
 	 *                  (since zerobandwidth-net/android 0.0.6 (#17))
 	 * @param aoParams any parameters that would be passed to the underlying
 	 *                method, corresponding to the types given in

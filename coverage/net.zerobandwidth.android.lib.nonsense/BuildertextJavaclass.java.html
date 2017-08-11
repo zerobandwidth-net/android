@@ -7,7 +7,7 @@ import net.zerobandwidth.android.lib.R;
 import java.util.Random;
 
 /**
- * Makes up silly soundalikes for a certain successful actor whose name is
+ * Makes up silly sound-alikes for a certain successful actor whose name is
  * apparently amusing to some people. Who can tell what will capture the fickle
  * imagination of the Internet?
  *
