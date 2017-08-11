@@ -1,0 +1,3 @@
+# Allow the report to be rendered properly on GitHub Pages.
+# https://stackoverflow.com/a/27880238
+include: ['.resources', '.sessions.html']
