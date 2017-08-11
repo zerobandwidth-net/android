@@ -50,7 +50,6 @@ public class SQLiteAssetPortalTest
 		m_ctx = InstrumentationRegistry.getContext() ;
 		Log.d( LOG_TAG, "Calling test DB constructor..." ) ;
 		SQLiteAssetPortal dbh = new SQLiteAssetTestDB( m_ctx, 1 ) ;
-		Cursor crs = null ;
 		try
 		{
 			Log.i( LOG_TAG, "Phase 1: Open version 1..." ) ;

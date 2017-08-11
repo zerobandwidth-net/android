@@ -183,7 +183,7 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	/**
 	 * Kicks off construction of a {@code DELETE} query, bound to a specific
 	 * database instance.
-	 * @param db the databse on which the query should be executed
+	 * @param db the database on which the query should be executed
 	 * @param sTableName the name of the table from which rows will be deleted
 	 * @return an instance of a builder that can handle deletion queries
 	 * @since zerobandwidth-net/android 0.1.4 (#37)

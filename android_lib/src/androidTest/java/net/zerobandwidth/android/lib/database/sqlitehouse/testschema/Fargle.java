@@ -43,6 +43,7 @@ implements SQLightable
 	@SQLiteColumn( name = "fargle_num", sql_default = "42" )
 	protected int m_zInteger = 42 ;
 
+	@SuppressWarnings( "unused" ) // Invoked implicitly by reflection.
 	public Fargle() {}
 
 	/**
