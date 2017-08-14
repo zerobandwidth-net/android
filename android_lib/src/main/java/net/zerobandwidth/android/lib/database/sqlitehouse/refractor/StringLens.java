@@ -3,7 +3,9 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Marshals strings.
@@ -15,7 +17,7 @@ implements Refractor<String>
 {
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_TEXT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_TEXT ; }
 
 	/**
 	 * Defines the non-null default string value as an empty string.
@@ -27,10 +29,7 @@ implements Refractor<String>
 
 	@Override
 	public String toSQLiteString( String o )
-	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
-				String.format( "'%s'", o ) ) ;
-	}
+	{ return ( o == null ? SQLITE_NULL : String.format( "'%s'", o ) ) ; }
 
 	@Override
 	public Refractor<String> addToContentValues( ContentValues vals, String sKey, String val )

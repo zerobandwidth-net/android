@@ -3,6 +3,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 
 import java.lang.reflect.Field;
@@ -17,7 +18,7 @@ implements Refractor<Short>
 {
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_INT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_INT ; }
 
 	/**
 	 * Defines the default value as zero.

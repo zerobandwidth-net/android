@@ -3,9 +3,11 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import java.util.Calendar;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Marshals {@link Calendar} objects.
@@ -38,7 +40,7 @@ implements Refractor<C>
 	 */
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_INT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_INT ; }
 
 	/**
 	 * When a date cannot be null, this class provides a default value at the
@@ -57,7 +59,7 @@ implements Refractor<C>
 	@Override
 	public String toSQLiteString( C o )
 	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
+		return ( o == null ? SQLITE_NULL :
 				Long.toString( o.getTimeInMillis() ) ) ;
 	}
 

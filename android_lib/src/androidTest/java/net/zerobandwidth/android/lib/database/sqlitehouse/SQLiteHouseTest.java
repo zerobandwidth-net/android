@@ -40,6 +40,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_INT;
 
 /**
  * Exercises {@link SQLiteHouse}.
@@ -100,13 +101,13 @@ public class SQLiteHouseTest
 	 * Shorthand to provide a valid context for the unit test.
 	 * @return a usable context
 	 */
-	protected static Context getTestContext()
+	public static Context getTestContext()
 	{ return InstrumentationRegistry.getTargetContext() ; }
 
 	/**
 	 * Milliseconds until we give up on a connection to a database.
 	 */
-	protected static final int CONNECTION_TIMEOUT = 1000 ;
+	public static final int CONNECTION_TIMEOUT = 1000 ;
 
 	/**
 	 * Shorthand for obtaining a connection to a test database.
@@ -115,7 +116,7 @@ public class SQLiteHouseTest
 	 * @return an instance of the test class
 	 * @throws Exception if anything goes wrong while connecting
 	 */
-	protected static <DBH extends SQLiteHouse> DBH connectTo( DBH dbh )
+	public static <DBH extends SQLiteHouse> DBH connectTo( DBH dbh )
 	throws Exception
 	{
 		dbh.openDB() ;
@@ -132,7 +133,7 @@ public class SQLiteHouseTest
 	 * @param cls the test database class
 	 * @param <DBH> the test database class
 	 */
-	protected static <DBH extends SQLiteHouse> void delete( Class<DBH> cls )
+	public static <DBH extends SQLiteHouse> void delete( Class<DBH> cls )
 	{
 		getTestContext().deleteDatabase(
 			cls.getAnnotation( SQLiteDatabaseSpec.class ).database_name() ) ;
@@ -281,6 +282,7 @@ public class SQLiteHouseTest
 	 * @see SQLiteHouse#getTableCreationSQL
 	 * @see <a href="http://www.sqlite.org/lang_analyze.html">SQLite Documentation: ANALYZE</a>
 	 */
+	@SuppressWarnings( "deprecation" ) // verify deprecated stuff also works
 	@Test
 	public void testDatabaseCreation()
 	throws Exception // Any uncaught exception is a failure.
@@ -301,6 +303,7 @@ public class SQLiteHouseTest
 			SQLiteColumnInfo infoFargleID = mapInfo.get("fargle_id") ;
 			assertEquals( 1, infoFargleID.nColumnID ) ;
 			assertEquals( Refractor.SQLITE_TYPE_INT, infoFargleID.sColumnType );
+			assertEquals( SQLITE_TYPE_INT, infoFargleID.sColumnType ) ;
 			assertTrue( infoFargleID.bNotNull ) ;
 			assertEquals( null, infoFargleID.sDefault ) ;
 			assertFalse( infoFargleID.bPrimaryKey ) ;

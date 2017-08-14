@@ -4,10 +4,12 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.text.TextUtils;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import java.util.Collection;
 import java.util.Collections;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Provides a canonical implementation of a {@link Lens} which can marshal a
@@ -47,12 +49,12 @@ implements Refractor<C>
 
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_TEXT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_TEXT ; }
 
 	@Override
 	public String toSQLiteString( C o )
 	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
+		return ( o == null ? SQLITE_NULL :
 			String.format( "'%s'", this.toStringValue(o) ) ) ;
 	}
 

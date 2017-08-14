@@ -3,9 +3,11 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import java.sql.Date;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Marshals {@link java.sql.Date} objects.
@@ -24,7 +26,7 @@ implements Refractor<Date>
 {
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_INT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_INT ; }
 
 	/**
 	 * Defines the default value of a date column as null. This is different
@@ -39,10 +41,7 @@ implements Refractor<Date>
 
 	@Override
 	public String toSQLiteString( Date o )
-	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
-				Long.toString( o.getTime() ) ) ;
-	}
+	{ return ( o == null ? SQLITE_NULL : Long.toString( o.getTime() ) ) ; }
 
 	@Override
 	public Refractor<Date> addToContentValues( ContentValues vals, String sKey, Date val )

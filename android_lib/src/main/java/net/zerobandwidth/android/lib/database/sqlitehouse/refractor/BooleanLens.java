@@ -4,9 +4,12 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 
 import java.lang.reflect.Field;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Marshals Boolean values by converting them to/from integers.
@@ -20,7 +23,7 @@ implements Refractor<Boolean>
 {
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_INT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_INT ; }
 
 	/**
 	 * Defines the default value for Boolean types as {@code false}.
@@ -33,7 +36,7 @@ implements Refractor<Boolean>
 	@Override
 	public String toSQLiteString( Boolean o )
 	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
+		return ( o == null ? SQLITE_NULL :
 				Integer.toString( SQLitePortal.boolToInt(o) ) ) ;
 	}
 
