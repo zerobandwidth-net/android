@@ -6,6 +6,10 @@ import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_SET;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_UPDATE;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_WHERE;
+
 /**
  * Builds a SQLite {@code UPDATE} query.
  *
@@ -46,20 +50,6 @@ extends QueryBuilder<UpdateBuilder,Integer>
 	 */
 	@SuppressWarnings( "unused" ) // Great!
 	public static final int UPDATE_FAILED = SQLiteSyntax.UPDATE_FAILED ;
-
-	/**
-	 * @deprecated zerobandwidth-net/android in 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#SQL_UPDATE}
-	 */
-	@SuppressWarnings( "unused" ) // Great!
-	protected static final String SQL_UPDATE = SQLiteSyntax.SQL_UPDATE ;
-
-	/**
-	 * @deprecated zerobandwidth-net/android in 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#SQL_SET}
-	 */
-	@SuppressWarnings( "unused" ) // Great!
-	protected static final String SQL_SET = SQLiteSyntax.SQL_SET ;
 
 	/**
 	 * The numeric ID of the conflict resolution algorithm provided by Android.
@@ -130,8 +120,8 @@ extends QueryBuilder<UpdateBuilder,Integer>
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder() ;
-		sb.append( SQLiteSyntax.SQL_UPDATE ).append( m_sTableName )
-		  .append( SQLiteSyntax.SQL_SET )
+		sb.append( SQL_UPDATE ).append( m_sTableName )
+		  .append( SQL_SET )
 		  .append( toSQLInputParams( m_valsToWrite ) ) // TODO might be bogus
 		  ;
 		final String sWhere = this.getWhereClause() ;

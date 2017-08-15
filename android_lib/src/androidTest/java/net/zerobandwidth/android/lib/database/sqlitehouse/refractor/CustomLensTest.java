@@ -31,7 +31,7 @@ public class CustomLensTest
 	 * word "Sparkles" for any value. Used solely for testing.
 	 * @since zerobandwidth-net/android 0.1.5 (#41)
 	 */
-	protected static class CustomStringLens
+	public static class CustomStringLens
 	extends Lens<String>
 	implements Refractor<String>
 	{
