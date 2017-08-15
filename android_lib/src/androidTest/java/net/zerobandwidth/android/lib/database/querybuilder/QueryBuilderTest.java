@@ -19,6 +19,9 @@ import java.util.ArrayList;
 import static junit.framework.Assert.* ;
 
 import static net.zerobandwidth.android.lib.database.MinimalUnitTestDBPortal.TEST_TABLE_NAME ;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.COLUMN_NOT_FOUND;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_ASC;
 
 /**
  * Exercises query builders.
@@ -88,7 +91,7 @@ public class QueryBuilderTest
 		assertEquals( SQLiteDatabase.CONFLICT_NONE,
 				bldr.m_zConflictAlgorithmID ) ;
 		final long nID = bldr.executeOn( m_db ) ;
-		assertFalse( nID == InsertionBuilder.INSERT_FAILED ) ;
+		assertFalse( nID == INSERT_FAILED ) ;
 		Log.i( LOG_TAG, (new StringBuilder())
 				.append( "Basic insert result: " ).append( nID ).toString() ) ;
 	}
@@ -111,7 +114,7 @@ public class QueryBuilderTest
 		assertEquals( SQLiteDatabase.CONFLICT_ROLLBACK,
 				bldr.m_zConflictAlgorithmID ) ;
 		final long nID = bldr.executeOn( m_db ) ;
-		assertFalse( nID == InsertionBuilder.INSERT_FAILED ) ;
+		assertFalse( nID == INSERT_FAILED ) ;
 		Log.i( LOG_TAG, (new StringBuilder())
 				.append( "Full insert result: " ).append( nID ).toString() ) ;
 	}
@@ -129,7 +132,7 @@ public class QueryBuilderTest
 		ContentValues vals = getTestableValues() ;
 		long nID = QueryBuilder.insertInto( m_db, TEST_TABLE_NAME )
 				.setValues(vals).execute() ;
-		assertFalse( nID == InsertionBuilder.INSERT_FAILED ) ;
+		assertFalse( nID == INSERT_FAILED ) ;
 	}
 
 	/**
@@ -397,8 +400,8 @@ public class QueryBuilderTest
 
 		bldr.groupBy( "id" ) ;
 		assertEquals( "id", bldr.m_sGroupBy ) ;
-		bldr.orderBy( "id", SelectionBuilder.ORDER_ASC ) ;
-		assertEquals( SelectionBuilder.ORDER_ASC, bldr.m_mapOrderBy.get("id") ) ;
+		bldr.orderBy( "id", SQL_ORDER_ASC ) ;
+		assertEquals( SQL_ORDER_ASC, bldr.m_mapOrderBy.get("id") ) ;
 
 		// Final check of the whole SQL statement:
 		assertEquals( "SELECT id, a_string_field, a_int_field FROM unittestdata WHERE a_boolint_field=1 GROUP BY id ORDER BY id ASC ;",
@@ -410,14 +413,13 @@ public class QueryBuilderTest
 		{
 			do
 			{
-				assertFalse( crs.getColumnIndex( "id" )
-						== SQLitePortal.COLUMN_NOT_FOUND ) ;
+				assertFalse( crs.getColumnIndex( "id" ) == COLUMN_NOT_FOUND ) ;
 				assertFalse( crs.getColumnIndex( "a_string_field" )
-						== SQLitePortal.COLUMN_NOT_FOUND ) ;
+						== COLUMN_NOT_FOUND ) ;
 				assertFalse( crs.getColumnIndex( "a_int_field" )
-						== SQLitePortal.COLUMN_NOT_FOUND ) ;
-				assertEquals( SQLitePortal.COLUMN_NOT_FOUND,
-						crs.getColumnIndex( "a_boolint_field" ) ) ; // excluded
+						== COLUMN_NOT_FOUND ) ;
+				assertEquals( COLUMN_NOT_FOUND,
+						crs.getColumnIndex( "a_boolint_field" ) ) ;  // excluded
 				Log.d( LOG_TAG, (new StringBuilder())
 						.append( "Selection test: " )
 						.append( " id [" )

@@ -1,15 +1,17 @@
-package net.zerobandwidth.android.lib.database.sqlitehouse;
+package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.test.runner.AndroidJUnit4;
 
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouseTest;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
-import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Lens;
-import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +31,7 @@ public class CustomLensTest
 	 * word "Sparkles" for any value. Used solely for testing.
 	 * @since zerobandwidth-net/android 0.1.5 (#41)
 	 */
-	protected static class CustomStringLens
+	public static class CustomStringLens
 	extends Lens<String>
 	implements Refractor<String>
 	{
@@ -38,7 +40,7 @@ public class CustomLensTest
 
 		@Override
 		public String getSQLiteDataType()
-		{ return SQLITE_TYPE_TEXT ; }
+		{ return SQLiteSyntax.SQLITE_TYPE_TEXT ; }
 
 		@Override
 		public String getSQLiteDefaultValue()

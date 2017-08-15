@@ -3,10 +3,12 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 
 import java.lang.reflect.Field;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Marshals a character.
@@ -18,7 +20,7 @@ implements Refractor<Character>
 {
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_TEXT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_TEXT ; }
 
 	/**
 	 * When a character cannot be null, we generate a null character.
@@ -31,7 +33,7 @@ implements Refractor<Character>
 	@Override
 	public String toSQLiteString( Character o )
 	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
+		return ( o == null ? SQLITE_NULL :
 				String.format( "'%s'", o.toString() ) ) ;
 	}
 

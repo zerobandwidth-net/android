@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.querybuilder.DeletionBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.SelectionBuilder;
@@ -32,6 +33,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_INT;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_TEXT;
 
 /**
  * Uses custom annotations to automatically construct and manage SQLite
@@ -903,7 +907,7 @@ extends SQLitePortal
 		sb.append( "CREATE TABLE IF NOT EXISTS " )
 		  .append( qctx.sTableName )
 		  .append( " ( " ).append( MAGIC_ID_COLUMN_NAME )
-		  .append( " " ).append( Refractor.SQLITE_TYPE_INT )
+		  .append( " " ).append( SQLITE_TYPE_INT )
 		  .append( " PRIMARY KEY AUTOINCREMENT" )
 		  ;
 
@@ -974,7 +978,7 @@ extends SQLitePortal
 			sb.append(( qctx.antColumn.is_nullable() ?
 						" NULL" : " NOT NULL" )) ;
 
-		if( SQLitePortal.SQLITE_NULL.equals( qctx.antColumn.sql_default() ) )
+		if( SQLiteSyntax.SQLITE_NULL.equals( qctx.antColumn.sql_default() ) )
 		{ // Write "DEFAULT NULL" only if the column is actually nullable.
 			if( ! qctx.bColumnIsKey && qctx.antColumn.is_nullable() )
 				sb.append( " DEFAULT NULL" ) ;
@@ -982,7 +986,7 @@ extends SQLitePortal
 		else
 		{ // Write whatever the default is.
 			sb.append( " DEFAULT " ) ;
-			if( Refractor.SQLITE_TYPE_TEXT.equals( qctx.lens.getSQLiteDataType() ) )
+			if( SQLITE_TYPE_TEXT.equals( qctx.lens.getSQLiteDataType() ) )
 			{
 				sb.append("'")
 				  .append( qctx.antColumn.sql_default() )

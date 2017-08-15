@@ -4,7 +4,11 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_SET;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_UPDATE;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_WHERE;
 
 /**
  * Builds a SQLite {@code UPDATE} query.
@@ -35,23 +39,17 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * @since zerobandwidth-net/android 0.1.1 (#20)
  * @see SQLiteDatabase#updateWithOnConflict(String, ContentValues, String, String[], int)
  */
-@SuppressWarnings( "unused" )                              // This is a library.
 public class UpdateBuilder
 extends QueryBuilder<UpdateBuilder,Integer>
 {
 	protected static final String LOG_TAG = UpdateBuilder.class.getSimpleName();
 
 	/**
-	 * Similar to the standard magic number returned when an insertion query
-	 * fails (see {@link SQLitePortal#INSERT_FAILED}, this return value from
-	 * {@link #executeOn(SQLiteDatabase)} indicates that the update operation
-	 * could not be carried out.
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#UPDATE_FAILED}
 	 */
-	public static final int UPDATE_FAILED = -1 ;
-
-	protected static final String SQL_UPDATE = "UPDATE " ;
-
-	protected static final String SQL_SET = " SET " ;
+	@SuppressWarnings( "unused" ) // Great!
+	public static final int UPDATE_FAILED = SQLiteSyntax.UPDATE_FAILED ;
 
 	/**
 	 * The numeric ID of the conflict resolution algorithm provided by Android.
@@ -73,7 +71,7 @@ extends QueryBuilder<UpdateBuilder,Integer>
 	 * @return (fluid)
 	 */
 	public UpdateBuilder updateAll()
-	{ return this.where( SQLitePortal.UPDATE_ALL ) ; }
+	{ return this.where( SQLiteSyntax.UPDATE_ALL ) ; }
 
 	/**
 	 * Selects, by its numeric ID, the conflict resolution algorithm provided by
@@ -88,13 +86,14 @@ extends QueryBuilder<UpdateBuilder,Integer>
 	 * Executes an update query on the value that has been appended to the
 	 * builder.
 	 * @param db the database instance on which the query should be executed
-	 * @return the number of rows that were modified, or {@link #UPDATE_FAILED}
-	 *  if the update operation could not proceed
+	 * @return the number of rows that were modified, or
+	 *  {@link SQLiteSyntax#UPDATE_FAILED} if the update operation could not
+	 *  proceed
 	 */
 	@Override
 	public Integer executeOn( SQLiteDatabase db )
 	{
-		if( m_valsToWrite == null ) return UPDATE_FAILED ;
+		if( m_valsToWrite == null ) return SQLiteSyntax.UPDATE_FAILED ;
 		try
 		{
 			return db.updateWithOnConflict(
@@ -113,7 +112,7 @@ extends QueryBuilder<UpdateBuilder,Integer>
 					.append( "] failed: " )
 					.toString()
 				, x ) ;
-			return UPDATE_FAILED ;
+			return SQLiteSyntax.UPDATE_FAILED ;
 		}
 	}
 

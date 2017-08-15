@@ -6,6 +6,10 @@ import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_INSERT_INTO;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_SET;
+
 /**
  * Builds a SQLite {@code INSERT} query.
  *
@@ -57,17 +61,6 @@ extends QueryBuilder<InsertionBuilder,Long>
 			InsertionBuilder.class.getSimpleName() ;
 
 	/**
-	 * Magic number returned by {@link SQLiteDatabase#insert} and similar
-	 * methods, when the insertion fails.
-	 * @see SQLitePortal#INSERT_FAILED ;
-	 */
-	public static final long INSERT_FAILED = SQLitePortal.INSERT_FAILED ;
-
-	protected static final String SQL_INSERT_INTO = "INSERT INTO " ;
-
-	protected static final String SQL_SET = " SET " ;
-
-	/**
 	 * Specifies the column to use, if any, for the Android "null column hack"
 	 * during insertion.
 	 */
@@ -117,7 +110,7 @@ extends QueryBuilder<InsertionBuilder,Long>
 	@Override
 	public Long executeOn( SQLiteDatabase db )
 	{
-		if( m_valsToWrite == null ) return SQLitePortal.INSERT_FAILED ;
+		if( m_valsToWrite == null ) return INSERT_FAILED ;
 
 		try
 		{

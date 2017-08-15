@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +12,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_VAR;
 
 /**
  * Builds a SQLite query using methods, rather than the methods from the
@@ -79,39 +82,11 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 /// Static constants ///////////////////////////////////////////////////////////
 
 	/**
-	 * The character that stands in for a variable value in the Android format
-	 * string that is passed to {@link SQLiteDatabase} query methods.
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SQLITE_VAR}
 	 */
-	protected static final String ANDROID_VARIABLE_MARKER = "?" ;
-
-	/**
-	 * SQL keyword marking the beginning of a {@code WHERE} clause.
-	 * @see InsertionBuilder#toString()
-	 * @see UpdateBuilder#toString()
-	 * @see SelectionBuilder#toString()
-	 * @see DeletionBuilder#toString()
-	 */
-	protected static final String SQL_WHERE = " WHERE " ;
-
-	/**
-	 * If using integer columns to store Boolean values, where {@code 1} is true
-	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
-	 * value substitutions for "true".
-	 * @see SQLitePortal#boolToInt(boolean)
-	 * @see SQLitePortal#intToBool(int)
-	 * @see SQLitePortal#WHERE_TRUE
-	 */
-	public static final String WHERE_TRUE = SQLitePortal.WHERE_TRUE ;
-
-	/**
-	 * If using integer columns to store Boolean values, where {@code 1} is true
-	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
-	 * value substitutions for "false".
-	 * @see SQLitePortal#boolToInt(boolean)
-	 * @see SQLitePortal#intToBool(int)
-	 * @see SQLitePortal#WHERE_FALSE
-	 */
-	public static final String WHERE_FALSE = SQLitePortal.WHERE_FALSE ;
+	protected static final String ANDROID_VARIABLE_MARKER =
+			SQLITE_VAR;
 
 /// Static kickoff methods (starts a query of a given type) ////////////////////
 
@@ -398,11 +373,14 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	protected String getWhereClause()
 	{
 		if( m_sExplicitWhereFormat == null ) return null ;
-		if( ! m_sExplicitWhereFormat.contains( "?" ) )
+		if( ! m_sExplicitWhereFormat.contains( SQLITE_VAR ) )
 			return m_sExplicitWhereFormat ;        // Contains no substitutions.
 		if( m_asExplicitWhereParams == null || m_asExplicitWhereParams.length == 0 )
-			throw new IllegalStateException( "Need parameters but don't have them" ) ;
-		String sFormat = m_sExplicitWhereFormat.replace( "?", "%s" ) ;
+		{
+			throw new IllegalStateException(
+					"Need parameters but don't have them." ) ;
+		}
+		String sFormat = m_sExplicitWhereFormat.replace( SQLITE_VAR, "%s" ) ;
 		return String.format( sFormat, ((Object[])(m_asExplicitWhereParams)) ) ;
 	}
 

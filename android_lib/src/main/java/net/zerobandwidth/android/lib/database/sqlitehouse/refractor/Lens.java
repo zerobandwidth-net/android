@@ -1,9 +1,10 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 
 import java.lang.reflect.Field;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Provides canonical implementations of various methods of {@link Refractor}.
@@ -22,7 +23,7 @@ implements Refractor<T>
 
 	@Override
 	public String toSQLiteString( T o )
-	{ return ( o == null ? SQLitePortal.SQLITE_NULL : o.toString() ) ; }
+	{ return ( o == null ? SQLITE_NULL : o.toString() ) ; }
 
 	/**
 	 * This is the simplest and canonical implementation of the method specified

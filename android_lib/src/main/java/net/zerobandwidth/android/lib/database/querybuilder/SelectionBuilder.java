@@ -4,10 +4,18 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_GROUP_BY;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_HAVING;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_LIMIT;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_BY;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_WHERE;
 
 /**
  * Builds a SQLite {@code SELECT} query.
@@ -37,51 +45,35 @@ import java.util.Vector;
  * @since zerobandwidth-net/android 0.1.1 (#20)
  * @see SQLiteDatabase#query
  */
-@SuppressWarnings( "unused" )                              // This is a library.
 public class SelectionBuilder
 extends QueryBuilder<SelectionBuilder,Cursor>
 {
 	/**
-	 * Specifies that the selection should include all columns.
-	 * @see #columns(String...)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SELECT_ALL}
 	 */
-	public static final String SELECT_ALL_COLUMNS = null ;
+	@SuppressWarnings( "unused" ) // Great!
+	public static final String SELECT_ALL_COLUMNS = SQLiteSyntax.SELECT_ALL ;
 
 	/**
-	 * Specifies that a column should be ordered ascending.
-	 * @see #orderBy(String, String)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SQL_ORDER_ASC}
 	 */
-	public static final String ORDER_ASC = "ASC" ;
+	@SuppressWarnings( "unused" ) // Great!
+	public static final String ORDER_ASC = SQLiteSyntax.SQL_ORDER_ASC ;
 
 	/**
-	 * Specifies that a column should be ordered descending.
-	 * @see #orderBy(String, String)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SQL_ORDER_DESC}
 	 */
-	public static final String ORDER_DESC = "DESC" ;
+	@SuppressWarnings( "unused" ) // Great!
+	public static final String ORDER_DESC = SQLiteSyntax.SQL_ORDER_DESC ;
 
 	/**
 	 * Specifies that no result count limit should be enforced.
 	 * @see #limit(int)
 	 */
 	public static final int NO_LIMIT = -1 ;
-
-	protected static final String SQL_SELECT = "SELECT " ;
-
-	protected static final String SQL_ALL_COLUMNS = "*" ;
-
-	protected static final String SQL_FROM = " FROM " ;
-
-	protected static final String SQL_GROUP_BY = " GROUP BY " ;
-
-	protected static final String SQL_HAVING = " HAVING " ;
-
-	protected static final String SQL_ORDER_BY = " ORDER BY " ;
-
-	protected static final String SQL_ORDER_ASCENDING = " ASC " ;
-
-	protected static final String SQL_ORDER_DESCENDING = " DESC " ;
-
-	protected static final String SQL_LIMIT = " LIMIT " ;
 
 	/** Flag specifying whether to select distinct results. */
 	protected boolean m_bDistinct = false ;
@@ -152,7 +144,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 */
 	public SelectionBuilder columns( String... asColumns )
 	{
-		if( asColumns == null ) // or SELECT_ALL_COLUMNS
+		if( asColumns == null ) // or SQLiteSyntax.SELECT_ALL_COLUMNS
 		{ m_vColumns = null ; return this ; }
 		this.initColumns() ;
 		for( String sColumn : asColumns )
@@ -171,7 +163,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 */
 	public SelectionBuilder columns( Collection<String> asColumns )
 	{
-		if( asColumns == null ) // or SELECT_ALL_COLUMNS
+		if( asColumns == null ) // or SQLiteSyntax.SELECT_ALL_COLUMNS
 		{ m_vColumns = null ; return this ; }
 		this.initColumns() ;
 		for( String sColumn : asColumns )
@@ -206,6 +198,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 * @param sHavingClause the SQLite {@code HAVING} clause
 	 * @return (fluid)
 	 */
+	@SuppressWarnings("unused") // TODO Unit test this.
 	public SelectionBuilder having( String sHavingClause )
 	{ m_sHaving = sHavingClause ; return this ; }
 
@@ -241,7 +234,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 			m_mapOrderBy.clear() ;
 			return this ;
 		}
-		else return this.orderBy( sColumnName, ORDER_ASC ) ;
+		else return this.orderBy( sColumnName, SQLiteSyntax.SQL_ORDER_ASC ) ;
 	}
 
 	/**
@@ -304,12 +297,12 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder() ;
-		sb.append( SQL_SELECT ) ;
+		sb.append( SQLiteSyntax.SQL_SELECT ) ;
 		final String[] asColumns = this.getColumnList() ;
-		sb.append(( asColumns == null ? SQL_ALL_COLUMNS :
+		sb.append(( asColumns == null ? SQLiteSyntax.SQL_SELECT_ALL_COLUMNS :
 			TextUtils.join( ", ", asColumns )) )
 		  ;
-		sb.append( SQL_FROM ).append( m_sTableName ) ;
+		sb.append( SQLiteSyntax.SQL_FROM ).append( m_sTableName ) ;
 		final String sWhere = this.getWhereClause() ;
 		if( sWhere != null )
 			sb.append( SQL_WHERE ).append( sWhere ) ;
