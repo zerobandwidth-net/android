@@ -1,0 +1,651 @@
+<html>
+<head>
+<link rel="stylesheet" href="zerobandwidth.css"/>
+<link rel="icon" type="image/png" href="favicon.ico"/>
+<title>Notational Conventions - zerobandwidth.net Android Library</title>
+</head>
+<body>
+ <div class="topbar white-on-orange">
+  <a class="white-on-orange" href="index.html">&laquo;&nbsp;Home</a>
+  <a class="white-on-orange" href="conventions.html">&laquo;&nbsp;Coding Conventions</a>
+ </div>
+ <h2>Conventions for Use of Hungarian Notation</h2>
+ <div class="body">
+  <p>
+   The following practices are used for identifier names throughout the 
+   library. Note that, in many cases, in which only one object of a given type
+   appears in a block of code, the prefix <i>just is</i> the variable
+   identifier. Otherwise, the prefix appears as part of some innerCamelCase 
+   identifier that includes a semantic name for the variable.
+  </p>
+ </div>
+ <h3>Simple Values</h3>
+ <div class="body">
+  <p>
+   These identifiers are related to variables containing simple values &mdash;
+   primitives, or the wrappers for those primitives.
+  </p>
+  <table>
+   <thead>
+    <tr>
+     <th>Prefix</th>
+     <th>Meaning</th>
+     <th>Actual&nbsp;Types</th>
+     <th>Examples</th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr>
+     <td class="code">b</td>
+     <td>
+      A <b><u>B</u>oolean</b> entity &mdash; either <code>true</code> or
+      <code>false</code>. Could refer either to a primitive <code>boolean</code>
+      or a <code>Boolean</code> wrapper object.
+     </td>
+     <td class="code"> <ul> <li>boolean</li> <li>Boolean</li> </ul> </td>
+     <td class="code">
+      <ul> <li>bEnabled</li> <li>bDone</li> <li>bConnected</li> </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">c</td>
+     <td>Any single <b><u>c</u>haracter</b>.</td>
+     <td class="code"> <ul> <li>char</li> <li>Character</li> </ul> </td>
+     <td class="code"> <ul> <li>cCommand</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">mask</td>
+     <td>
+      Any <code>int</code> or <code>long</code> that is being used as a
+      <b>bit<u>mask</u></b>, rather than as a numeric value. This prefix is a
+      reminder that the integer primitive should not be used as a number.
+     </td>
+     <td class="code">
+      <ul>
+       <li>int</li> <li>Integer</li>
+       <li>long</li> <li>Long</li>
+      </ul>
+     </td>
+     <td class="code"> <ul> <li>maskFlags</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">n</td>
+     <td>
+      An unsigned integer &mdash; that is, a number which is expected to be
+      &ge; zero. The letter choice refers to the mathematical notation &#8469;
+      for the set of <b><u>n</u>atural</b> numbers. Since Java does not include
+      built-in enforcement of signed vs. unsigned integers, this prefix is used
+      to remind a human developer that the value is <i>expected</i> to be always
+      greater than or equal to zero. Further, it is common to use negative
+      values in these variables in order to track error conditions or other
+      special circumstances, such as setting <code>-1</code> to mean "not yet
+      initialized".
+     </td>
+     <td class="code">
+      <ul>
+       <li>int</li> <li>Integer</li> <li>long</li> <li>Long</li>
+       <li>short</li> <li>Short</li>
+      </ul>
+     </td>
+     <td class="code"> <ul> <li>nCount</li> <li>nSeconds</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">r</td>
+     <td>
+      A floating-point decimal number of any precision. The letter choice refers
+      to the mathematical notation &#8477; for the set of <b><u>r</u>eal</b>
+      numbers.
+     </td>
+     <td class="code">
+      <ul> <li>float</li> <li>Float</li> <li>double</li> <li>Double</li> </ul>
+     </td>
+     <td class="code"> <ul> <li>rLazyPi</li> <li>rEasyE</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">res</td>
+     <td>
+      The integer constant referring to an Android <b><u>res</u>ource</b> ID.
+      While the underlying data type is always <code>int</code>, it is generally
+      useful to denote any integer entity that is known to carry a resource
+      identifier.
+     </td>
+     <td class="code"> <ul> <li>int</li> </td>
+     <td class="code"> <ul>
+      <li>resScreenTitle</li> <li>resButtonImage</li> <li>resLayout</li> </ul>
+     </ul> </td>
+    </tr> <tr>
+     <td class="code">s</td>
+     <td>A simple string.</td>
+     <td class="code"> <ul> <li>String</li> </ul> </td>
+     <td class="code"> <ul> <li>sUUID</li> <li>sName</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">ts</td>
+     <td>
+      A long integer value which holds a Unix <b><u>t</u>ime<u>s</u>tamp</b>.
+      This value will typically be obtained from a <code>Date</code> or
+      <code>Calendar</code> instance, or from some Android OS function which
+      give time values as a long integer of milliseconds.
+     </td>
+     <td class="code"> <ul> <li>long</li> </ul> </td>
+     <td class="code"> <ul> <li>tsCutoff</li> <li>tsNow</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">y</td>
+     <td>
+      A <b>b<u>y</u>te</b>. This letter choice was forced because <code>b</code>
+      already stands for "Boolean". Usually used only as part of an array of
+      bytes while processing raw binary data, <i>e.g.</i> <code>ayBlob</code>.
+     </td>
+     <td class="code"> <ul> <li>byte</li> <li>Byte</li> </ul> </td>
+     <td class="code"> <ul> <li>yRaw</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">z</td>
+     <td>
+      A signed integer &mdash; that is, a whole number which might be less than,
+      equal to, or greater than zero. The letter choice refers to the
+      mathematical notation &#8484; for the set of all integers. Since Java does
+      not include built-in enforcement of signed vs. unsigned integers, this
+      prefix is used to remind a human developer that this value is
+      <i>expected</i> to range across the entire integer set, in contrast to the
+      <code>n</code> prefix above.
+     </td>
+     <td class="code">
+      <ul>
+       <li>int</li> <li>Integer</li> <li>long</li> <li>Long</li>
+       <li>short</li> <li>Short</li>
+      </ul>
+     </td>
+     <td class="code">
+      <ul> <li>zErrorCode</li> <li>zTemperature</li> </ul>
+     </td>
+    </tr>
+   </tbody>
+  </table>
+ </div>
+ <h3>Specific Java or Android Object Types</h3>
+ <div class="body">
+  <p>
+   The prefix <code>o</code> is used for any nondescript Java object, but using
+   this for every non-primitive identifier would be pointless. Thus, several
+   Java classes, Android classes, and other "types" or objects get their own
+   specific notational prefixes.
+  </p>
+  <table>
+   <thead>
+    <tr>
+     <th>Prefix</th>
+     <th>Meaning</th>
+     <th>Actual&nbsp;Types</th>
+     <th>Examples</th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr>
+     <td class="code">act</td>
+     <td>Any <b><u>act</u>ivity</b> instance.</td>
+     <td class="code">
+      <ul> <li>Activity</li> <li>AppCompatActivity</li> </ul>
+     </td>
+     <td class="code"> <ul> <li>act</li> <li>actParent</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">bind</td>
+     <td>
+      A <code><b><u>Bind</u>er</b></code> to a <code>Service</code>. Typically,
+      this prefix <i>just is</i> the identifier, since a function will generally
+      not refer to more than one <code>Binder</code> at a time.
+     </td>
+     <td> <ul> <li><code>Binder</code> and its descendants.</li> </ul> </td>
+     <td class="code"> <ul> <li>bind</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">btn</td>
+     <td>A <code><b><u>B</u>u<u>t</u>to<u>n</u></b> appearing in the UI.</td>
+     <td> <ul> <li><code>Button</code> and its descendants.</li> </ul> </td>
+     <td class="code"> <ul> <li>btnSave</li> <li>btnCancel</li> </td>
+    </tr> <tr>
+     <td class="code">cfg</td>
+     <td>
+      Any instance of the Android OS 
+      <code><b><u>C</u>on<u>f</u>i<u>g</u>uration</b></code> class, or an
+      instance of any other class that represents some sort of "configuration"
+      in abstract.
+     </td>
+     <td>
+      <ul>
+       <li class="code">Configuration</li>
+       <li class="code"><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/nonsense/NonsenseBuilder.Configuration.html">NonsenseBuilder.Configuration</a></li>
+       <li>any object that represents a component's configuration</li>
+      </ul>
+     </td>
+     <td class="code"> <ul> <li>cfg</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">cls</td>
+     <td>
+      A <code><b><u>Cl</u>a<u>s</u>s</b></code> instance. Classes are frequently
+      passed around as hints to generic/template parameters, or used by any
+      feature that depends on Java reflection.
+     </td>
+     <td class="code"> <ul> <li>Class</li> </ul> </td>
+     <td class="code"> <ul> <li>clsType</li> <li>clsNodes</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">conn</td>
+     <td>
+      Any object that represents an open <b><u>conn</u>ection</b> to something,
+      like a database or a <code>Service</code>.
+     </td>
+     <td>
+      <ul>
+       <li class="code"><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/services/SimpleServiceConnection.html">SimpleServiceConnection</a></li>
+       <li>any other entity that represents a connection</li>
+      </ul>
+     </td>
+     <td class="code"> <ul> <li>conn</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">crs</td>
+     <td>
+      A <code><b><u>C</u>u<u>rs</u>or</b></code> on a database result set.
+     </td>
+     <td class="code"> <ul> <li>Cursor</li> </ul> </td>
+     <td class="code"> <ul> <li>crs</li> <li>crsResults</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">ctor</td>
+     <td>
+      A <code><b><u>c</u>onstruc<u>tor</u></b></code> discovered via Java
+      reflection.
+     </td>
+     <td class="code"> <ul> <li>Constructor</li> </ul> </td>
+     <td class="code"> <ul> <li>ctor</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">ctx</td>
+     <td>A <code><b><u>C</u>on<u>t</u>e<u>x</u>t</b></code>.</td>
+     <td class="code"> <ul> <li>Context</li> </ul> </td>
+     <td class="code">
+      <ul> <li>ctx</li> <li>ctxApp</li> </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">db</td>
+     <td>
+      An instance of a <b><u>d</u>ata<u>b</u>ase</b>, such as a
+      <code>SQLiteDatabase</code>.
+     </td>
+     <td class="code"> <ul> <li>SQLiteDatabase</li> </ul> </td>
+     <td class="code"> <ul> <li>db</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">dbh</td>
+     <td>
+      A <b><u>d</u>ata<u>b</u>ase "<u>h</u>elper"</b> class, which provides
+      access to a database, such as any descendant of 
+      <code>SQLiteOpenHelper</code>. This is the class which typically serves as
+      the API between the database connection and the rest of the app.
+     </td>
+     <td class="code">
+      <ul>
+       <li>SQLiteOpenHelper</li>
+       <li><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/database/SQLitePortal.html">SQLitePortal</a></li>
+       <li><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/database/SQLiteAssetPortal.html">SQLiteAssetPortal</a></li>
+       <li><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/database/sqlitehouse/SQLiteHouse.html">SQLiteHouse</a></li>
+      </ul>
+     </td>
+     <td class="code"> <ul> <li>dbh</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">dia</td>
+     <td>Any instance of a <b><u>dia</u>log</b> in the UI.</td>
+     <td> <ul> <li>any dialog object</li> </ul> </td>
+     <td class="code"> <ul> <li>diaConfirm</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">fld</td>
+     <td>
+      A <code><b><u>F</u>ie<u>ld</u></b></code> discovered via Java reflection.
+     </td>
+     <td class="code"> <ul> <li>Field</li> </ul> </td>
+     <td class="code"> <ul> <li>fldName</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">filter</td>
+     <td>An <code><b>Intent<u>Filter</u></b></code> (for a receiver).</td>
+     <td>
+      <ul> <li><code>IntentFilter</code> and its descendants.</li> </ul>
+     </td>
+     <td class="code"> <ul> <li>filter</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">frag</td>
+     <td>A <code><b><u>Frag</u>ment</b></code>.</td>
+     <td> <ul> <li><code>Fragment</code> and its descendants.</li> </ul> </td>
+     <td class="code">
+      <ul>
+       <li>fragStatusLog</li> <li>fragItemList</li> <li>fragButtonBar</li>
+      </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">hndl</td>
+     <td>A <code><b><u>H</u>a<u>ndl</u>er</b></code> implementation.</td>
+     <td> <ul> <li><code>Handler</code> and its descendants. </ul> </td>
+     <td class="code">
+      <ul> <li>hndlCollection</li> <li>hndlBroadcasts</li> </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">info</td>
+     <td>
+      Any of several Android standard classes that represents or contains a
+      discrete structure of <b><u>info</u>rmation</b> provided by an Android OS
+      service or sensor.
+     </td>
+     <td>
+      <ul>
+       <li class="code">CellInfo</li>
+       <li class="code">DhcpInfo</li>
+       <li class="code">PackageInfo</li>
+       <li class="code"><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/database/SQLiteColumnInfo.html">SQLiteColumnInfo</a></li>
+       <li class="code">WifiInfo</li>
+       <li>any other similar "informational" data structure</li>
+      </ul>
+     </td>
+     <td class="code">
+      <ul> <li>info</li> <li>infoCell</li> <li>infoDHCP</li> </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">json</td>
+     <td>A JSON object, usually produced by Gson.</td>
+     <td> <ul> <li>Any JSON object representation.</li> </ul> </td>
+     <td class="code"> <ul> <li>jsonData</li> <li>jsonResponse</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">l</td>
+     <td>
+      An instance of a <b><u>l</u>istener</b>. These are generally referenced
+      within the localized context of a method, and thus often have no semantic
+      name following the prefix. The type of "listener" is dependent on the
+      object that provides it.
+     </td>
+     <td> <ul> <li>any object that is used as a "listener"</li> </ul> </td>
+     <td class="code"> <ul> <li>l</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">lay</td>
+     <td>A <code><b><u>Lay</u>out</b> for the app's user interface.</td>
+     <td> <ul> <li><code>Layout</code> and its descendants</li> </ul> </td>
+     <td class="code"> <ul> <li>layMain</li> <li>layButtonBar</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">lens</td>
+     <td>
+      <i>(library-specific)</i> Any instance of a class which implements
+      <code>Refractor</code> and/or extends <code><b><u>Lens</u></b></code> as
+      part of the SQLiteHouse feature.
+     </td>
+     <td>
+      <ul>
+       <li>any <code><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/database/sqlitehouse/refractor/Refractor.html">Refractor</a></code> implementation</li>
+       <li>any <code><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/database/sqlitehouse/refractor/Lens.html">Lens</a></code> descendant</li>
+      </ul>
+     </td>
+     <td class="code"> <ul> <li>lens</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">loc</td>
+     <td>
+      Any object representing a <b><u>loc</u>ation</b> or
+      <b><u>loc</u>ale</b>.
+     </td>
+     <td>
+      <ul>
+       <li><code>Location</code> (GPS)</li>
+       <li><code>CellLocation</code> (mobile telephony)</li>
+       <li>any other representation of a location</li>
+       <li><code>Locale</code>
+      </ul>
+     </td>
+     <td class="code">
+      <ul> <li>locGPS</li> <li>locCell</li> <li>locHere</li> </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">map</td>
+     <td>Any <code><b><u>Map</u></b></code>, such as a <code>HashMap</code></td>
+     <td> <ul> <li><code>Map</code> and its descendants</li> </ul> </td>
+     <td class="code"> <ul> <li>mapNames</li> <li>mapRefractors</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">mgr</td>
+     <td>
+      Any of the various Android classes that is a 
+      "<b><u>m</u>ana<u>g</u>e<u>r</u></b>" of some system component. If the
+      context of the manager is obvious from the method, or there is exactly one
+      manager in scope, then the identifier might not have a semantic name, but
+      typically the name will also indicate which manager has been obtained.
+     </td>
+     <td> <ul> <li>Any instance of a "manager" class.</li> </ul> </td>
+     <td class="code">
+      <ul> <li>mgr</li> <li>mgrBluetooth</li> <li>mgrTelephony</li> </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">mth</td>
+     <td>
+      A <code><b><u>M</u>e<u>th</u>od</b></code> discovered by Java reflection.
+     </td>
+     <td class="code"> <ul> <li>Method</li> </ul> </td>
+     <td class="code"> <ul> <li>mthSetName</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">pcl</td>
+     <td>A <code><b><u>P</u>ar<u>c</u>e<u>l</u></b></code></td>
+     <td class="code"> <ul> <li>Parcel</li> </ul> </td>
+     <td class="code"> <ul> <li>pcl</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">prefs</td>
+     <td>
+      A reference to the application's preferences, or any object which can be
+      used as an API to access those preferences.
+     </td>
+     <td class="code">
+      <ul>
+       <li>SharedPreferences</li> 
+       <li><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/content/PreferencePortal.html">PreferencePortal</a></li>
+      </ul>
+     </td>
+     <td class="code"> <ul> <li>prefs</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">proc</td>
+     <td>
+      Any class to which the app's logic for <b><u>proc</u>essing</b> data is
+      confined. Typically, such a "processor" class would be bound to a
+      <code>Service</code> and a <code>BroadcastReceiver</code>, both of which
+      would feed incoming signals (such as <code>Intent</code>s) into the
+      processor via its public methods.
+     </td>
+     <td> <ul> <li>any class used as a "processor"</li> </ul> </td>
+     <td class="code"> <ul> <li>proc</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">qctx</td>
+     <td>
+      <i>(library-specific)</i> A
+      <code><b><u>Q</u>uery<u>C</u>on<u>t</u>e<u>x</u>t</b></code> instance,
+      describing the context of a SQLite query in progress, as part of the
+      SQLiteHouse feature.
+     </td>
+     <td class="code"> <ul> <li><a target="_blank" href="./javadoc/net/zerobandwidth/android/lib/database/sqlitehouse/SQLiteHouse.QueryContext.html">QueryContext</a></li> </ul> </td>
+     <td class="code"> <ul> <li>qctx</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">rcv</td>
+     <td>A <code><b>Broadcast<u>R</u>e<u>c</u>ei<u>v</u>er</b></code>.</td>
+     <td>
+      <ul> <li><code>BroadcastReceiver</code> and its descendants</li> </ul>
+     </td>
+     <td class="code">
+      <ul> <li>rcv</li> <li>rcvSignals</li> <li>rcvData</li> </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">rng</td>
+     <td>
+      Any instance of <code>Random</code>. The prefix choice here reflects the
+      most common use of the class, which is as a <b><u>r</u>andom <u>n</u>umber
+      <u>g</u>enerator</b>. Typically, this will be declared as a static
+      constant to be used by the class that needs it, and will thus appear as
+      <code>RNG</code> instead.
+     </td>
+     <td class="code"> <ul> <li>Random</li> </ul> </td>
+     <td class="code"> <ul> <li>RNG</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">sb</td>
+     <td>
+      Any <code><b><u>S</u>tring<u>B</u>uffer</b></code> or
+      <code><b><u>S</u>tring<u>B</u>uilder</b></code> instance used to
+      accumulate a string value.
+     </td>
+     <td class="code">
+      <ul> <li>StringBuffer</li> <li>StringBuilder</li> </ul>
+     </td>
+     <td class="code"> <ul> <li>sb</li> <li>sbMessage</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">sched</td>
+     <td>
+      Any class that is used to <b><u>sched</u>ule</b> tasks to be executed at
+      certain times or intervals.
+     </td>
+     <td> <ul> <li>any class used as a scheduler</li> </ul> </td>
+     <td class="code"> <ul> <li>sched</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">sig</td>
+     <td>
+      An <code>Intent</code> &mdash; that is, a <b><u>sig</u>nal</b> received by
+      the current context.
+     </td>
+     <td class="code"> <ul> <li>Intent</li> </ul> </td>
+     <td class="code">
+      <ul>
+       <li>sig</li> <li>sigAction</li> <li>sigInbound</li> <li>sigOutbound</li>
+      </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">spin</td>
+     <td>A <code><b><u>Spin</u>ner</b></code> control in the app UI.</td>
+     <td> <ul> <li><code>Spinner</code> and its descendants</li> </ul> </td>
+     <td class="code"> <ul> <li>spinFrequency</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">srv</td>
+     <td>A <code><b><u>S</u>e<u>rv</u>ice</b></code> instance.</td>
+     <td> <ul> <li><code>Service</code> and its descendants</li> </ul> </td>
+     <td class="code"> <ul> <li>srv</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">task</td>
+     <td>
+      Any class representing a <b><u>task</u></b> to be run on a separate
+      thread.
+     </td>
+     <td>
+      <ul> 
+       <li><code>Runnable</code> implementations</li>
+       <li><code>TimerTask</code> descendants</li>
+       <li><code>AsyncTask</code> descendants</li>
+      </ul>
+     </td>
+     <td class="code">
+      <ul> <li>taskConnect</li> <li>taskBroadcast</li> </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">timer</td>
+     <td>A <code><b><u>Timer</u></b></code>.</td>
+     <td> <ul> <li><code>Timer</code> and its descendants.</li> </ul> </td>
+     <td class="code"> <ul> <li>timer</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">uri</td>
+     <td>Any object representing or containing a <b><u>URI</u></b>.</td>
+     <td> <ul> <li class="code">Uri</li> </ul> </td>
+     <td class="code"> <ul> <li>uri</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">vals</td>
+     <td>A <code><b>Content<u>Val</u>ue<u>s</u></b></code> instance.</td>
+     <td class="code"> <ul> <li>ContentValues</li> </ul> </td>
+     <td class="code"> <ul> <li>vals</li> <li>valsToInsert</li> </ul> </td>
+    </tr> <tr>
+     <td class="code">w</td>
+     <td>
+      Any <code><b>Vie<u>w</u></b></code>. Additional crumbs might be appended
+      to the prefix to indicate a view type, such as <code>tw</code> for
+      <code>TextView</code>.
+     </td>
+     <td> <ul> <li><code>View</code> and its descendants</li> </ul> </td>
+     <td class="code">
+      <ul> <li>wClicked</li> <li>wSelected</li> <li>twTitleCard</li> </ul>
+     </td>
+    </tr> <tr>
+     <td class="code">x</td>
+     <td>Any <code><b>E<u>x</u>ception</b></code>.</td>
+     <td> <ul> <li><code>Exception</code> and its descendants</li> </ul> </td>
+     <td class="code">
+      <ul> <li>x</li> <li>xNull</li> <li>xAccess</li> </ul>
+     </td>
+    </tr>
+   </tbody>
+  </table>
+ </div>
+ <h3>Meta-Prefixes</h3>
+ <div class="body">
+  <p>
+   These are related to a class member's role within its class, and are
+   prepended before any other prefixes related to type or usage.
+  </p>
+  <table>
+   <thead>
+    <tr> <th>Prefix</th> <th>Meaning</th> <th>Examples</th> </tr>
+   </thead>
+   <tbody>
+    <tr>
+     <td class="code">m_</td>
+     <td>
+      The entity is a <b><u>m</u>ember</b> of a class instance. The prefix could
+      be read by a human as "my" and alleviates the need to use the
+      <code>this</code> keyword to disambiguate the member from a local
+      variable with a similar name.
+     </td>
+     <td class="code">
+      <ul> <li>m_sObjectName</li> <li>m_bEnabled</li> </ul>
+     </td>
+    </tr>
+    <tr>
+     <td class="code">s_</td>
+     <td>
+      The entity is a <b><u>s</u>tatic</b> member of the class. Note that static
+      <i>constants</i> do not generally carry this prefix; they are named with
+      ALL_CAPS_WITH_UNDERSCORE_SPACES instead.
+     </td>
+     <td class="code">
+      <ul> <li>s_oSingletonThing</li> <li>s_nPersistentCount</li> </ul>
+     </td>
+    </tr>
+   </tbody>
+  </table>
+ </div>
+ <h3>Collections</h3>
+ <div class="body">
+  <p>
+   Similar to a meta-prefix, these prefixes denote collections of entities, and
+   are prepended before any of the other notational characters in the identifier
+   name.
+  </p>
+  <table>
+   <thead>
+    <tr>
+     <th>Prefix</th>
+     <th>Meaning</th>
+     <th>Actual&nbsp;Types</th>
+     <th>Examples</th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr>
+     <td class="code">a</td>
+     <td>Any <b><u>a</u>rray</b>, list, or other similar linear collection.</td>
+     <td>
+      <ul>
+       <li>any literal array</li>
+       <li><code>List</code> and its subclasses</li>
+       <li>any other <code>Collection</code> descendant</li>
+       <li>any other <code>Iterable</code> implementation</li>
+      </ul>
+     </td>
+     <td class="code">
+      <ul> <li>asNames</li> <li>anJerseys</li> <li>aoListeners</li> </ul>
+     </td>
+    </tr>
+    <tr>
+     <td class="code">v</td>
+     <td>
+      A <code><b><u>V</u>ector</b></code>. Vectors are special, and worth
+      distinguishing from other collections, for their thread-safety, and the
+      specific functions provided by that class.
+     </td>
+     <td class="code"> <ul> <li>Vector</li> </ul> </td>
+     <td class="code"> <ul> <li>vsKeys</li> <li>voSensorLogs</li> </ul> </td>
+    </tr>
+   </tbody>
+  </table>
+ </div>
+</body>
+</html>
+
