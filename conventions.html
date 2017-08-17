@@ -217,6 +217,22 @@ public class FlargleBarg
    </pre>
   </div>
  </div>
+ <h3>Copy and Paste Only Once</h3>
+ <div class="body">
+  <p>
+   As a general rule, if it's worth copying and pasting once, then it's worth
+   pasting into a <i>method</i> which can be reused. This increased modularity
+   ensures that, if that bit of repetitive code ever has to be tested or 
+   changed, then those tests and changes will be needed only once, and all 
+   consumers of that code can be left alone as much as possible; that is, the
+   singular change may be confined to a nicely-limited context.
+  </p> <p>
+   Besides, you never know when that new, factored-out method might become
+   useful in some other way. Many of the features of this library were,
+   themselves, bits of reusable code required across several of our own
+   projects.
+  </p>
+ </div>
  <h3>Extended Example Code</h3>
   <div class="code-block slightly-gray">
    <pre>
