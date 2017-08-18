@@ -67,7 +67,7 @@ public final class SQLiteSyntax
 	 * when a row insertion fails. (A value of {@code -1} as the row ID
 	 * indicates an error state.)
 	 */
-	public static final long INSERT_FAILED = -1 ;
+	public static final long INSERT_FAILED = -1L ;
 
 	/**
 	 * Magic value returned by
@@ -75,7 +75,7 @@ public final class SQLiteSyntax
 	 * methods when a row replacement fails. (A value of {@code -1} as the row
 	 * ID indicates an error state.)
 	 */
-	public static final long REPLACE_FAILED = -1 ;
+	public static final long REPLACE_FAILED = -1L ;
 
 	/**
 	 * Magic value to be passed to

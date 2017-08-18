@@ -6,6 +6,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import net.zerobandwidth.android.lib.util.TimeUtils;
+
 import java.io.File;
 import java.util.Date;
 import java.util.List;
@@ -44,13 +46,6 @@ import java.util.Map;
  *     <dd>
  *         Converts between Boolean values and the integer values typically used
  *         to represent them in SQLite.
- *     </dd>
- *     <dt>{@link #now()}</dt>
- *     <dd>
- *         Returns a UTC epoch timestamp as a long integer. Implementation
- *         classes are encouraged to store dates as long integer timestamps
- *         for easier comparison and storage, and convert them to displayable
- *         dates and times only when they need to be displayed.
  *     </dd>
  * </dl>
  *
@@ -238,9 +233,11 @@ extends SQLiteOpenHelper
 	 * comparing to timestamps stored in the database as {@code long} integers.
 	 * @return milliseconds since epoch UTC
 	 * @since zerobandwidth-net/android 0.1.1 (#20)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#39) - refactored as
+	 *     {@link net.zerobandwidth.android.lib.util.TimeUtils#now}
 	 */
 	public static long now()
-	{ return (new Date()).getTime() ; }
+	{ return TimeUtils.now() ; }
 
 /// Inner Classes //////////////////////////////////////////////////////////////
 

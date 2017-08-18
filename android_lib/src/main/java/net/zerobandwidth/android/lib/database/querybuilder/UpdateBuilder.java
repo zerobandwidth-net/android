@@ -18,7 +18,7 @@ import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_WHERE;
  * Update all rows.
  *
  * <pre>
- * long nUpdated = QueryBuilder.update( sTableName )
+ * int nUpdated = QueryBuilder.update( sTableName )
  *     .setValues( vals )
  *     .updateAll()
  *     .executeOn( db )
@@ -28,7 +28,7 @@ import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_WHERE;
  * Update specific rows, specifying that conflicts should be ignored.
  *
  * <pre>
- * long nUpdated = QueryBuilder.update( sTableName )
+ * int nUpdated = QueryBuilder.update( sTableName )
  *     .setValues( vals )
  *     .where( "some_column=?", sBogusValue )
  *     .onConflict( SQLiteDatabase.CONFLICT_IGNORE )
@@ -67,7 +67,7 @@ extends QueryBuilder<UpdateBuilder,Integer>
 	{ super( sTableName ) ; }
 
 	/**
-	 * Convenience grammar specifying that all rows should be deleted.
+	 * Convenience grammar specifying that all rows should be updated.
 	 * @return (fluid)
 	 */
 	public UpdateBuilder updateAll()
