@@ -22,13 +22,43 @@ public class ContentUtils
 {
 	protected static final String LOG_TAG = ContentUtils.class.getSimpleName() ;
 
+/// Static constants: ContentResolver syntax ///////////////////////////////////
+
+	/**
+	 * The magic word used by {@link android.content.ContentResolver#query} to
+	 * specify that results should be sorted in ascending order.
+	 * @since zerobandwidth-net/android 0.1.7 (#39)
+	 */
+	public static final String QUERY_ORDER_ASCENDING = "ASC" ;
+
+	/**
+	 * The magic word used by {@link android.content.ContentResolver#query} to
+	 * specify that results should be sorted in descending order.
+	 * @since zerobandwidth-net/android 0.1.7 (#39)
+	 */
+	public static final String QUERY_ORDER_DESCENDING = "DESC" ;
+
+	/**
+	 * The character that stands in for a variable value in the Android format
+	 * string that is supplied to methods of
+	 * {@link android.content.ContentResolver}.
+	 * @since zerobandwidth-net/android 0.1.7 (#39)
+	 */
+	public static final String QUERY_VARIABLE_MARKER = "?" ;
+
+/// Static constants: MIME types ///////////////////////////////////////////////
+
 	/** MIME type "text/plain" */
 	public static final String MIMETYPE_TEXT_PLAIN = "text/plain" ;
+
+/// Static singleton references ////////////////////////////////////////////////
 
 	/**
 	 * A persistent reference to the system's clipboard manager.
 	 */
 	public static ClipboardManager s_mgrClipboard = null ;
+
+/// Static methods /////////////////////////////////////////////////////////////
 
 	/**
 	 * Retrieves the system's clipboard manager. If an instance is not already

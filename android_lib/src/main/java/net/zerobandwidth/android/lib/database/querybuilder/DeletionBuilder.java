@@ -27,7 +27,7 @@ import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_WHERE;
  * <pre>
  * int nDeleted = QueryBuilder.deleteFrom( sTableName )
  *     .where( "active=? OR last_active_ts<=?",
- *         QueryBuilder.WHERE_FALSE, SQLitePortal.now() - 86400 )
+ *         QueryBuilder.WHERE_FALSE, TimeUtils.now() - 86400 )
  *     .executeOn( db )
  *     ;
  * </pre>

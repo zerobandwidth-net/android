@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.SQLiteSyntax;
+import net.zerobandwidth.android.lib.util.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +22,7 @@ import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_VAR;
  *
  * <p>This class is supposed to do very little; the consumer should use the
  * static methods {@link #insertInto}, {@link #update}, {@link #selectFrom}, and
- * {@link #deleteFrom}) to spawn instances of the various implementation classes
+ * {@link #deleteFrom} to spawn instances of the various implementation classes
  * corresponding to database actions ({@code INSERT}, {@code UPDATE},
  * {@code SELECT}, and {@code DELETE}).</p>
  *
@@ -172,10 +173,11 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 * Returns the number of milliseconds since epoch UTC. Use this value when
 	 * comparing to timestamps stored in the database as {@code long} integers.
 	 * @return milliseconds since epoch UTC
-	 * @see SQLitePortal#now()
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#39) - refactored as
+	 *     {@link net.zerobandwidth.android.lib.util.TimeUtils#now}
 	 */
 	public long now()
-	{ return SQLitePortal.now() ; }
+	{ return TimeUtils.now() ; }
 
 	/**
 	 * Renders the key/value pairs in a set of {@link ContentValues} as a list
@@ -330,13 +332,15 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 * @param asWhereParams the parameters for the {@code WHERE} clause
 	 * @return (fluid)
 	 */
-	@SuppressWarnings( "unchecked" )
 	public I where( String sWhereFormat, Collection<String> asWhereParams )
 	{
-		m_sExplicitWhereFormat = sWhereFormat ;
-		m_asExplicitWhereParams =
-			asWhereParams.toArray( new String[asWhereParams.size()] ) ;
-		return (I)this ;
+		if( asWhereParams == null )
+			return this.where( sWhereFormat ) ;
+		else
+		{
+			return this.where( sWhereFormat,
+				asWhereParams.toArray( new String[asWhereParams.size()] ) ) ;
+		}
 	}
 
 	/**

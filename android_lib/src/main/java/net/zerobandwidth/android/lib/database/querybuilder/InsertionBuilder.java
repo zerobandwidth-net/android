@@ -41,7 +41,7 @@ import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_SET;
  * Vector<Integer> vnIDs = new Vector<>() ;
  * for( ContentValues vals : aSeveralValues )
  * {
- *     nID = QueryBuilder.insertInto( sTableName )
+ *     long nID = QueryBuilder.insertInto( sTableName )
  *         .setValues( vals )
  *         .executeOn( db )
  *         ;
