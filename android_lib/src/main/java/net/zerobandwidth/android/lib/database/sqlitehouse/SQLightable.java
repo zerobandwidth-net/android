@@ -134,10 +134,13 @@ public interface SQLightable
 			 * Discovers the {@link Refractor} implementation to be used for
 			 * this column field.
 			 * @return the implementation which marshals this field's data
-			 * @throws IntrospectionException if something goes wrong
+			 * @throws IntrospectionException if the refractor instance can't be
+			 *  created
+			 * @throws SchematicException if the refractor class can't be
+			 *  resolved
 			 */
 			protected Refractor discoverRefractor()
-			throws IntrospectionException
+			throws IntrospectionException, SchematicException
 			{
 				Class<? extends Refractor> clsLens = m_antColumn.refractor() ;
 				if( clsLens != NullRefractor.class ) try
@@ -170,6 +173,8 @@ public interface SQLightable
 					throw IntrospectionException
 							.instanceForbidden( clsLens, xAccess ) ;
 				}
+				catch( NullPointerException xNull )
+				{ throw SchematicException.noLensForColumn( this, xNull ) ; }
 			}
 
 			/** Accesses the schematic field. */
