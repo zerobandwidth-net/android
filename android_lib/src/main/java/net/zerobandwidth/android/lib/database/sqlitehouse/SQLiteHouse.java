@@ -495,9 +495,7 @@ extends SQLitePortal
 			this.clsTable = cls ;
 			SQLightable.Reflection<TBL> tbl =
 					this.house.m_mapReflections.get(cls) ;
-//			this.antTable = clsTable.getAnnotation( SQLiteTable.class ) ;
 			this.antTable = tbl.getTableAttrs() ;
-//			this.sTableName = DBH.getTableName( clsTable, antTable ) ;
 			this.sTableName = tbl.getTableName() ;
 			this.clearColumnDef() ;
 			return this ;
@@ -518,12 +516,9 @@ extends SQLitePortal
 			this.fldColumn = fld ;
 			SQLightable.Reflection.Column col = this.house
 					.m_mapReflections.get(this.clsTable).getColumnDef(fld) ;
-//			this.antColumn = fld.getAnnotation( SQLiteColumn.class ) ;
 			this.antColumn = col.getColAttrs() ;
 			this.sColumnName = this.antColumn.name() ;
 			this.bColumnIsKey = col.isKey() ;
-//					fld.isAnnotationPresent( SQLitePrimaryKey.class ) ;
-//			this.lens = this.house.getRefractorForField(fld) ;
 			this.lens = col.getRefractor() ;
 			this.sColumnSQLValue = null ;
 
@@ -544,15 +539,6 @@ extends SQLitePortal
 				throw new IllegalStateException( "No table loaded." ) ;
 			if( TextUtils.isEmpty(sSoughtName) )
 				return this.clearColumnDef() ;
-			//noinspection unchecked -- Multiple layers of generics confuse Java
-//			List<Field> afld = ((List<Field>)
-//					(this.house.m_mapFields.get( this.clsTable ))) ;
-//			for( Field fld : afld )
-//			{
-//				SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
-//				if( antCol.name().equals(sSoughtName) )
-//					return this.loadColumnDef(fld) ;
-//			}
 			SQLightable.Reflection tbl =
 					this.house.m_mapReflections.get( this.clsTable ) ;
 			SQLightable.Reflection.Column col = tbl.getColumnDef( sSoughtName );
@@ -683,19 +669,6 @@ extends SQLitePortal
 	 */
 	protected SQLightable.ReflectionMap m_mapReflections = null ;
 
-	/*
-	 * A map of schema classes to lists of their fields.
-	 * @see #processFieldsOfClasses()
-	 */
-//	protected Map<Class<? extends SQLightable>,List<Field>> m_mapFields = null ;
-
-	/*
-	 * A map of schema classes to the columns that are annotated as primary
-	 * keys, using the {@link SQLitePrimaryKey} annotation.
-	 * @see #processFieldsOfClasses()
-	 */
-//	protected Map<Class<? extends SQLightable>,Field> m_mapKeys = null ;
-
 	/**
 	 * A persistent instance of a refractor map. Descendant classes may be
 	 * registered for certain data classes if desired.
@@ -727,7 +700,6 @@ extends SQLitePortal
 		super( factory.m_ctx, factory.m_sDatabaseName,
 				factory.m_cf, factory.m_nSchemaVersion ) ;
 		this.setSchemaClasses( factory.m_aclsSchema )
-//			.processFieldsOfClasses()
 		    .processReflections()
 			;
 		m_mapRefractor = (new RefractorMap()).init() ;
@@ -754,44 +726,6 @@ extends SQLitePortal
 		return (DSC)this ;
 	}
 
-	/*
-	 * Given that the list of schema classes has been populated, discover and
-	 * cache their characteristics for future reference.
-	 *
-	 * Consumed by {@link #SQLiteHouse(Factory)}; must follow
-	 * {@link #setSchemaClasses(List)}.
-	 *
-	 * @return (fluid)
-	 */
-/*	protected DSC processFieldsOfClasses()
-	{
-		if( m_mapFields == null )
-			m_mapFields = new HashMap<>() ;
-		if( m_mapKeys == null )
-			m_mapKeys = new HashMap<>() ;
-		for( Class<? extends SQLightable> cls : m_aclsSchema )
-		{
-			List<Field> afldAll = Arrays.asList( cls.getDeclaredFields() ) ;
-			List<Field> afldAnnotated = new ArrayList<>() ;
-			for( Field fld : afldAll )
-			{ // Find only the fields that are annotated as columns.
-				if( fld.isAnnotationPresent( SQLiteColumn.class ) )
-				{
-					fld.setAccessible(true) ;
-					afldAnnotated.add(fld) ;
-				}
-				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )
-					m_mapKeys.put( cls, fld ) ;
-			}
-			if( afldAnnotated.size() > 1 )
-				Collections.sort( afldAnnotated, new ColumnIndexComparator() ) ;
-			m_mapFields.put( cls, afldAnnotated ) ;
-		}
-
-		//noinspection unchecked
-		return (DSC)this ;
-	}
-*/
 	/**
 	 * Given that the list of schematic classes has been populated, discover and
 	 * cache their characteristics for future reference.
@@ -856,9 +790,6 @@ extends SQLitePortal
 		Log.i( LOG_TAG, "Executing onCreate()" ) ;
 		for( Class<? extends SQLightable> clsTable : m_aclsSchema )
 		{
-//			QueryContext<DSC> qctx = this.getQueryContext() ;
-//			qctx.loadTableDef(clsTable) ;
-//			db.execSQL( this.getTableCreationSQL(qctx) ) ;
 			SQLightable.Reflection tbl = m_mapReflections.get(clsTable) ;
 			if( tbl == null )
 			{
@@ -911,41 +842,7 @@ extends SQLitePortal
 				.toString()
 			);
 		for( Class<? extends SQLightable> clsTable : m_aclsSchema )
-		{ // Determine what's new in each table.
-/*
-			QueryContext<DSC> qctx = this.getQueryContext() ;
-			qctx.loadTableDef(clsTable) ;
-			int nTableSince = ( qctx.antTable == null ?
-						1 : qctx.antTable.since() ) ;
-			if( nTableSince > nOld )
-			{ // Whole table is new; create it and move on.
-				db.execSQL( this.getTableCreationSQL(qctx) ) ;
-				Log.d( LOG_TAG, (new StringBuilder())
-						.append( "Created table [" )
-						.append( qctx.sTableName ).append( "]." )
-						.toString()
-					);
-				continue ;
-			}
-			for( Field fld : m_mapFields.get(clsTable) )
-			{ // Determine which columns are new.
-				qctx.loadColumnDef(fld) ;
-				int nColSince = qctx.antColumn.since() ;
-				if( nColSince > nOld )
-				{
-					db.execSQL( this.getAddColumnSQL(qctx) ) ;
-					Log.d( LOG_TAG, (new StringBuilder())
-							.append( "Added column [" )
-							.append( qctx.sColumnName )
-							.append( "] to table [" )
-							.append( qctx.sTableName )
-							.toString()
-						);
-				}
-			}
-*/
 			this.upgradeTable( db, clsTable, nOld ) ;
-		}
 	}
 
 	/**
@@ -1002,119 +899,6 @@ extends SQLitePortal
 		return this ;
 	}
 
-/// Schema Processor Methods ///////////////////////////////////////////////////
-
-	/*
-	 * Generates the SQL statement which will create one of the tables, based on
-	 * the table class itself, and its {@link SQLiteTable} annotation (if any).
-	 *
-	 * <p>Consumed by {@link #onCreate} and {@link #onUpgrade}.</p>
-	 *
-	 * @param qctx the context of the creation query
-	 * @return an SQL statement which will create the SQLite table based on the
-	 *  information discovered within the class definition.
-	 */
-/*
-	protected String getTableCreationSQL( QueryContext<?> qctx )
-	{
-		StringBuilder sb = new StringBuilder() ;
-		sb.append( "CREATE TABLE IF NOT EXISTS " )
-		  .append( qctx.sTableName )
-		  .append( " ( " ).append( MAGIC_ID_COLUMN_NAME )
-		  .append( " " ).append( SQLITE_TYPE_INT )
-		  .append( " PRIMARY KEY AUTOINCREMENT" )
-		  ;
-
-		for( Field fld : m_mapFields.get( qctx.clsTable ) )
-		{
-			qctx.loadColumnDef(fld) ;
-			if( MAGIC_ID_COLUMN_NAME.equals(qctx.sColumnName) )
-				continue ;     // Allows the data class to contain the magic ID.
-			sb.append( ", " )
-			  .append( this.getColumnDefinitionClause(qctx) )
-			  ;
-		}
-
-		sb.append( " )" ) ;
-
-		Log.d( LOG_TAG, sb.toString() ) ;
-
-		return sb.toString() ;
-	}
-*/
-	/*
-	 * Generates the SQL statement which will add a column to a table, based on
-	 * the table class itself, its annotation, a field within that table, and
-	 * its column annotation.
-	 *
-	 * <p>Consumed by {@link #onUpgrade}.</p>
-	 *
-	 * @param qctx the context of the alteration query
-	 * @return an SQL statement which adds a column to an existing table
-	 */
-/*
-	protected String getAddColumnSQL( QueryContext<?> qctx )
-	{
-		StringBuilder sb = new StringBuilder() ;
-		sb.append( "ALTER TABLE " ).append( qctx.sTableName )
-		  .append( " ADD COLUMN " )
-		  .append( this.getColumnDefinitionClause(qctx) )
-		  ;
-
-		return sb.toString() ;
-	}
-*/
-	/*
-	 * Generates an SQLite column definition clause for the specified field in
-	 * an {@link SQLightable} class. This can be used as part of a
-	 * {@code CREATE TABLE} or {@code ALTER TABLE} statement.
-	 *
-	 * <p>Consumed by {@link #getTableCreationSQL} and
-	 * {@link #getAddColumnSQL}.</p>
-	 *
-	 * @param qctx the context of the table creation/alteration query
-	 * @return a SQLite column definition clause for the specified field
-	 */
-/*
-	protected String getColumnDefinitionClause( QueryContext<?> qctx )
-	{
-		StringBuilder sb = new StringBuilder() ;
-
-		if( qctx.lens == null )
-			return null ;                 // Can't continue without a refractor.
-
-		sb.append( qctx.sColumnName ).append( " " )
-		  .append( qctx.lens.getSQLiteDataType() )
-		  ;
-
-		if( qctx.bColumnIsKey )        // Override the annotation's nullability.
-			sb.append( " UNIQUE NOT NULL" ) ; // but we'll use it as a key
-		else
-			sb.append(( qctx.antColumn.is_nullable() ?
-						" NULL" : " NOT NULL" )) ;
-
-		if( SQLiteSyntax.SQLITE_NULL.equals( qctx.antColumn.sql_default() ) )
-		{ // Write "DEFAULT NULL" only if the column is actually nullable.
-			if( ! qctx.bColumnIsKey && qctx.antColumn.is_nullable() )
-				sb.append( " DEFAULT NULL" ) ;
-		}
-		else
-		{ // Write whatever the default is.
-			sb.append( " DEFAULT " ) ;
-			if( SQLITE_TYPE_TEXT.equals( qctx.lens.getSQLiteDataType() ) )
-			{
-				sb.append("'")
-				  .append( qctx.antColumn.sql_default() )
-				  .append("'")
-				  ;
-			}
-			else
-				sb.append( qctx.antColumn.sql_default() ) ;
-		}
-
-		return sb.toString() ;
-	}
-*/
 /// Query Commands /////////////////////////////////////////////////////////////
 
 	/**
@@ -1129,29 +913,22 @@ extends SQLitePortal
 	 */
 	public <ROW extends SQLightable> long insert( ROW o )
 	{
-//		QueryContext<DSC> qctx = this.getQueryContext( o.getClass() ) ;
 		//noinspection unchecked
 		SQLightable.Reflection<ROW> tbl = ((SQLightable.Reflection<ROW>)
 				( m_mapReflections.get( o.getClass() ) )) ;
-//		qctx.loadColumnDef( MAGIC_ID_COLUMN_NAME ) ;
 		SQLightable.Reflection<ROW>.Column col = tbl.getMagicIDColumn() ;
 		ContentValues vals = this.toContentValues(o) ;
 		// Don't allow the passed object to dictate the auto-inc ID.
-//		if( qctx.fldColumn != null )
-		if( col != null )
-			vals.remove( MAGIC_ID_COLUMN_NAME ) ;
+		if( col != null ) vals.remove( MAGIC_ID_COLUMN_NAME ) ;
 
 		long nID = QueryBuilder
-//				.insertInto( m_db, getTableName( o.getClass(), null ) )
 				.insertInto( m_db, tbl.getTableName() )
 				.setValues( vals )
 				.execute()
 				;
 
-//		if( qctx.fldColumn != null )
 		if( col != null )
 		{ // Try to write the ID back into the instance.
-//			try { qctx.fldColumn.setLong( o, nID ) ; }
 			try { col.getField().setLong( o, nID ) ; }
 			catch( IllegalAccessException xAccess )
 			{ Log.w( LOG_TAG, "Couldn't rewrite row ID into object." ) ; }
@@ -1170,26 +947,18 @@ extends SQLitePortal
 	public <ROW extends SQLightable> int update( ROW o )
 	throws SchematicException
 	{
-//		QueryContext<DSC> qctx = this.getQueryContext() ;
-//		qctx.loadTableDef( o.getClass() ) ;
 		//noinspection unchecked
 		SQLightable.Reflection<ROW> tbl = ((SQLightable.Reflection<ROW>)
 				( m_mapReflections.get( o.getClass() ) )) ;
-//		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
 		SQLightable.Reflection<ROW>.Column col = tbl.getKeyOrMagicIDColumn() ;
-//		if( qctx.fldColumn == null )
 		if( col == null )
 		{
 			throw new SchematicException(
 					"Can't use update(SQLightable) without a key column." ) ;
 		}
-//		qctx.loadColumnValue(o) ; // throws SchematicException
-//		return QueryBuilder.update( m_db, qctx.sTableName )
 		return QueryBuilder.update( m_db, tbl.getTableName() )
-//				.setValues( this.toContentValues(o) )
 				.setValues( tbl.toContentValues(o) )
 				.where( String.format( "%s=%s",
-//						qctx.sColumnName, qctx.sColumnSQLValue ) )
 						col.getName(), col.getSQLColumnValueFrom(o) ) )
 				.execute()
 				;
@@ -1222,32 +991,24 @@ extends SQLitePortal
 	public <ROW extends SQLightable> ROW search( ROW oCriteria )
 	throws SchematicException
 	{
-//		QueryContext<DSC> qctx = this.getQueryContext() ;
-//		qctx.loadTableDef( oCriteria.getClass() ) ;
 		//noinspection unchecked
 		SQLightable.Reflection<ROW> tbl = ((SQLightable.Reflection<ROW>)
 						( m_mapReflections.get( oCriteria.getClass() ) )) ;
-//		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
 		SQLightable.Reflection<ROW>.Column col = tbl.getKeyOrMagicIDColumn() ;
-//		if( qctx.fldColumn == null )
 		if( col == null )
 		{
 			throw new SchematicException(
 					"Can't use search(SQLightable) without a key column." ) ;
 		}
-//		qctx.loadColumnValue(oCriteria) ;
 		Cursor crs = null ;
 		try
 		{
-//			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
 			crs = QueryBuilder.selectFrom( m_db, tbl.getTableName() )
 					.where( String.format( "%s=%s",
-//		                  qctx.sColumnName, qctx.sColumnSQLValue ) )
 			              col.getName(), col.getSQLColumnValueFrom(oCriteria) ))
 					.execute()
 					;
 			if( ! crs.moveToFirst() ) return null ; // No such object found.
-//			return this.fromCursor( qctx, crs ) ;
 			return tbl.fromCursor(crs) ;
 		}
 		finally
@@ -1270,11 +1031,8 @@ extends SQLitePortal
 	public <ROW extends SQLightable> ROW search( Class<ROW> cls, String sID )
 	throws SchematicException
 	{
-//		QueryContext<DSC> qctx = this.getQueryContext(cls) ;
 		SQLightable.Reflection<ROW> tbl = m_mapReflections.get(cls) ;
-//		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
 		SQLightable.Reflection<ROW>.Column colKey = tbl.getKeyColumn() ;
-//		if( qctx.fldColumn == null )
 		if( colKey == null )
 		{
 			throw new SchematicException(
@@ -1283,15 +1041,12 @@ extends SQLitePortal
 		Cursor crs = null ;
 		try
 		{
-//			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
 			crs = QueryBuilder.selectFrom( m_db, tbl.getTableName() )
 					.where( String.format( "%s='%s'",
-//							qctx.sColumnName, sID ) )
 			              colKey.getName(), sID ) )
 					.execute()
 					;
 			if( ! crs.moveToFirst() ) return null ;     // No such object found.
-//			return this.fromCursor( qctx, crs ) ;
 			return tbl.fromCursor(crs) ;
 		}
 		finally
@@ -1310,20 +1065,16 @@ extends SQLitePortal
 	@SuppressLint("DefaultLocale")
 	public <ROW extends SQLightable> ROW select( Class<ROW> cls, long nID )
 	{
-//		QueryContext<DSC> qctx = this.getQueryContext() ;
-//		qctx.loadTableDef(cls) ;
 		SQLightable.Reflection<ROW> tbl = m_mapReflections.get(cls) ;
 		Cursor crs = null ;
 		try
 		{
-//			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
 			crs = QueryBuilder.selectFrom( m_db, tbl.getTableName() )
 					.where( String.format( "%s=%d",
 							MAGIC_ID_COLUMN_NAME, nID ) )
 					.execute()
 					;
 			if( ! crs.moveToFirst() ) return null ; // No such object found.
-//			return this.fromCursor( qctx, crs ) ;
 			return tbl.fromCursor(crs) ;
 		}
 		finally
@@ -1353,25 +1104,15 @@ extends SQLitePortal
 	public <ROW extends SQLightable> int delete( ROW o )
 	throws SchematicException
 	{
-//		QueryContext<DSC> qctx = this.getQueryContext() ;
-//		qctx.loadTableDef( o.getClass() ) ;
 		//noinspection unchecked
 		SQLightable.Reflection<ROW> tbl = ((SQLightable.Reflection<ROW>)
 				( m_mapReflections.get(o.getClass()) )) ;
-//		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
 		SQLightable.Reflection<ROW>.Column col = tbl.getKeyOrMagicIDColumn() ;
-//		if( qctx.fldColumn == null )
 		if( col == null )
 		{
 			throw new SchematicException(
 					"Can't use delete(SQLightable) without a key column." ) ;
 		}
-//		qctx.loadColumnValue(o) ;
-//		return QueryBuilder.deleteFrom( m_db, qctx.sTableName )
-//				.where( String.format( "%s=%s",
-//						qctx.sColumnName, qctx.sColumnSQLValue ) )
-//				.execute()
-//				;
 		return QueryBuilder.deleteFrom( m_db, tbl.getTableName() )
 			.where( String.format( "%s=%s",
 				col.getName(), col.getSQLColumnValueFrom(o) ) )
@@ -1418,64 +1159,6 @@ extends SQLitePortal
 		SQLightable.Reflection<T> tbl = ((SQLightable.Reflection<T>)
 					( m_mapReflections.get(qctx.clsTable) )) ;
 		return tbl.fromCursor( crs ) ;
-/*
-		T oResult ;
-		try
-		{
-			Constructor ctor = qctx.clsTable.getDeclaredConstructor() ;
-			if( ctor == null ) // try something different
-				ctor = qctx.clsTable.getConstructor() ;
-			ctor.setAccessible(true) ;
-			//noinspection unchecked
-			oResult = ((T)(ctor.newInstance())) ;
-		}
-		catch( Exception xConstruct )
-		{
-			throw new SchematicException(
-					"Couldn't construct a container object.", xConstruct ) ;
-		}
-
-		List<Field> afldResult = m_mapFields.get( qctx.clsTable ) ;
-
-		for( Field fld : afldResult )
-		{
-			qctx.loadColumnDef(fld) ;
-			if( qctx.fldColumn == null )
-			{ // The field/column mapping is broken.
-				Log.e( LOG_TAG, (new StringBuilder())
-							.append( "Skipping column [" )
-							.append( fld.getName() )
-							.append( "]:" )
-							.toString()
-						, SchematicException.columnNotFound(
-							qctx.clsTable.getSimpleName(),
-							fld.getName(), qctx.sTableName, null )
-					);
-				continue ;
-			}
-			try
-			{
-				fld.set( oResult,
-						qctx.lens.fromCursor( crs, qctx.sColumnName ) ) ;
-			}
-			catch( IllegalAccessException xAccess )
-			{
-				throw SchematicException.fieldWasInaccessible(
-						qctx.clsTable.getSimpleName(),
-						qctx.fldColumn.getName(),
-						xAccess
-					);
-			}
-			catch( IllegalStateException xState )
-			{
-				throw SchematicException.columnNotFound(
-						qctx.clsTable.getSimpleName(),
-						fld.getName(), qctx.sTableName, xState ) ;
-			}
-		}
-
-		return oResult ;
-*/
 	}
 
 	/**
@@ -1547,10 +1230,6 @@ extends SQLitePortal
 			Class<T> cls, Cursor crs )
 	throws SchematicException
 	{
-/*
-		QueryContext<DSC> qctx = this.getQueryContext(cls) ;
-		return this.processResultSet( qctx, crs, cls ) ;
-*/
 		List<T> aResults = new ArrayList<>() ;
 		if( crs.moveToFirst() )
 		{ // Process each element in turn, marshalling it into the list.
@@ -1634,39 +1313,5 @@ extends SQLitePortal
 	{
 		SQLightable.Reflection tbl = m_mapReflections.get( o.getClass() ) ;
 		return tbl.toContentValues(o) ;
-/*
-		QueryContext<DSC> qctx = this.getQueryContext() ;
-		qctx.loadTableDef( o.getClass() ) ;
-		ContentValues vals = new ContentValues() ;
-		for( Field fld : m_mapFields.get( o.getClass() ) )
-		{
-			qctx.loadColumnDef(fld) ;
-			if( qctx.lens == null )
-				continue ;                  // Can't process this field further.
-			try
-			{
-				qctx.lens.addToContentValues( vals,
-						qctx.sColumnName, qctx.lens.getValueFrom( o, fld ) ) ;
-			}
-			catch( IllegalAccessException xAccess )
-			{
-				throw SchematicException.fieldWasInaccessible(
-						qctx.clsTable.getSimpleName(),
-						fld.getName(),
-						xAccess
-					);
-			}
-			catch( SchematicException xSchema )
-			{
-				Log.e( LOG_TAG, (new StringBuilder())
-						.append( "Could not extract value for field [" )
-						.append( fld.getName() )
-						.append( "]:" )
-						.toString(),
-					xSchema ) ;
-			} // and continue
-		}
-		return vals ;
-*/
 	}
 }

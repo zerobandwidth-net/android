@@ -126,4 +126,21 @@ public class CustomLensTest
 		finally
 		{ dbh.close() ; }
 	}
+
+	/**
+	 * Exercises {@link SQLightable.Reflection}'s ability to discover, and make
+	 * use of, a custom refractor.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testCustomRefractorInReflection()
+	{
+		SQLightable.Reflection<Sparkle> tbl =
+				SQLightable.Reflection.reflect( Sparkle.class ) ;
+		assertEquals( CustomStringLens.class,
+				tbl.getColumnDef( "sparkle" ).getRefractor().getClass() ) ;
+		Sparkle o = new Sparkle( "Shiny!" ) ;
+		assertEquals( "'Shiny!'",
+				tbl.getColumnDef( "sparkle" ).getSQLColumnValueFrom(o) ) ;
+	}
 }
