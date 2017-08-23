@@ -108,6 +108,50 @@ public final class SQLiteSyntax
 
 /// Static Constants: SQLite Syntax ////////////////////////////////////////////
 
+	/**
+	 * Begins a SQL {@code ADD COLUMN} clause in an {@code ALTER TABLE}
+	 * statement.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_ADD_COLUMN = " ADD COLUMN " ;
+
+	/**
+	 * Begins a SQL {@code ALTER TABLE} statement.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_ALTER_TABLE = "ALTER TABLE " ;
+
+	/**
+	 * Sets up the part of a column definition clause in which the default value
+	 * is specified
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_DEFAULT = " DEFAULT " ;
+
+	/**
+	 * Defines a column with a null default value.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_DEFAULT_NULL = " DEFAULT NULL" ;
+
+	/**
+	 * Defines a column as "key-like" &mdash; unique and not nullable.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_IS_KEYLIKE = " UNIQUE NOT NULL" ;
+
+	/**
+	 * Defines a column as nullable.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_NULLABLE = " NULL" ;
+
+	/**
+	 * Defines a column as not nullable.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_NOT_NULLABLE = " NOT NULL" ;
+
 	/** Begins a SQL {@code DELETE FROM} statement. */
 	public static final String SQL_DELETE_FROM = "DELETE FROM " ;
 

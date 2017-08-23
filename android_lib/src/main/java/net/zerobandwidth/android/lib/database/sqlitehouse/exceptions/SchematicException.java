@@ -1,5 +1,9 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.exceptions;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+
+import java.lang.reflect.Field;
+
 /**
  * Thrown by
  * {@link net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse}
@@ -45,7 +49,7 @@ extends RuntimeException
 	 * @since zerobandwidth-net/android 0.1.6 (#47)
 	 */
 	public static SchematicException columnNotFound(
-			String sClassName, String sFieldName, String sTableName, Exception x )
+			String sClassName, String sFieldName, String sTableName, Throwable x )
 	{
 		return new SchematicException( (new StringBuilder())
 				.append( "Column for field [" ).append( sFieldName )
@@ -54,6 +58,71 @@ extends RuntimeException
 				.append( "]; versions or annotations might be mismatched." )
 				.toString()
 			, x ) ;
+	}
+
+	/**
+	 * Returns an exception to be thrown when a field that was supposed to
+	 * represent a column isn't properly annotated.
+	 * @param fld the field
+	 * @return a new exception with an informative message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException fieldNotAnnotated( Field fld )
+	{
+		return new SchematicException( (new StringBuilder())
+				.append( "Cannot analyze field [" ).append( fld.getName() )
+				.append( "] of class [" )
+				.append( fld.getDeclaringClass().getCanonicalName() )
+				.append( "]: Field is not properly annotated." )
+				.toString()
+			);
+	}
+
+	/**
+	 * Returns an exception to be thrown when an attempt to create or update the
+	 * SQLite database fails because the SQL statement failed.
+	 * @param refl a reflection of the schematic class that failed
+	 * @param sSQL the SQL statement that was executed
+	 * @param xCause the root cause of the failure, if any (may be null)
+	 * @return a new exception with an informative message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException tableCreationOrUpdateFailed(
+			SQLightable.Reflection refl, String sSQL, Throwable xCause )
+	{
+		String sMessage = (new StringBuilder())
+				.append( "Failed to create table for class [" )
+				.append( refl.getTableClass().getCanonicalName() )
+				.append( "] when executing SQL statement: " )
+				.append(( sSQL == null ? "(null)" : sSQL ))
+				.toString()
+				;
+		return new SchematicException( sMessage, xCause ) ;
+	}
+
+	/**
+	 * Returns an exception to be thrown when a column operation cannot continue
+	 * because the column's
+	 * {@link net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor}
+	 * implementation cannot be determined.
+	 * @param col the column on which the operation would be performed
+	 * @param xCause the cause of the failure, if any (may be null)
+	 * @return a new exception with an informative error message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException noLensForColumn(
+			SQLightable.Reflection.Column col, Throwable xCause )
+	{
+		Field fld = col.getField() ;
+		String sMessage = (new StringBuilder())
+				.append( "No refractor implementation found for field [" )
+				.append( fld.getName() )
+				.append( "] of class [" )
+				.append( fld.getDeclaringClass().getCanonicalName() )
+				.append( "]." )
+				.toString()
+				;
+		return new SchematicException( sMessage, xCause ) ;
 	}
 
 	public static final String DEFAULT_MESSAGE =

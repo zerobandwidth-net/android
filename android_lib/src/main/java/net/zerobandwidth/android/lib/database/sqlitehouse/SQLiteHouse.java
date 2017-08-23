@@ -9,14 +9,12 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
-import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.querybuilder.DeletionBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.SelectionBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.UpdateBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
-import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
@@ -28,14 +26,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_INT;
-import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_TEXT;
 
 /**
  * Uses custom annotations to automatically construct and manage SQLite
@@ -228,7 +220,6 @@ import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_TE
  *
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
-@SuppressWarnings("StringBufferReplaceableByString")
 public class SQLiteHouse<DSC extends SQLiteHouse>
 extends SQLitePortal
 {
@@ -382,7 +373,7 @@ extends SQLitePortal
 	 * Used by {@link SQLiteHouse} to sort the indices and/or names of columns
 	 * within a table specification.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
-	 * @see SQLiteHouse#processFieldsOfClasses()
+	 * @see SQLightable.Reflection#initFieldMap()
 	 */
 	public static class ColumnIndexComparator
 	implements Comparator<Field>
@@ -455,6 +446,8 @@ extends SQLitePortal
 	 * must be reused multiple times within the body of certain larger
 	 * functions, or must be passed <i>between</i> functions, it is useful to
 	 * have all of these fields gathered in a single contextual container.
+	 * Since 0.1.7 (#50), this class is not particularly different from
+	 * {@link SQLightable.Reflection}, but is still not deprecated&hellip; yet.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
 	public static class QueryContext<DBH extends SQLiteHouse>
@@ -500,8 +493,12 @@ extends SQLitePortal
 		public <TBL extends SQLightable> QueryContext<DBH> loadTableDef( Class<TBL> cls )
 		{
 			this.clsTable = cls ;
-			this.antTable = clsTable.getAnnotation( SQLiteTable.class ) ;
-			this.sTableName = DBH.getTableName( clsTable, antTable ) ;
+			SQLightable.Reflection<TBL> tbl =
+					this.house.m_mapReflections.get(cls) ;
+//			this.antTable = clsTable.getAnnotation( SQLiteTable.class ) ;
+			this.antTable = tbl.getTableAttrs() ;
+//			this.sTableName = DBH.getTableName( clsTable, antTable ) ;
+			this.sTableName = tbl.getTableName() ;
 			this.clearColumnDef() ;
 			return this ;
 		}
@@ -519,11 +516,15 @@ extends SQLitePortal
 				return this.clearColumnDef() ;
 
 			this.fldColumn = fld ;
-			this.antColumn = fld.getAnnotation( SQLiteColumn.class ) ;
-			this.sColumnName = antColumn.name() ;
-			this.bColumnIsKey =
-					fld.isAnnotationPresent( SQLitePrimaryKey.class ) ;
-			this.lens = this.house.getRefractorForField(fld) ;
+			SQLightable.Reflection.Column col = this.house
+					.m_mapReflections.get(this.clsTable).getColumnDef(fld) ;
+//			this.antColumn = fld.getAnnotation( SQLiteColumn.class ) ;
+			this.antColumn = col.getColAttrs() ;
+			this.sColumnName = this.antColumn.name() ;
+			this.bColumnIsKey = col.isKey() ;
+//					fld.isAnnotationPresent( SQLitePrimaryKey.class ) ;
+//			this.lens = this.house.getRefractorForField(fld) ;
+			this.lens = col.getRefractor() ;
 			this.sColumnSQLValue = null ;
 
 			return this ;
@@ -544,14 +545,18 @@ extends SQLitePortal
 			if( TextUtils.isEmpty(sSoughtName) )
 				return this.clearColumnDef() ;
 			//noinspection unchecked -- Multiple layers of generics confuse Java
-			List<Field> afld = ((List<Field>)
-					(this.house.m_mapFields.get( this.clsTable ))) ;
-			for( Field fld : afld )
-			{
-				SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
-				if( antCol.name().equals(sSoughtName) )
-					return this.loadColumnDef(fld) ;
-			}
+//			List<Field> afld = ((List<Field>)
+//					(this.house.m_mapFields.get( this.clsTable ))) ;
+//			for( Field fld : afld )
+//			{
+//				SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
+//				if( antCol.name().equals(sSoughtName) )
+//					return this.loadColumnDef(fld) ;
+//			}
+			SQLightable.Reflection tbl =
+					this.house.m_mapReflections.get( this.clsTable ) ;
+			SQLightable.Reflection.Column col = tbl.getColumnDef( sSoughtName );
+			if( col != null ) return this.loadColumnDef( col.getField() ) ;
 			Log.w( LOG_TAG, (new StringBuilder())
 					.append( "No column found with name [" )
 					.append( sSoughtName )
@@ -625,9 +630,6 @@ extends SQLitePortal
 	 * Standardized way to choose the name of a SQLite table based on the class
 	 * definition and its annotations, if any.
 	 *
-	 * <p>Consumed by {@link #getTableCreationSQL} and
-	 * {@link #getAddColumnSQL}.</p>
-	 *
 	 * @param clsTable the class which defines the SQLite table
 	 * @param antTableArg the annotation which relates the class to the schema,
 	 *  if any; if {@code null} is passed, this method will still try to
@@ -636,8 +638,11 @@ extends SQLitePortal
 	 * @return either the name specified in the annotation, or a lower-cased
 	 *  transformation of the class name itself if the annotation is not
 	 *  provided
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#50)
 	 */
-	protected static <T extends SQLightable> String getTableName( Class<T> clsTable, SQLiteTable antTableArg )
+	@SuppressWarnings( "unused" )
+	protected static <T extends SQLightable> String getTableName(
+			Class<T> clsTable, SQLiteTable antTableArg )
 	{
 		SQLiteTable antTable = ( antTableArg == null ?
 			clsTable.getAnnotation( SQLiteTable.class ) : antTableArg ) ;
@@ -673,17 +678,23 @@ extends SQLitePortal
 	protected List<Class<? extends SQLightable>> m_aclsSchema = null ;
 
 	/**
+	 * A map of schematic classes to their reflections.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	protected SQLightable.ReflectionMap m_mapReflections = null ;
+
+	/*
 	 * A map of schema classes to lists of their fields.
 	 * @see #processFieldsOfClasses()
 	 */
-	protected Map<Class<? extends SQLightable>,List<Field>> m_mapFields = null ;
+//	protected Map<Class<? extends SQLightable>,List<Field>> m_mapFields = null ;
 
-	/**
+	/*
 	 * A map of schema classes to the columns that are annotated as primary
 	 * keys, using the {@link SQLitePrimaryKey} annotation.
 	 * @see #processFieldsOfClasses()
 	 */
-	protected Map<Class<? extends SQLightable>,Field> m_mapKeys = null ;
+//	protected Map<Class<? extends SQLightable>,Field> m_mapKeys = null ;
 
 	/**
 	 * A persistent instance of a refractor map. Descendant classes may be
@@ -716,7 +727,8 @@ extends SQLitePortal
 		super( factory.m_ctx, factory.m_sDatabaseName,
 				factory.m_cf, factory.m_nSchemaVersion ) ;
 		this.setSchemaClasses( factory.m_aclsSchema )
-			.processFieldsOfClasses()
+//			.processFieldsOfClasses()
+		    .processReflections()
 			;
 		m_mapRefractor = (new RefractorMap()).init() ;
 		this.registerCustomRefractors() ;
@@ -725,8 +737,7 @@ extends SQLitePortal
 	/**
 	 * Caches a list of classes that define the database schema.
 	 *
-	 * Consumed by {@link #SQLiteHouse(Factory)}; must precede
-	 * {@link #processFieldsOfClasses()}.
+	 * Consumed by {@link #SQLiteHouse(Factory)}.
 	 *
 	 * @param aclsSchema the list of classes
 	 * @return (fluid)
@@ -743,7 +754,7 @@ extends SQLitePortal
 		return (DSC)this ;
 	}
 
-	/**
+	/*
 	 * Given that the list of schema classes has been populated, discover and
 	 * cache their characteristics for future reference.
 	 *
@@ -752,7 +763,7 @@ extends SQLitePortal
 	 *
 	 * @return (fluid)
 	 */
-	protected DSC processFieldsOfClasses()
+/*	protected DSC processFieldsOfClasses()
 	{
 		if( m_mapFields == null )
 			m_mapFields = new HashMap<>() ;
@@ -775,6 +786,33 @@ extends SQLitePortal
 			if( afldAnnotated.size() > 1 )
 				Collections.sort( afldAnnotated, new ColumnIndexComparator() ) ;
 			m_mapFields.put( cls, afldAnnotated ) ;
+		}
+
+		//noinspection unchecked
+		return (DSC)this ;
+	}
+*/
+	/**
+	 * Given that the list of schematic classes has been populated, discover and
+	 * cache their characteristics for future reference.
+	 *
+	 * Consumed by {@link #SQLiteHouse(Factory)}; must follow
+	 * {@link #setSchemaClasses}.
+	 *
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	protected DSC processReflections()
+	{
+		if( m_mapReflections == null )
+			m_mapReflections = new SQLightable.ReflectionMap() ;
+		else m_mapReflections.clear() ;
+
+		for( Class<? extends SQLightable> cls : m_aclsSchema )
+		{
+			SQLightable.Reflection<? extends SQLightable> tbl =
+					SQLightable.Reflection.reflect(cls) ;
+			m_mapReflections.put( cls, tbl ) ;
 		}
 
 		//noinspection unchecked
@@ -806,20 +844,42 @@ extends SQLitePortal
 	 * left extensible for descendant classes, just in case they might need to
 	 * perform any custom post-processing.</p>
 	 *
-	 * <p>Consumes {@link #getTableCreationSQL}.</p>
-	 *
 	 * @param db a direct handle to the SQLite database (provided by the Android
 	 *  OS)
+	 * @throws SchematicException <i>(since 0.1.7 #50)</i> if something goes
+	 *  wrong while processing the schema definition
 	 */
 	@Override
 	public void onCreate( SQLiteDatabase db )
+	throws SchematicException
 	{
 		Log.i( LOG_TAG, "Executing onCreate()" ) ;
 		for( Class<? extends SQLightable> clsTable : m_aclsSchema )
 		{
-			QueryContext<DSC> qctx = this.getQueryContext() ;
-			qctx.loadTableDef(clsTable) ;
-			db.execSQL( this.getTableCreationSQL(qctx) ) ;
+//			QueryContext<DSC> qctx = this.getQueryContext() ;
+//			qctx.loadTableDef(clsTable) ;
+//			db.execSQL( this.getTableCreationSQL(qctx) ) ;
+			SQLightable.Reflection tbl = m_mapReflections.get(clsTable) ;
+			if( tbl == null )
+			{
+				throw new SchematicException( (new StringBuilder())
+						.append( "No reflection found for class [" )
+						.append( clsTable.getCanonicalName() )
+						.append( "]. This can't happen!" )
+						.toString()
+					);
+			}
+			String sSQL = null ;
+			try
+			{
+				sSQL = tbl.getTableCreationSQL() ;
+				db.execSQL( sSQL ) ;
+			}
+			catch( Exception x )
+			{
+				throw SchematicException
+						.tableCreationOrUpdateFailed( tbl, sSQL, x ) ;
+			}
 		}
 	}
 
@@ -835,9 +895,6 @@ extends SQLitePortal
 	 * <p>This method was designed to be a {@code final} implementation, but is
 	 * left extensible for descendant classes, just in case they might need to
 	 * perform any custom post-processing.</p>
-	 *
-	 * <p>Consumes {@link #getTableCreationSQL} and
-	 * {@link #getAddColumnSQL}.</p>
 	 *
 	 * @param db a direct handle to the SQLite database (provided by the Android
 	 *  OS)
@@ -855,6 +912,7 @@ extends SQLitePortal
 			);
 		for( Class<? extends SQLightable> clsTable : m_aclsSchema )
 		{ // Determine what's new in each table.
+/*
 			QueryContext<DSC> qctx = this.getQueryContext() ;
 			qctx.loadTableDef(clsTable) ;
 			int nTableSince = ( qctx.antTable == null ?
@@ -885,22 +943,78 @@ extends SQLitePortal
 						);
 				}
 			}
+*/
+			this.upgradeTable( db, clsTable, nOld ) ;
 		}
+	}
+
+	/**
+	 * Called by {@link #onUpgrade} to upgrade a single SQLite database table
+	 * based on the information reflected by a specific schematic class.
+	 * @param db a direct handle to the SQLite database (provided to
+	 *           {@link #onUpgrade} by the Android OS)
+	 * @param clsTable the schematic class that defines the table
+	 * @param nOld the version of the schema that is installed
+	 * @param <T> the schematic class
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	protected <T extends SQLightable> SQLiteHouse<DSC> upgradeTable(
+			SQLiteDatabase db, Class<T> clsTable, int nOld )
+	{
+		SQLightable.Reflection<T> tbl = m_mapReflections.get(clsTable) ;
+		int nTableSince = tbl.getFirstSchemaVersion() ;
+		if( nTableSince > nOld )
+		{ // The whole table is new; create it.
+			db.execSQL( tbl.getTableCreationSQL() ) ;
+			Log.i( LOG_TAG, (new StringBuilder())
+					.append( "Created table [" ).append( tbl.getTableName() )
+					.append( "] from class [" )
+					.append( clsTable.getCanonicalName() )
+					.append( "]." )
+					.toString()
+				);
+		}
+		else
+		{ // Examine the table's columns, creating new ones where needed.
+			SQLightable.Reflection.ColumnMap<T> mapColumns =
+					tbl.getColumnMap() ;
+			for( SQLightable.Reflection<T>.Column col : mapColumns.values() )
+			{
+				int nColSince = col.getColAttrs().since() ;
+				if( nColSince > nOld )
+				{
+					db.execSQL( tbl.getAddColumnSQL(col) ) ;
+					Log.i( LOG_TAG, (new StringBuilder())
+							.append( "Added column [" )
+							.append( col.getName() )
+							.append( "] to table [" )
+							.append( tbl.getTableName() )
+							.append( "] from class [" )
+							.append( clsTable.getCanonicalName() )
+							.append( "]." )
+							.toString()
+						);
+				}
+			}
+		}
+
+		return this ;
 	}
 
 /// Schema Processor Methods ///////////////////////////////////////////////////
 
-	/**
+	/*
 	 * Generates the SQL statement which will create one of the tables, based on
 	 * the table class itself, and its {@link SQLiteTable} annotation (if any).
 	 *
-	 * <p>Consumed by {@link #onCreate} and {@link #onUpgrade}. Consumes
-	 * {@link #getColumnDefinitionClause}.</p>
+	 * <p>Consumed by {@link #onCreate} and {@link #onUpgrade}.</p>
 	 *
 	 * @param qctx the context of the creation query
 	 * @return an SQL statement which will create the SQLite table based on the
 	 *  information discovered within the class definition.
 	 */
+/*
 	protected String getTableCreationSQL( QueryContext<?> qctx )
 	{
 		StringBuilder sb = new StringBuilder() ;
@@ -927,18 +1041,18 @@ extends SQLitePortal
 
 		return sb.toString() ;
 	}
-
-	/**
+*/
+	/*
 	 * Generates the SQL statement which will add a column to a table, based on
 	 * the table class itself, its annotation, a field within that table, and
 	 * its column annotation.
 	 *
-	 * <p>Consumed by {@link #onUpgrade}. Consumes
-	 * {@link #getColumnDefinitionClause}.</p>
+	 * <p>Consumed by {@link #onUpgrade}.</p>
 	 *
 	 * @param qctx the context of the alteration query
 	 * @return an SQL statement which adds a column to an existing table
 	 */
+/*
 	protected String getAddColumnSQL( QueryContext<?> qctx )
 	{
 		StringBuilder sb = new StringBuilder() ;
@@ -949,8 +1063,8 @@ extends SQLitePortal
 
 		return sb.toString() ;
 	}
-
-	/**
+*/
+	/*
 	 * Generates an SQLite column definition clause for the specified field in
 	 * an {@link SQLightable} class. This can be used as part of a
 	 * {@code CREATE TABLE} or {@code ALTER TABLE} statement.
@@ -961,6 +1075,7 @@ extends SQLitePortal
 	 * @param qctx the context of the table creation/alteration query
 	 * @return a SQLite column definition clause for the specified field
 	 */
+/*
 	protected String getColumnDefinitionClause( QueryContext<?> qctx )
 	{
 		StringBuilder sb = new StringBuilder() ;
@@ -999,7 +1114,7 @@ extends SQLitePortal
 
 		return sb.toString() ;
 	}
-
+*/
 /// Query Commands /////////////////////////////////////////////////////////////
 
 	/**
@@ -1012,24 +1127,32 @@ extends SQLitePortal
 	 * @param o the object to be inserted
 	 * @return the row ID of the inserted record
 	 */
-	public long insert( SQLightable o )
+	public <ROW extends SQLightable> long insert( ROW o )
 	{
-		QueryContext<DSC> qctx = this.getQueryContext( o.getClass() ) ;
-		qctx.loadColumnDef( MAGIC_ID_COLUMN_NAME ) ;
+//		QueryContext<DSC> qctx = this.getQueryContext( o.getClass() ) ;
+		//noinspection unchecked
+		SQLightable.Reflection<ROW> tbl = ((SQLightable.Reflection<ROW>)
+				( m_mapReflections.get( o.getClass() ) )) ;
+//		qctx.loadColumnDef( MAGIC_ID_COLUMN_NAME ) ;
+		SQLightable.Reflection<ROW>.Column col = tbl.getMagicIDColumn() ;
 		ContentValues vals = this.toContentValues(o) ;
 		// Don't allow the passed object to dictate the auto-inc ID.
-		if( qctx.fldColumn != null )
-			vals.remove(MAGIC_ID_COLUMN_NAME) ;
+//		if( qctx.fldColumn != null )
+		if( col != null )
+			vals.remove( MAGIC_ID_COLUMN_NAME ) ;
 
 		long nID = QueryBuilder
-				.insertInto( m_db, getTableName( o.getClass(), null ) )
+//				.insertInto( m_db, getTableName( o.getClass(), null ) )
+				.insertInto( m_db, tbl.getTableName() )
 				.setValues( vals )
 				.execute()
 				;
 
-		if( qctx.fldColumn != null )
+//		if( qctx.fldColumn != null )
+		if( col != null )
 		{ // Try to write the ID back into the instance.
-			try { qctx.fldColumn.setLong( o, nID ) ; }
+//			try { qctx.fldColumn.setLong( o, nID ) ; }
+			try { col.getField().setLong( o, nID ) ; }
 			catch( IllegalAccessException xAccess )
 			{ Log.w( LOG_TAG, "Couldn't rewrite row ID into object." ) ; }
 		}
@@ -1044,22 +1167,30 @@ extends SQLitePortal
 	 * @throws SchematicException if the table definition for this class didn't
 	 *  specify its own primary key
 	 */
-	public int update( SQLightable o )
+	public <ROW extends SQLightable> int update( ROW o )
 	throws SchematicException
 	{
-		QueryContext<DSC> qctx = this.getQueryContext() ;
-		qctx.loadTableDef( o.getClass() ) ;
-		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
-		if( qctx.fldColumn == null )
+//		QueryContext<DSC> qctx = this.getQueryContext() ;
+//		qctx.loadTableDef( o.getClass() ) ;
+		//noinspection unchecked
+		SQLightable.Reflection<ROW> tbl = ((SQLightable.Reflection<ROW>)
+				( m_mapReflections.get( o.getClass() ) )) ;
+//		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
+		SQLightable.Reflection<ROW>.Column col = tbl.getKeyOrMagicIDColumn() ;
+//		if( qctx.fldColumn == null )
+		if( col == null )
 		{
 			throw new SchematicException(
 					"Can't use update(SQLightable) without a key column." ) ;
 		}
-		qctx.loadColumnValue(o) ; // throws SchematicException
-		return QueryBuilder.update( m_db, qctx.sTableName )
-				.setValues( this.toContentValues(o) )
+//		qctx.loadColumnValue(o) ; // throws SchematicException
+//		return QueryBuilder.update( m_db, qctx.sTableName )
+		return QueryBuilder.update( m_db, tbl.getTableName() )
+//				.setValues( this.toContentValues(o) )
+				.setValues( tbl.toContentValues(o) )
 				.where( String.format( "%s=%s",
-						qctx.sColumnName, qctx.sColumnSQLValue ) )
+//						qctx.sColumnName, qctx.sColumnSQLValue ) )
+						col.getName(), col.getSQLColumnValueFrom(o) ) )
 				.execute()
 				;
 	}
@@ -1070,8 +1201,11 @@ extends SQLitePortal
 	 * @param cls the class that defines part of the schema
 	 * @return an {@code UPDATE} query builder prepared for that table
 	 */
-	public UpdateBuilder update( Class<? extends SQLightable> cls )
-	{ return QueryBuilder.update( m_db, getTableName( cls, null ) ) ; }
+	public <T extends SQLightable> UpdateBuilder update( Class<T> cls )
+	{
+		return QueryBuilder.update( m_db,
+						m_mapReflections.get(cls).getTableName() ) ;
+	}
 
 	/**
 	 * Searches the database for a row of the table represented by the supplied
@@ -1088,25 +1222,33 @@ extends SQLitePortal
 	public <ROW extends SQLightable> ROW search( ROW oCriteria )
 	throws SchematicException
 	{
-		QueryContext<DSC> qctx = this.getQueryContext() ;
-		qctx.loadTableDef( oCriteria.getClass() ) ;
-		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
-		if( qctx.fldColumn == null )
+//		QueryContext<DSC> qctx = this.getQueryContext() ;
+//		qctx.loadTableDef( oCriteria.getClass() ) ;
+		//noinspection unchecked
+		SQLightable.Reflection<ROW> tbl = ((SQLightable.Reflection<ROW>)
+						( m_mapReflections.get( oCriteria.getClass() ) )) ;
+//		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
+		SQLightable.Reflection<ROW>.Column col = tbl.getKeyOrMagicIDColumn() ;
+//		if( qctx.fldColumn == null )
+		if( col == null )
 		{
 			throw new SchematicException(
 					"Can't use search(SQLightable) without a key column." ) ;
 		}
-		qctx.loadColumnValue(oCriteria) ;
+//		qctx.loadColumnValue(oCriteria) ;
 		Cursor crs = null ;
 		try
 		{
-			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
+//			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
+			crs = QueryBuilder.selectFrom( m_db, tbl.getTableName() )
 					.where( String.format( "%s=%s",
-							qctx.sColumnName, qctx.sColumnSQLValue ) )
+//		                  qctx.sColumnName, qctx.sColumnSQLValue ) )
+			              col.getName(), col.getSQLColumnValueFrom(oCriteria) ))
 					.execute()
-			;
+					;
 			if( ! crs.moveToFirst() ) return null ; // No such object found.
-			return this.fromCursor( qctx, crs ) ;
+//			return this.fromCursor( qctx, crs ) ;
+			return tbl.fromCursor(crs) ;
 		}
 		finally
 		{ closeCursor(crs) ; }
@@ -1128,9 +1270,12 @@ extends SQLitePortal
 	public <ROW extends SQLightable> ROW search( Class<ROW> cls, String sID )
 	throws SchematicException
 	{
-		QueryContext<DSC> qctx = this.getQueryContext(cls) ;
-		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
-		if( qctx.fldColumn == null )
+//		QueryContext<DSC> qctx = this.getQueryContext(cls) ;
+		SQLightable.Reflection<ROW> tbl = m_mapReflections.get(cls) ;
+//		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
+		SQLightable.Reflection<ROW>.Column colKey = tbl.getKeyColumn() ;
+//		if( qctx.fldColumn == null )
+		if( colKey == null )
 		{
 			throw new SchematicException(
 					"Can't use search(Class,String) without a key column." ) ;
@@ -1138,13 +1283,16 @@ extends SQLitePortal
 		Cursor crs = null ;
 		try
 		{
-			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
+//			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
+			crs = QueryBuilder.selectFrom( m_db, tbl.getTableName() )
 					.where( String.format( "%s='%s'",
-							qctx.sColumnName, sID ) )
+//							qctx.sColumnName, sID ) )
+			              colKey.getName(), sID ) )
 					.execute()
 					;
 			if( ! crs.moveToFirst() ) return null ;     // No such object found.
-			return this.fromCursor( qctx, crs ) ;
+//			return this.fromCursor( qctx, crs ) ;
+			return tbl.fromCursor(crs) ;
 		}
 		finally
 		{ closeCursor(crs) ; }
@@ -1162,18 +1310,21 @@ extends SQLitePortal
 	@SuppressLint("DefaultLocale")
 	public <ROW extends SQLightable> ROW select( Class<ROW> cls, long nID )
 	{
-		QueryContext<DSC> qctx = this.getQueryContext() ;
-		qctx.loadTableDef(cls) ;
+//		QueryContext<DSC> qctx = this.getQueryContext() ;
+//		qctx.loadTableDef(cls) ;
+		SQLightable.Reflection<ROW> tbl = m_mapReflections.get(cls) ;
 		Cursor crs = null ;
 		try
 		{
-			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
+//			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )
+			crs = QueryBuilder.selectFrom( m_db, tbl.getTableName() )
 					.where( String.format( "%s=%d",
 							MAGIC_ID_COLUMN_NAME, nID ) )
 					.execute()
 					;
 			if( ! crs.moveToFirst() ) return null ; // No such object found.
-			return this.fromCursor( qctx, crs ) ;
+//			return this.fromCursor( qctx, crs ) ;
+			return tbl.fromCursor(crs) ;
 		}
 		finally
 		{ closeCursor(crs) ; }
@@ -1185,8 +1336,11 @@ extends SQLitePortal
 	 * @param cls the class that defines part of the schema
 	 * @return a {@code SELECT} query builder prepared for that table
 	 */
-	public SelectionBuilder selectFrom( Class<? extends SQLightable> cls )
-	{ return QueryBuilder.selectFrom( m_db, getTableName( cls, null ) ) ; }
+	public <T extends SQLightable> SelectionBuilder selectFrom( Class<T> cls )
+	{
+		return QueryBuilder.selectFrom( m_db,
+						m_mapReflections.get(cls).getTableName() ) ;
+	}
 
 	/**
 	 * Searches the database for a row of the table represented by the supplied
@@ -1199,20 +1353,30 @@ extends SQLitePortal
 	public <ROW extends SQLightable> int delete( ROW o )
 	throws SchematicException
 	{
-		QueryContext<DSC> qctx = this.getQueryContext() ;
-		qctx.loadTableDef( o.getClass() ) ;
-		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
-		if( qctx.fldColumn == null )
+//		QueryContext<DSC> qctx = this.getQueryContext() ;
+//		qctx.loadTableDef( o.getClass() ) ;
+		//noinspection unchecked
+		SQLightable.Reflection<ROW> tbl = ((SQLightable.Reflection<ROW>)
+				( m_mapReflections.get(o.getClass()) )) ;
+//		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;
+		SQLightable.Reflection<ROW>.Column col = tbl.getKeyOrMagicIDColumn() ;
+//		if( qctx.fldColumn == null )
+		if( col == null )
 		{
 			throw new SchematicException(
 					"Can't use delete(SQLightable) without a key column." ) ;
 		}
-		qctx.loadColumnValue(o) ;
-		return QueryBuilder.deleteFrom( m_db, qctx.sTableName )
-				.where( String.format( "%s=%s",
-						qctx.sColumnName, qctx.sColumnSQLValue ) )
-				.execute()
-				;
+//		qctx.loadColumnValue(o) ;
+//		return QueryBuilder.deleteFrom( m_db, qctx.sTableName )
+//				.where( String.format( "%s=%s",
+//						qctx.sColumnName, qctx.sColumnSQLValue ) )
+//				.execute()
+//				;
+		return QueryBuilder.deleteFrom( m_db, tbl.getTableName() )
+			.where( String.format( "%s=%s",
+				col.getName(), col.getSQLColumnValueFrom(o) ) )
+			.execute()
+			;
 	}
 
 	/**
@@ -1221,8 +1385,11 @@ extends SQLitePortal
 	 * @param cls the class that defines part of the schema
 	 * @return a {@code DELETE} query builder prepared for that table
 	 */
-	public DeletionBuilder deleteFrom( Class<? extends SQLightable> cls )
-	{ return QueryBuilder.deleteFrom( m_db, getTableName( cls, null ) ) ; }
+	public <SC extends SQLightable> DeletionBuilder deleteFrom( Class<SC> cls )
+	{
+		return QueryBuilder.deleteFrom( m_db,
+				m_mapReflections.get(cls).getTableName() ) ;
+	}
 
 /// Other Instance Methods /////////////////////////////////////////////////////
 
@@ -1240,11 +1407,18 @@ extends SQLitePortal
 	 * @return an instance of the class, containing the cursor's current row
 	 * @throws SchematicException if the data class instance cannot be
 	 *  constructed for some reason
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#50) - use
+	 *  {@link #fromCursor(Cursor,Class)}
 	 */
 	public <T extends SQLightable> T fromCursor(
 			QueryContext<DSC> qctx, Cursor crs )
 	throws SchematicException
 	{
+		//noinspection unchecked - guaranteed
+		SQLightable.Reflection<T> tbl = ((SQLightable.Reflection<T>)
+					( m_mapReflections.get(qctx.clsTable) )) ;
+		return tbl.fromCursor( crs ) ;
+/*
 		T oResult ;
 		try
 		{
@@ -1301,28 +1475,40 @@ extends SQLitePortal
 		}
 
 		return oResult ;
+*/
 	}
 
 	/**
-	 * As {@link #fromCursor(QueryContext,Cursor)}, but by explicitly specifying
-	 * the class of object expected from the cursor, the return value is usable
-	 * directly by functions that expect the specific schematic class type.
-	 * @param qctx the context of the selection query
+	 * Alias for {@link #fromCursor(Cursor,Class)} to support apps that consume
+	 * a version of the library between 0.1.5 and 0.1.7.
+	 * @param qctx the context of the selection query; ignored because we don't
+	 *             need it anymore
 	 * @param crs the cursor currently pointing at a data row
-	 * @param cls the schematic class, ignored because the subordinate method
-	 *            already accounts for it; this is purely to help the Java VM
-	 *            and compiler figure themselves out
+	 * @param cls the schematic class
 	 * @param <T> the schematic class
 	 * @return an instance of the class, containing the cursor's current row
 	 * @throws SchematicException if the data class instance cannot be
 	 *  constructed for some reason
 	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#50) -
+	 *  use {@link #fromCursor(Cursor,Class)}
 	 */
 	@SuppressWarnings( "UnusedParameters" ) // see note above
 	public <T extends SQLightable> T fromCursor(
 			QueryContext<DSC> qctx, Cursor crs, Class<T> cls )
 	throws SchematicException
-	{ return this.fromCursor(qctx,crs) ; }
+	{ return this.fromCursor(crs,cls) ; }
+
+	/**
+	 * Reads a row of data from a cursor, and marshals it into a schematic class
+	 * instance corresponding to the table from which the row was fetched.
+	 * @param crs the cursor from which data will be marshalled
+	 * @param cls the schematic class to which data will be marshalled
+	 * @param <T> the schematic class to which data will be marshalled
+	 * @return an instance of the class, containing the cursor's current row
+	 */
+	public <T extends SQLightable> T fromCursor( Cursor crs, Class<T> cls )
+	{ return m_mapReflections.get(cls).fromCursor(crs) ; }
 
 	/**
 	 * Given a result set loaded into a {@link Cursor}, iterate over that cursor
@@ -1336,19 +1522,14 @@ extends SQLitePortal
 	 *  result set
 	 * @throws SchematicException if any instance cannot be instantiated
 	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#50) - use
+	 *  {@link #processResultSet(Class, Cursor)}
 	 */
+	@SuppressWarnings( "UnusedParameters" )
 	public <T extends SQLightable> List<T> processResultSet(
 			QueryContext<DSC> qctx, Cursor crs, Class<T> cls )
 	throws SchematicException
-	{
-		List<T> aResults = new ArrayList<>() ;
-		if( crs.moveToFirst() )
-		{ // Process each element in turn, marshalling it into the list.
-			do aResults.add( this.fromCursor( qctx, crs, cls ) ) ;
-			while( crs.moveToNext() ) ;
-		}
-		return aResults ;
-	}
+	{ return this.processResultSet( cls, crs ) ; }
 
 	/**
 	 * Given a result set loaded into a {@link Cursor}, iterate over that cursor
@@ -1366,8 +1547,17 @@ extends SQLitePortal
 			Class<T> cls, Cursor crs )
 	throws SchematicException
 	{
+/*
 		QueryContext<DSC> qctx = this.getQueryContext(cls) ;
 		return this.processResultSet( qctx, crs, cls ) ;
+*/
+		List<T> aResults = new ArrayList<>() ;
+		if( crs.moveToFirst() )
+		{ // Process each element in turn, marshalling it into the list.
+			do aResults.add( m_mapReflections.get(cls).fromCursor(crs) ) ;
+			while( crs.moveToNext() ) ;
+		}
+		return aResults ;
 	}
 
 	/**
@@ -1442,6 +1632,9 @@ extends SQLitePortal
 	@SuppressWarnings("unchecked")
 	public ContentValues toContentValues( SQLightable o )
 	{
+		SQLightable.Reflection tbl = m_mapReflections.get( o.getClass() ) ;
+		return tbl.toContentValues(o) ;
+/*
 		QueryContext<DSC> qctx = this.getQueryContext() ;
 		qctx.loadTableDef( o.getClass() ) ;
 		ContentValues vals = new ContentValues() ;
@@ -1474,5 +1667,6 @@ extends SQLitePortal
 			} // and continue
 		}
 		return vals ;
+*/
 	}
 }

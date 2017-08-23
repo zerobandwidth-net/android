@@ -180,17 +180,18 @@ public class SQLiteHouseTest
 	}
 
 	/**
-	 * Ensures that {@link SQLiteHouse#processFieldsOfClasses()} properly
-	 * discovers annotated fields and ignores non-annotated fields. Also ensures
-	 * that each table's primary key is discovered.
+	 * Ensures that {@link SQLiteHouse} properly discovers annotated fields and
+	 * ignores non-annotated fields. Also ensures that each table's primary key
+	 * is discovered.
 	 */
 	@Test
 	public void testFieldDiscovery()
 	{
 		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
 				ValidSpecClass.class, getTestContext(), null ) ;
-		assertEquals( 3, dbh.m_mapFields.size() ) ;
-
+//		assertEquals( 3, dbh.m_mapFields.size() ) ;
+		assertEquals( 3, dbh.m_mapReflections.size() ) ;
+/* Moved to separate SQLightableTest class in 0.1.7 (#50).
 		// Test discovery in Fargle class.
 		List<Field> afldFargle = dbh.m_mapFields.get( Fargle.class ) ;
 		assertEquals( 3, afldFargle.size() ) ;
@@ -203,7 +204,6 @@ public class SQLiteHouseTest
 		assertEquals( "m_nFargleID", afldFargle.get(0).getName() ) ;
 		assertEquals( "m_sString", afldFargle.get(1).getName() ) ;
 		assertEquals( "m_zInteger", afldFargle.get(2).getName() ) ;
-		assertEquals( "m_nFargleID", dbh.m_mapKeys.get(Fargle.class).getName() ) ;
 
 		// Test discovery in Dargle class.
 		List<Field> afldDargle = dbh.m_mapFields.get( Dargle.class ) ;
@@ -222,12 +222,14 @@ public class SQLiteHouseTest
 		List<Field> afldBlargh = dbh.m_mapFields.get( Blargh.class ) ;
 		assertEquals( 1, afldBlargh.size() ) ;
 		assertEquals( "m_sString", afldBlargh.get(0).getName() ) ;
+*/
 	}
 
-	/**
+	/*
 	 * Exercises {@link SQLiteHouse#getTableCreationSQL}.
+	 * Moved to {@link SQLightableTest}.
 	 */
-	@Test
+/*	@Test
 	public void testTableCreationSQL()
 	{
 		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
@@ -274,12 +276,11 @@ public class SQLiteHouseTest
 				;
 		assertEquals( sBlarghExpected, sBlarghSQL ) ;
 	}
-
+*/
 	/**
 	 * Ensures that, having opened a database connection and created the
 	 * database for the first time, the file creates what we expected.
 	 * @see SQLiteHouse#onCreate
-	 * @see SQLiteHouse#getTableCreationSQL
 	 * @see <a href="http://www.sqlite.org/lang_analyze.html">SQLite Documentation: ANALYZE</a>
 	 */
 	@SuppressWarnings( "deprecation" ) // verify deprecated stuff also works
@@ -302,6 +303,7 @@ public class SQLiteHouseTest
 			assertEquals( 4, mapInfo.size() ) ; // 3 defined plus auto-ID
 			SQLiteColumnInfo infoFargleID = mapInfo.get("fargle_id") ;
 			assertEquals( 1, infoFargleID.nColumnID ) ;
+			// Continue testing legacy constant until it's removed.
 			assertEquals( Refractor.SQLITE_TYPE_INT, infoFargleID.sColumnType );
 			assertEquals( SQLITE_TYPE_INT, infoFargleID.sColumnType ) ;
 			assertTrue( infoFargleID.bNotNull ) ;
@@ -316,8 +318,6 @@ public class SQLiteHouseTest
 	 * Ensures that the upgrade algorithm works, by swapping an upgraded table
 	 * into the definition.
 	 * @see SQLiteHouse#onUpgrade
-	 * @see SQLiteHouse#getAddColumnSQL
-	 * @see SQLiteHouse#getTableCreationSQL
 	 */
 	@Test
 	public void testDatabaseUpgrade()
@@ -349,7 +349,9 @@ public class SQLiteHouseTest
 			// Show that the "fargles" table got upgraded.
 			Map<String,SQLiteColumnInfo> mapFlargle =
 					dbhUpgrade.getColumnMapForTable( "fargles" ) ;
-			assertEquals( "'NEW!'", mapFlargle.get("flargle_addition").sDefault );
+			SQLiteColumnInfo infoAddition = mapFlargle.get("flargle_addition") ;
+			assertNotNull( infoAddition ) ;
+			assertEquals( "'NEW!'", infoAddition.sDefault ) ;
 
 			// Show that the "quargles" table got created.
 			List<SQLiteColumnInfo> infoQuargle =
@@ -647,7 +649,7 @@ public class SQLiteHouseTest
 					;
 			assertTrue( crs.moveToFirst() ) ;
 			assertEquals( 1, crs.getCount() ) ;
-			Blargh blarghTwoFetched = dbh.fromCursor( qctx, crs ) ;
+			Blargh blarghTwoFetched = dbh.fromCursor( crs, Blargh.class ) ;
 			SQLitePortal.closeCursor(crs) ;
 			assertTrue( blarghTwoFetched.equals(blarghTwo) ) ;
 
@@ -657,7 +659,7 @@ public class SQLiteHouseTest
 					.execute()
 					;
 			assertTrue( crs.moveToFirst() ) ;
-			Blargh blarghTwoIDFetched = dbh.fromCursor( qctx, crs ) ;
+			Blargh blarghTwoIDFetched = dbh.fromCursor( crs, Blargh.class ) ;
 			SQLitePortal.closeCursor(crs) ;
 			assertTrue( blarghTwoIDFetched.equals(blarghTwo) ) ;
 		}

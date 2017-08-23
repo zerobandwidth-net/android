@@ -51,6 +51,15 @@ extends HashMap<Class<?>,Class<? extends Refractor>>
 	}
 
 	/**
+	 * Gets the default refractor class for the specified data class.
+	 * @param cls the data class
+	 * @return the default refractor for that class
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static Class<? extends Refractor> getRefractorFor( Class<?> cls )
+	{ return DEFAULT_MAPPING.get(cls) ; }
+
+	/**
 	 * Initializes the instance with the default mapping.
 	 */
 	public RefractorMap()
