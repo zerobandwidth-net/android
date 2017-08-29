@@ -11,7 +11,6 @@ import java.lang.reflect.Field;
  * in some schematic class.
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
-@SuppressWarnings("unused") // This is a library.
 public class SchematicException
 extends RuntimeException
 {
@@ -112,8 +111,20 @@ extends RuntimeException
 	 */
 	public static SchematicException noLensForColumn(
 			SQLightable.Reflection.Column col, Throwable xCause )
+	{ return noLensForField( col.getField(), xCause ) ; }
+
+	/**
+	 * Returns an exception to be thrown when an operation cannot continue
+	 * because a field/column's
+	 * {@link net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor}
+	 * implementation cannot be determined
+	 * @param fld the field on which the operation would be performed
+	 * @param xCause the cause of the failure, if any (may be null)
+	 * @return a new exception with an informative error message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException noLensForField( Field fld, Throwable xCause )
 	{
-		Field fld = col.getField() ;
 		String sMessage = (new StringBuilder())
 				.append( "No refractor implementation found for field [" )
 				.append( fld.getName() )
@@ -128,12 +139,14 @@ extends RuntimeException
 	public static final String DEFAULT_MESSAGE =
 			"Defined database schema does not support this operation." ;
 
+	@SuppressWarnings( "unused" )
 	public SchematicException()
 	{ super( DEFAULT_MESSAGE ) ; }
 
 	public SchematicException( String sMessage )
 	{ super( sMessage ) ; }
 
+	@SuppressWarnings( "unused" )
 	public SchematicException( Throwable xCause )
 	{ super( DEFAULT_MESSAGE, xCause ) ; }
 

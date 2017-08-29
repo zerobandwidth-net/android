@@ -579,18 +579,30 @@ extends SQLitePortal
 		 * @param <T> the schematic class
 		 * @return (fluid)
 		 * @throws IllegalStateException if inadequate context has been loaded
+		 * @throws NullPointerException if the schematic object is null
 		 * @throws SchematicException if something goes wrong while setting the
 		 *  value
 		 */
 		public <T extends SQLightable> QueryContext<DBH> loadColumnValue( T o )
-		throws IllegalStateException, SchematicException
+		throws IllegalStateException, NullPointerException, SchematicException
 		{
 			this.sColumnSQLValue = null ;
-			if( o == null || this.fldColumn == null || this.lens == null )
+
+			if( o == null )
+			{
+				throw new NullPointerException(
+						"Cannot examine null instance." ) ;
+			}
+
+			if( this.fldColumn == null )
 			{
 				throw new IllegalStateException(
 					"Cannot discover value if no column has been chosen." ) ;
 			}
+
+			if( this.lens == null )
+			{ throw SchematicException.noLensForField( this.fldColumn, null ); }
+
 			try
 			{
 				//noinspection unchecked

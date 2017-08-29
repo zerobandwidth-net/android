@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -22,8 +21,8 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.BorkBorkBork;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Dargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
-import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Flargle;
-import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Quargle;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.UpgradeSpecClass;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.ValidSpecClass;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,41 +60,6 @@ public class SQLiteHouseTest
 	extends SQLiteHouse<NoIntrospectionClass>
 	{
 		protected NoIntrospectionClass( SQLiteHouse.Factory factory )
-		{ super(factory) ; }
-	}
-
-	/**
-	 * Used as the canonical "valid" {@link SQLiteHouse} implementation for
-	 * various unit tests.
-	 * @since zerobandwidth-net/android 0.1.4 (#26)
-	 */
-	@SuppressWarnings( "DefaultAnnotationParam" )
-	@SQLiteDatabaseSpec(
-			database_name = "valid_spec_class_db",
-			schema_version = 1,
-			classes = { Fargle.class, Dargle.class, Blargh.class }
-	)
-	protected static class ValidSpecClass
-	extends SQLiteHouse<ValidSpecClass>
-	{
-		protected ValidSpecClass( SQLiteHouse.Factory factory )
-		{ super(factory) ; }
-
-		protected SQLiteDatabase getDB()
-		{ return m_db ; }
-	}
-
-
-	@SQLiteDatabaseSpec(
-			database_name = "valid_spec_class_db",
-			schema_version = 2,
-			classes =
-				{ Flargle.class, Dargle.class, Quargle.class, Blargh.class }
-	)
-	protected static class UpgradeSpecClass
-	extends SQLiteHouse<UpgradeSpecClass>
-	{
-		protected UpgradeSpecClass( SQLiteHouse.Factory factory )
 		{ super(factory) ; }
 	}
 
@@ -171,8 +135,7 @@ public class SQLiteHouseTest
 	public void testFactorySuccess()
 	throws Exception // Any uncaught exception is a failure.
 	{
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		assertEquals( "valid_spec_class_db", dbh.getDatabaseName() ) ;
 		assertEquals( 1, dbh.getLatestSchemaVersion() ) ;
 		assertEquals( 3, dbh.m_aclsSchema.size() ) ;
@@ -189,8 +152,7 @@ public class SQLiteHouseTest
 	@Test
 	public void testFieldDiscovery()
 	{
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		assertEquals( 3, dbh.m_mapReflections.size() ) ;
 	}
 
@@ -205,12 +167,8 @@ public class SQLiteHouseTest
 	public void testDatabaseCreation()
 	throws Exception // Any uncaught exception is a failure.
 	{
-		Context ctx = getTestContext() ;
-
 		delete( ValidSpecClass.class ) ;
-
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, ctx, null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 
 		try
 		{
@@ -240,18 +198,14 @@ public class SQLiteHouseTest
 	public void testDatabaseUpgrade()
 	throws Exception // Any uncaught exception is a failure.
 	{
-		Context ctx = getTestContext() ;
-
 		delete( ValidSpecClass.class ) ;
 		delete( UpgradeSpecClass.class ) ;
 
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, ctx, null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try { connectTo(dbh) ; }
 		finally { dbh.close() ; }
 
-		UpgradeSpecClass dbhUpgrade = SQLiteHouse.Factory.init().getInstance(
-				UpgradeSpecClass.class, ctx, null ) ;
+		UpgradeSpecClass dbhUpgrade = UpgradeSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbhUpgrade) ;
@@ -288,8 +242,7 @@ public class SQLiteHouseTest
 	@Test
 	public void testGetQueryContext()
 	{
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		SQLiteHouse.QueryContext<ValidSpecClass> qctx =
 				dbh.getQueryContext( Fargle.class ) ;
 		assertEquals( Fargle.class, qctx.clsTable ) ;
@@ -306,8 +259,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		try
 		{
@@ -338,8 +290,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -362,8 +313,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		try
 		{
@@ -411,8 +361,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		try
 		{
@@ -460,8 +409,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -492,8 +440,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		SchematicException xSchema = null ;
 		try
 		{
@@ -517,8 +464,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -548,8 +494,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		SchematicException xSchema = null ;
 		try
 		{
@@ -569,8 +514,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -597,8 +541,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		try
 		{
@@ -653,8 +596,7 @@ public class SQLiteHouseTest
 		final int ITERATIONS = 10 ;                            // Tune to taste.
 		final Random RNG = new Random() ;
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		List<Fargle> aInputs = new ArrayList<>() ;
 		List<Fargle> aResults ;
@@ -707,8 +649,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -738,8 +679,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		SchematicException xSchema = null ;
 		try
 		{
@@ -761,8 +701,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -798,8 +737,7 @@ public class SQLiteHouseTest
 	public void testGetRefractor()
 	throws NoSuchFieldException
 	{
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 
 		SQLightable.Reflection<Fargle> tbl =
 				SQLightable.Reflection.reflect( Fargle.class ) ;
@@ -855,8 +793,7 @@ public class SQLiteHouseTest
 	@Test
 	public void testReprocessReflections()
 	{
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		dbh.processReflections() ;  // Force a re-processing of the reflections.
 		assertTrue( dbh.m_mapReflections.containsKey( Fargle.class ) ) ;
 		assertTrue( dbh.m_mapReflections.containsKey( Dargle.class ) ) ;
