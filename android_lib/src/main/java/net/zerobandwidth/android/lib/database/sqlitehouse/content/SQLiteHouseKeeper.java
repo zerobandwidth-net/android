@@ -120,7 +120,7 @@ extends ContentProvider
 			String sAuthority = uri.getAuthority() ;
 			if( ! m_pvd.getAuthority().equals( sAuthority ) )
 				throw SQLiteContentException.wrongAuthority( sAuthority ) ;
-
+			return true ;
 		}
 	}
 
