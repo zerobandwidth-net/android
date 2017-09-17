@@ -530,4 +530,14 @@ extends SQLiteOpenHelper
 	 */
 	public int getLatestSchemaVersion()
 	{ return m_nLatestVersion ; }
+
+/// Other Instance Methods /////////////////////////////////////////////////////
+
+	/**
+	 * Accessor for the context in which the instance was created.
+	 * @return the context in which the instance was created
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public Context getContext()
+	{ return m_ctx ; }
 }

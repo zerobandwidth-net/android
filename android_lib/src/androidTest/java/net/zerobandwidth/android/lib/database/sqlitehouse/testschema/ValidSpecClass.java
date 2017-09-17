@@ -33,8 +33,7 @@ extends SQLiteHouse<ValidSpecClass>
 	{
 		return SQLiteHouse.Factory.init().getInstance(
 				ValidSpecClass.class,
-				InstrumentationRegistry.getTargetContext(),
-				null
+				InstrumentationRegistry.getTargetContext()
 			);
 	}
 
