@@ -3,6 +3,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.exceptions;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 /**
  * Thrown by
@@ -134,6 +135,28 @@ extends RuntimeException
 				.toString()
 				;
 		return new SchematicException( sMessage, xCause ) ;
+	}
+
+	/**
+	 * Returns an exception to be thrown when a method tries to operate on a
+	 * schematic class that is not actually part of a defined schema.
+	 * @param cls the class that is not part of the schema
+	 * @param aclsSchema the classes that are part of the schema
+	 * @return a new exception with an informative error message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException classNotInSchema(
+			Class<? extends SQLightable> cls,
+			List<Class<? extends SQLightable>> aclsSchema )
+	{
+		StringBuilder sb = (new StringBuilder())
+			.append( "Class [" ).append( cls.getSimpleName() )
+			.append( "] is not part of the schema: { " )
+			;
+		for( Class<? extends SQLightable> clsSchema : aclsSchema )
+			sb.append( clsSchema.getSimpleName() ).append( " " ) ;
+		sb.append( "}" ) ;
+		return new SchematicException( sb.toString() ) ;
 	}
 
 	public static final String DEFAULT_MESSAGE =

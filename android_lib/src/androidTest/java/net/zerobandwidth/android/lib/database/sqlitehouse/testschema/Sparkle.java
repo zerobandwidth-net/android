@@ -18,6 +18,7 @@ implements SQLightable
 	@SQLiteColumn( name = "sparkle", refractor = CustomStringLens.class )
 	public String m_sValue = null ;
 
+	@SuppressWarnings("unused") // used reflexively
 	public Sparkle() {}
 
 	public Sparkle( String s )

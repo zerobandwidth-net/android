@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import net.zerobandwidth.android.lib.content.ContentUtils;
 import net.zerobandwidth.android.lib.content.IntentUtils;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
@@ -59,17 +60,17 @@ extends BroadcastReceiver
 	/**
 	 * Registers the relay instance as a {@link BroadcastReceiver} in its
 	 * context.
-	 * @param sigs the signal contract between the keeper and the relay; if
+	 * @param api the signal contract between the keeper and the relay; if
 	 *             {@code null}, then the relay will be unregistered instead
 	 * @return (fluid)
 	 */
-	public SQLiteHouseRelay register( SQLiteHouseSignalAPI sigs )
+	public SQLiteHouseRelay register( SQLiteHouseSignalAPI api )
 	{
-		m_api = sigs ;
-		if( sigs == null )
-			m_ctx.unregisterReceiver(this) ;
+		m_api = api ;
+		if( api == null )
+			ContentUtils.unregister( m_ctx, this ) ;
 		else
-			m_ctx.registerReceiver( this, sigs.getRelayIntentFilter() ) ;
+			m_ctx.registerReceiver( this, api.getRelayIntentFilter() ) ;
 		return this ;
 	}
 
@@ -134,6 +135,7 @@ extends BroadcastReceiver
 	 * @param sig the received signal
 	 * @param sToken the action token parsed from the signal
 	 */
+	@SuppressWarnings("UnusedParameters") // default intentionally ignores
 	protected void handleCustomAction( Context ctx, Intent sig, String sToken )
 	{
 		Log.i( LOG_TAG, (new StringBuilder())

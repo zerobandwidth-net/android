@@ -70,4 +70,19 @@ implements SQLightable
 		      && this.m_sString.equals( that.m_sString )
 		      && this.m_zInteger == that.m_zInteger ) ;
 	}
+
+	/**
+	 * As {@link #equals(Fargle)}, but ignores {@link #m_nFargleID}.
+	 * Use this when comparing a new instance whose ID might still be {@code -1}
+	 * to another instance which has already been inserted into a DB and has a
+	 * real ID.
+	 * @param that the object to be compared to this one
+	 * @return {@code true} if the non-ID content is equivalent
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public boolean matches( Fargle that )
+	{
+		return( this.m_sString.equals( that.m_sString )
+		     && this.m_zInteger == that.m_zInteger ) ;
+	}
 }

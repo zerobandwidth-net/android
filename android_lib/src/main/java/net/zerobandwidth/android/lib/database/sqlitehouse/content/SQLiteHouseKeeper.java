@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import net.zerobandwidth.android.lib.content.ContentUtils;
 import net.zerobandwidth.android.lib.content.IntentUtils;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
@@ -41,7 +42,7 @@ extends BroadcastReceiver
 
 	/**
 	 * A default implementation of {@link SQLiteHouseSignalAPI} for this keeper
-	 * class. The "authority" string is defaulted to the canonical name of the
+	 * class. The "domain" string is defaulted to the canonical name of the
 	 * {@link SQLiteHouse} implementation to which the keeper is bound.
 	 * @since zerobandwidth-net/android 0.1.7 (#50)
 	 */
@@ -99,17 +100,17 @@ extends BroadcastReceiver
 	/**
 	 * Registers the keeper instance as a {@link BroadcastReceiver} in its
 	 * context.
-	 * @param sigs the signal contract between the keeper and its relays; if
+	 * @param api the signal contract between the keeper and its relays; if
 	 *             {@code null}, then the keeper will be unregistered instead!
 	 * @return (fluid)
 	 */
-	public SQLiteHouseKeeper<H> register( SQLiteHouseSignalAPI sigs )
+	public SQLiteHouseKeeper<H> register( SQLiteHouseSignalAPI api )
 	{
-		m_api = sigs ;
-		if( sigs == null )
-			m_ctx.unregisterReceiver(this) ;
+		m_api = api ;
+		if( api == null )
+			this.unregister() ;
 		else
-			m_ctx.registerReceiver( this, sigs.getKeeperIntentFilter() ) ;
+			m_ctx.registerReceiver( this, api.getKeeperIntentFilter() ) ;
 		return this ;
 	}
 
@@ -119,7 +120,7 @@ extends BroadcastReceiver
 	 */
 	public SQLiteHouseKeeper<H> unregister()
 	{
-		m_ctx.unregisterReceiver(this) ;
+		ContentUtils.unregister( m_ctx, this ) ;
 		m_api = null ;
 		return this ;
 	}
@@ -153,7 +154,7 @@ extends BroadcastReceiver
 		switch( sActionToken )
 		{
 			case SQLiteHouseSignalAPI.KEEPER_INSERT:
-				this.insert( ctx, sig ) ;
+				this.insert(sig) ;
 				break ;
 			case SQLiteHouseSignalAPI.KEEPER_SELECT:
 				// TODO Select the records requested in the action.
@@ -179,6 +180,7 @@ extends BroadcastReceiver
 	 * @param sig the received signal
 	 * @param sToken the action token parsed from the signal
 	 */
+	@SuppressWarnings("UnusedParameters") // default intentionally ignores
 	protected void handleCustomAction( Context ctx, Intent sig, String sToken )
 	{
 		Log.i( LOG_TAG, (new StringBuilder())
@@ -191,11 +193,11 @@ extends BroadcastReceiver
 
 	/**
 	 * Handles a request to insert data into the underlying database.
-	 * @param ctx the context from which the signal originated (ignored)
 	 * @param sig the received signal
 	 * @param <SC> the schematic class that is discovered along the way
+	 * @return the inserted row ID
 	 */
-	protected synchronized <SC extends SQLightable> void insert( Context ctx, Intent sig )
+	protected synchronized <SC extends SQLightable> long insert( Intent sig )
 	{
 		long nRowID ;
 		Class<SC> cls = null ;
@@ -223,6 +225,8 @@ extends BroadcastReceiver
 			this.notifyInsertFailed( cls.getCanonicalName() ) ;
 		else
 			this.notifyInsertFailed( null ) ;
+
+		return nRowID ;
 	}
 
 /// Broadcasts to SQLiteHouseRelay /////////////////////////////////////////////
@@ -244,6 +248,10 @@ extends BroadcastReceiver
 		m_ctx.sendBroadcast( sig ) ;
 	}
 
+	/**
+	 * Notifies the relay that an insertion failed.
+	 * @param sClass the name of the class that would have been inserted
+	 */
 	protected synchronized void notifyInsertFailed( String sClass )
 	{
 		Intent sig = new Intent( m_api.getFormattedRelayAction(

@@ -21,6 +21,7 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.BorkBorkBork;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Dargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Flargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.UpgradeSpecClass;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.ValidSpecClass;
 
@@ -802,5 +803,32 @@ public class SQLiteHouseTest
 		assertTrue( dbh.m_mapReflections.containsKey( Fargle.class ) ) ;
 		assertTrue( dbh.m_mapReflections.containsKey( Dargle.class ) ) ;
 		assertTrue( dbh.m_mapReflections.containsKey( Blargh.class ) ) ;
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#describe}.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testDescribe()
+	{
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		assertNotNull( dbh.describe( Fargle.class ) ) ;
+		assertNull( dbh.describe( BorkBorkBork.class ) ) ;
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#getReflection(Class)}.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testGetReflection()
+	{
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		assertNotNull( dbh.getReflection( Dargle.class ) ) ;
+		SchematicException xSchema = null ;
+		try { dbh.getReflection( Flargle.class ) ; }
+		catch( SchematicException x ) { xSchema = x ; }
+		assertNotNull( xSchema ) ;
 	}
 }
