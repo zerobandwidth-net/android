@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouseTest;
@@ -31,9 +30,6 @@ import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteH
 @RunWith( AndroidJUnit4.class )
 public class SQLiteHouseKeeperTest
 {
-	protected static Context getContext()
-	{ return InstrumentationRegistry.getTargetContext() ; }
-
 	protected Context m_ctx = null ;
 	protected ValidSpecClass m_house = null ;
 	protected SQLiteHouseKeeper<ValidSpecClass> m_keeper = null ;
@@ -100,7 +96,7 @@ public class SQLiteHouseKeeperTest
 		m_keeper.onReceive( m_ctx, sig ) ;              // kicker: m_api == null
 		m_keeper.register(m_api) ;
 		m_keeper.onReceive( m_ctx, sig ) ;     // kicker: falls through switch()
-	} // Complete execution equals success.
+	} // Complete execution implies success.
 
 	/**
 	 * Exercises {@link SQLiteHouseKeeper#insert} via

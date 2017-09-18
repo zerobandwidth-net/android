@@ -68,9 +68,20 @@ extends BroadcastReceiver
 	{
 		m_api = api ;
 		if( api == null )
-			ContentUtils.unregister( m_ctx, this ) ;
+			this.unregister() ;
 		else
 			m_ctx.registerReceiver( this, api.getRelayIntentFilter() ) ;
+		return this ;
+	}
+
+	/**
+	 * Unregisters the relay in its context.
+	 * @return (fluid)
+	 */
+	public SQLiteHouseRelay unregister()
+	{
+		ContentUtils.unregister( m_ctx, this ) ;
+		m_api = null ;
 		return this ;
 	}
 
@@ -152,8 +163,8 @@ extends BroadcastReceiver
 	 */
 	protected synchronized void onRowInserted( Intent sig )
 	{
-		final String sExtraClass = m_api.getExtraSchemaClassName() ;
 		final String sExtraRowID = m_api.getExtraInsertedRowID() ;
+		final String sExtraClass = m_api.getExtraSchemaClassName() ;
 		if( sig.hasExtra( sExtraClass ) && sig.hasExtra( sExtraRowID ) )
 		{ // Notify anything that cares about the insertion.
 			Log.i( LOG_TAG, (new StringBuilder())

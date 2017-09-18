@@ -201,10 +201,11 @@ extends BroadcastReceiver
 	{
 		long nRowID ;
 		Class<SC> cls = null ;
+		SC o = null ;
 		try
 		{
 			cls = m_api.getClassFromExtra(sig) ;
-			SC o = m_api.getDataFromBundle( sig, cls ) ;
+			o = m_api.getDataFromBundle( sig, cls ) ;
 			nRowID = m_dbh.insert(o) ;
 		}
 		catch( SQLiteContentException xContent )
@@ -220,7 +221,7 @@ extends BroadcastReceiver
 		}
 
 		if( nRowID != INSERT_FAILED )
-			this.notifyInsert( cls, nRowID ) ;
+			this.notifyInsert( nRowID, cls, o ) ;
 		else if( cls != null )
 			this.notifyInsertFailed( cls.getCanonicalName() ) ;
 		else
@@ -238,13 +239,15 @@ extends BroadcastReceiver
 	 * @param <SC> the schematic class of the inserted data
 	 */
 	protected synchronized <SC extends SQLightable> void notifyInsert(
-			Class<SC> cls, long nRowID )
+			long nRowID, Class<SC> cls, SC row )
 	{
 		Intent sig = new Intent( m_api.getFormattedRelayAction(
 				SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT ) ) ;
+		sig.putExtra( m_api.getExtraInsertedRowID(), nRowID ) ;
 		sig.putExtra( m_api.getExtraSchemaClassName(),
 				cls.getCanonicalName() ) ;
-		sig.putExtra( m_api.getExtraInsertedRowID(), nRowID ) ;
+		sig.putExtra( m_api.getExtraSchemaDataName(),
+				m_api.reflect(cls).toBundle(row) ) ;
 		m_ctx.sendBroadcast( sig ) ;
 	}
 

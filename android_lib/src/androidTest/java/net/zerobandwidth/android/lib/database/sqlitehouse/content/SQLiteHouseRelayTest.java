@@ -1,0 +1,112 @@
+package net.zerobandwidth.android.lib.database.sqlitehouse.content;
+
+import android.content.Context;
+import android.content.Intent;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED;
+
+/**
+ * Exercises {@link SQLiteHouseRelay}.
+ * @since zerobandwidth-net/android 0.1.7 (#50)
+ */
+@RunWith( AndroidJUnit4.class )
+public class SQLiteHouseRelayTest
+{
+	protected Context m_ctx = null ;
+	protected SQLiteHouseRelay m_relay = null ;
+	protected ValidTestSchemaAPI m_api = new ValidTestSchemaAPI() ;
+
+	@Before
+	public void setup()
+	{
+		m_ctx = InstrumentationRegistry.getTargetContext() ;
+		m_relay = new SQLiteHouseRelay( m_ctx ) ;
+	}
+
+	@After
+	public void teardown()
+	{ m_relay.unregister() ; }
+
+	/**
+	 * Exercises {@link SQLiteHouseRelay#register}.
+	 * There is no corresponding test for {@link SQLiteHouseRelay#unregister},
+	 * since that method is hit by {@link #teardown} after every test.
+	 */
+	@Test
+	public void testRegister()
+	{
+		m_relay.register(m_api) ;
+		assertEquals( m_api, m_relay.m_api ) ;
+		assertEquals( "org.totallyfake.unittest",
+				m_relay.m_api.getIntentDomain() ) ;
+		m_relay.register(null) ;
+		assertNull( m_relay.m_api ) ;
+	}
+
+	/**
+	 * Exercises the negative conditions that would cause
+	 * {@link SQLiteHouseRelay#onReceive} to return trivially.
+	 */
+	@Test
+	public void testOnReceiveNeg()
+	{
+		Intent sig = new Intent() ;
+		m_relay.onReceive( m_ctx, sig ) ;           // kicker: no action defined
+		sig.setAction("") ;
+		m_relay.onReceive( m_ctx, sig ) ;       // kicker: action token is empty
+		sig.setAction("foo") ;
+		m_relay.onReceive( m_ctx, sig ) ;               // kicker: m_api == null
+		m_relay.register(m_api) ;
+		m_relay.onReceive( m_ctx, sig ) ;      // kicker: falls through switch()
+	} // Complete execution implies success.
+
+	/**
+	 * Exercises {@link SQLiteHouseRelay#onRowInserted(Intent)} via
+	 * {@link SQLiteHouseRelay#onReceive(Context, Intent)}.
+	 */
+	@Test
+	public void testOnRowInserted()
+	{
+		m_relay.register(m_api) ;
+		Intent sig = new Intent() ;
+		sig.setAction( m_api.getFormattedRelayAction( RELAY_NOTIFY_INSERT ) ) ;
+		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
+
+		sig.putExtra( m_api.getExtraInsertedRowID(), 42 ) ;
+		sig.putExtra( m_api.getExtraSchemaClassName(),
+					Fargle.class.getCanonicalName() ) ;
+		sig.putExtra( m_api.getExtraSchemaDataName(),
+				m_api.reflect(Fargle.class).toBundle(
+						new Fargle( 42, "Fargle!", 90 ) ) ) ;
+		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
+	} // Complete execution implies success.
+
+	/**
+	 * Exercises {@link SQLiteHouseRelay#onInsertFailed} via
+	 * {@link SQLiteHouseRelay#onReceive}.
+	 */
+	@Test
+	public void testOnInsertFailed()
+	{
+		m_relay.register(m_api) ;
+		Intent sig = new Intent() ;
+		sig.setAction(
+				m_api.getFormattedRelayAction( RELAY_NOTIFY_INSERT_FAILED ) ) ;
+		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
+
+		sig.putExtra( m_api.getExtraSchemaClassName(), "flugel" ) ;
+		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
+	} // Complete execution implies success.
+}
