@@ -2,6 +2,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
@@ -43,10 +44,18 @@ implements Refractor<Character>
 	{ return fld.getChar(o) ; }
 
 	@Override
-	public Refractor<Character> addToContentValues(
+	public CharacterLens addToContentValues(
 			ContentValues vals, String sKey, Character val )
 	{
 		vals.put( sKey, val.toString() ) ;
+		return this ;
+	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public CharacterLens addToBundle( Bundle bndl, String sKey, Character val )
+	{
+		bndl.putChar( sKey, val ) ;
 		return this ;
 	}
 
@@ -57,4 +66,9 @@ implements Refractor<Character>
 		if( sVal == null || sVal.isEmpty() ) return null ;
 		return sVal.charAt(0) ;
 	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public Character fromBundle( Bundle bndl, String sKey )
+	{ return bndl.getChar( sKey ) ; }
 }

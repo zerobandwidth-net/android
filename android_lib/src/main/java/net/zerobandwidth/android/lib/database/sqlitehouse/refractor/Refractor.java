@@ -2,6 +2,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
@@ -96,11 +97,32 @@ public interface Refractor<T>
 	Refractor<T> addToContentValues( ContentValues vals, String sKey, T val ) ;
 
 	/**
+	 * Determines the correct method in {@link Bundle} to be used to add the
+	 * specified value to an existing bundle.
+	 * @param bndl the bundle
+	 * @param sKey the field's key
+	 * @param val the value to be stored
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	Refractor<T> addToBundle( Bundle bndl, String sKey, T val ) ;
+
+	/**
 	 * Determines the correct method in {@link Cursor} to be used to fetch the
 	 * specified column, then returns that value.
 	 * @param crs the cursor from which data should be fetched
-	 * @param sKey the data column key
+	 * @param sKey the data column name
 	 * @return the value from the cursor
 	 */
 	T fromCursor( Cursor crs, String sKey ) ;
+
+	/**
+	 * Determines the correct method in {@link Bundle} to be used to fetch the
+	 * specified column, then returns that value.
+	 * @param bndl the bundle from which data should be fetched
+	 * @param sKey the data column name
+	 * @return the value from the bundle
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	T fromBundle( Bundle bndl, String sKey ) ;
 }

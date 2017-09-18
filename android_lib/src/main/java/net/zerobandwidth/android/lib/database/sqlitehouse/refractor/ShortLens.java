@@ -2,6 +2,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
@@ -34,13 +35,26 @@ implements Refractor<Short>
 	{ return fld.getShort(o) ; }
 
 	@Override
-	public Refractor<Short> addToContentValues( ContentValues vals, String sKey, Short val )
+	public ShortLens addToContentValues( ContentValues vals, String sKey, Short val )
 	{
 		vals.put( sKey, val ) ;
+		return this ;
+	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public ShortLens addToBundle( Bundle bndl, String sKey, Short val )
+	{
+		bndl.putShort( sKey, val ) ;
 		return this ;
 	}
 
 	@Override
 	public Short fromCursor( Cursor crs, String sKey )
 	{ return crs.getShort( crs.getColumnIndex( sKey ) ) ; }
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public Short fromBundle( Bundle bndl, String sKey )
+	{ return bndl.getShort( sKey ) ; }
 }

@@ -139,6 +139,7 @@ public class SQLiteHouseTest
 		assertEquals( "valid_spec_class_db", dbh.getDatabaseName() ) ;
 		assertEquals( 1, dbh.getLatestSchemaVersion() ) ;
 		assertEquals( 3, dbh.m_aclsSchema.size() ) ;
+		assertEquals( 3, dbh.getSchemaClasses().size() ) ;
 		assertTrue( dbh.m_aclsSchema.contains( Fargle.class ) ) ;
 		assertTrue( dbh.m_aclsSchema.contains( Dargle.class ) ) ;
 		assertTrue( dbh.m_aclsSchema.contains( Blargh.class ) ) ;
@@ -154,6 +155,9 @@ public class SQLiteHouseTest
 	{
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		assertEquals( 3, dbh.m_mapReflections.size() ) ;
+		assertNotNull( dbh.describe( Fargle.class ) ) ;
+		assertNotNull( dbh.describe( Dargle.class ) ) ;
+		assertNotNull( dbh.describe( Blargh.class ) ) ;
 	}
 
 	/**

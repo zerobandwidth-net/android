@@ -24,6 +24,7 @@ implements SQLightable
 	 * @since zerobandwidth-net/android 0.1.7 (#50)
 	 * @see SQLightableReflectionTest#testGetKeyOrMagicIDOnQuargle()
 	 */
+	@SuppressWarnings("unused")
 	@SQLiteColumn( name = MAGIC_ID_COLUMN_NAME, sql_default = "-1" )
 	protected long m_nID = -1 ;
 

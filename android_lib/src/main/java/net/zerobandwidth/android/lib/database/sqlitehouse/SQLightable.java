@@ -2,6 +2,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
@@ -551,6 +552,29 @@ public interface SQLightable
 		}
 
 		/**
+		 * Constructs an empty instance of the {@link SQLightable}
+		 * implementation class reflected in this object.
+		 * @return an empty instance of the schematic class
+		 * @throws IntrospectionException if the schematic class could not be
+		 *  constructed for some reason
+		 */
+		public T getInstance()
+		throws IntrospectionException
+		{
+			try
+			{
+				Constructor ctor = m_clsTable.getDeclaredConstructor() ;
+				if( ctor == null ) // try something different
+					ctor = m_clsTable.getConstructor() ;
+				ctor.setAccessible(true) ;
+				//noinspection unchecked - guaranteed
+				return ((T)(ctor.newInstance())) ;
+			}
+			catch( Exception x )
+			{ throw IntrospectionException.instanceFailed( m_clsTable, x ) ; }
+		}
+
+		/**
 		 * Reads a row of data from the specified cursor, and marshals it into a
 		 * schematic class instance corresponding to the table from which the
 		 * row was fetched.
@@ -564,18 +588,7 @@ public interface SQLightable
 		public T fromCursor( Cursor crs )
 		throws IntrospectionException, SchematicException
 		{
-			T oResult ;
-			try
-			{
-				Constructor ctor = m_clsTable.getDeclaredConstructor() ;
-				if( ctor == null ) // try something different
-					ctor = m_clsTable.getConstructor() ;
-				ctor.setAccessible(true) ;
-				//noinspection unchecked - guaranteed
-				oResult = ((T)(ctor.newInstance())) ;
-			}
-			catch( Exception x )
-			{ throw IntrospectionException.instanceFailed( m_clsTable, x ) ; }
+			T oResult = this.getInstance() ; // Can throw IntrospectionException
 
 			Collection<Column> aColumns = this.getColumnMap().values() ;
 			for( Column col : aColumns )
@@ -584,6 +597,41 @@ public interface SQLightable
 				{
 					col.getField().set( oResult,
 						col.getRefractor().fromCursor( crs, col.getName() ) ) ;
+				}
+				catch( IllegalAccessException xAccess )
+				{
+					throw SchematicException.fieldWasInaccessible(
+							m_clsTable.getCanonicalName(),
+							col.getName(), xAccess
+						);
+				}
+			}
+
+			return oResult ;
+		}
+
+		/**
+		 * Reads fields from a supplied {@link Bundle}, and marshals it into a
+		 * schematic class instance.
+		 * @param bndl the bundle into which data was marshalled
+		 * @return an instance of the class, containing the bundled data
+		 * @throws IntrospectionException if the data class could not be
+		 *  constructed for some reason
+		 * @throws SchematicException if the data could not be properly
+		 *  marshalled into the class instance
+		 */
+		public T fromBundle( Bundle bndl )
+		throws IntrospectionException, SchematicException
+		{
+			T oResult = this.getInstance() ; // Can throw IntrospectionException
+
+			Collection<Column> aColumns = this.getColumnMap().values() ;
+			for( Column col : aColumns )
+			{
+				try
+				{
+					col.getField().set( oResult,
+						col.getRefractor().fromBundle( bndl, col.getName() ) ) ;
 				}
 				catch( IllegalAccessException xAccess )
 				{
@@ -647,6 +695,55 @@ public interface SQLightable
 			}
 			return vals ;
 		}
+
+		/**
+		 * Extracts the values of all known fields, corresponding to database
+		 * table columns, from a schematic class instance, and returns a
+		 * {@link Bundle} instance containing those values.
+		 * @param oSource the object to be processed
+		 * @return the values that would be stored in the database
+		 * @throws SchematicException if no {@link Refractor} implementation can
+		 *  be found for one of the column's fields
+		 * @since zerobandwidth-net/android 0.1.7 (#50)
+		 */
+		public Bundle toBundle( T oSource )
+		throws SchematicException
+		{
+			Bundle bndl = new Bundle() ;
+			for( Column col : this.getColumnMap().values() )
+			{
+				Refractor lens = col.getRefractor() ;
+
+				if( lens == null )
+					throw SchematicException.noLensForColumn( col, null ) ;
+
+				try
+				{
+					// noinspection unchecked - lens corresponds to field
+					lens.addToBundle( bndl, col.getName(),
+							lens.getValueFrom( oSource, col.getField() ) ) ;
+				}
+				catch( IllegalAccessException xAccess )
+				{
+					throw SchematicException.fieldWasInaccessible(
+							m_clsTable.getCanonicalName(),
+							col.getField().getName(),
+							xAccess
+						);
+				}
+				catch( SchematicException xSchema )
+				{
+					Log.e( LOG_TAG, (new StringBuilder())
+								.append( "Could not get value for field [" )
+								.append( col.getField().getName() )
+								.append( "] from a bundle:" )
+								.toString(),
+							xSchema
+						);
+				} // and continue
+			}
+			return bndl ;
+		}
 	}
 
 	/**
@@ -686,7 +783,7 @@ public interface SQLightable
 		 * @param <SC> the schematic class
 		 * @return the previously-mapped reflection, if any
 		 */
-		public <SC extends SQLightable> Reflection<SC> put(
+		public <SC extends SQLightable> Reflection<SC> putExplicit(
 				Class<SC> cls, Reflection<SC> tbl )
 		{
 			//noinspection unchecked

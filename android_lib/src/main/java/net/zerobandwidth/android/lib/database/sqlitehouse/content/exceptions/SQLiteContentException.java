@@ -1,9 +1,11 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.content.exceptions;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseKeeper;
+import net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseRelay;
+
 /**
- * Thrown by
- * {@link net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseKeeper}
- * when access through the provider can't be achieved for some reason.
+ * Thrown by {@link SQLiteHouseKeeper} when access through the provider can't be
+ * achieved for some reason.
  * @since zerobandwidth-net/android 0.1.7 (#50)
  */
 public class SQLiteContentException
@@ -13,21 +15,23 @@ extends RuntimeException
 		"Failed to access the database content provider." ;
 
 	/**
-	 * Used when a request's authority doesn't match the one expected by the
-	 * provider.
-	 * @param sBadAuthority the bad authority
-	 * @return an exception with an appropriate message
+	 * Used when one of the extras expected by {@link SQLiteHouseKeeper} or
+	 * {@link SQLiteHouseRelay} is not found.
+	 * @param sExpectedExtra the name of the extra that was expected
+	 * @param xCause the root cause, if any
+	 * @return an exception with an appropriate error message
 	 */
-	public static SQLiteContentException wrongAuthority( String sBadAuthority )
+	public static SQLiteContentException expectedExtraNotFound(
+			String sExpectedExtra, Throwable xCause )
 	{
 		return new SQLiteContentException( (new StringBuilder())
-				.append( "Request authority [" )
-				.append( sBadAuthority )
-				.append( "] does not match provider." )
-				.toString()
+					.append( "No non-empty extra with tag [" )
+					.append( sExpectedExtra )
+					.append( "] found in received signal." )
+					.toString()
+				, xCause
 			);
 	}
-
 
 	public SQLiteContentException()
 	{ super(DEFAULT_MESSAGE) ; }

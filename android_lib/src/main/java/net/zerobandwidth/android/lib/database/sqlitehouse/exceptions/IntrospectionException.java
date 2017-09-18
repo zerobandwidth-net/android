@@ -25,10 +25,21 @@ extends RuntimeException
 	 */
 	public static IntrospectionException instanceFailed(
 			Class<?> cls, Throwable xCause )
+	{ return instanceFailed( cls.getCanonicalName(), xCause ) ; }
+
+	/**
+	 * Used when an attempt to create an instance of a schematic class fails.
+	 * @param sClass the canonical name of the class being instantiated
+	 * @param xCause the cause of the failure
+	 * @return a new exception with the appropriate message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static IntrospectionException instanceFailed(
+			String sClass, Throwable xCause )
 	{
 		return new IntrospectionException( (new StringBuilder())
 					.append( "Could not create instance of class [" )
-					.append( cls.getCanonicalName() )
+					.append( sClass )
 					.append( "]." )
 					.toString()
 				, xCause

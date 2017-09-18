@@ -1,245 +1,248 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.content;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentProvider;
 import android.content.Context;
-import android.content.UriMatcher;
-import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
+import android.content.Intent;
+import android.util.Log;
 
-import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
+import net.zerobandwidth.android.lib.content.IntentUtils;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
 import net.zerobandwidth.android.lib.database.sqlitehouse.content.exceptions.SQLiteContentException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
 
-import java.util.List;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
 
 /**
- * A canonical implementation of a {@link ContentProvider} which is bound to a
- * {@link SQLiteHouse} implementation.
+ * A class which is bound to a {@link SQLiteHouse} implementation and receives
+ * intents that request queries from the underlying database.
+ *
+ * This class fills the role of a {@link ContentProvider} without implementing
+ * that class's API, since the prototypes of the {@code ContentProvider}'s
+ * methods don't fit with the workflow of a {@code SQLiteHouse}.
+ *
  * @param <H> the {@link SQLiteHouse} implementation to which this provider is
  *           bound
  * @since zerobandwidth-net/android 0.1.7 (#50)
  */
 public class SQLiteHouseKeeper<H extends SQLiteHouse>
-extends ContentProvider
+extends BroadcastReceiver
 {
 /// Static constants ///////////////////////////////////////////////////////////
 
-	/**
-	 * A suffix appended to the canonical name of the {@link SQLiteHouse}
-	 * implementation class, to form the fully-qualified "authority" string for
-	 * the provider.
-	 */
-	public static final String PROVIDER_AUTHORITY_SUFFIX = ".provider" ;
+	public static final String LOG_TAG =
+			SQLiteHouseKeeper.class.getSimpleName() ;
+
+/// Static methods /////////////////////////////////////////////////////////////
 
 /// Inner instance classes /////////////////////////////////////////////////////
 
 	/**
-	 * A canonical implementation of {@link UriMatcher} which uses the
-	 * information encoded into an {@link SQLiteHouse} instance to resolve URIs
-	 * that are sent to the enclosing {@link SQLiteHouseKeeper}.
+	 * A default implementation of {@link SQLiteHouseSignalAPI} for this keeper
+	 * class. The "authority" string is defaulted to the canonical name of the
+	 * {@link SQLiteHouse} implementation to which the keeper is bound.
 	 * @since zerobandwidth-net/android 0.1.7 (#50)
 	 */
-	public class Switchboard
-	extends UriMatcher
+	public class DefaultSignals
+	extends SQLiteHouseSignalAPI
 	{
-		/** A persistent reference to the enclosing provider instance. */
-		protected SQLiteHouseKeeper<H> m_pvd = SQLiteHouseKeeper.this ;
-
-		/**
-		 * Default constructor; initializes with {@link UriMatcher#NO_MATCH}.
-		 */
-		public Switchboard()
-		{
-			super( UriMatcher.NO_MATCH ) ;
-		}
-
-		/**
-		 * Called by the constructor to automatically construct a mapping of URI
-		 * patterns into integer values, based on the table names recorded in
-		 * the {@link SQLiteHouse} implementation to which the keeper is bound.
-		 *
-		 * <p>Rather than forcing the consumer to construct a contract class
-		 * full of constants, the initializer iterates over the ordered list of
-		 * classes defined in the schema, assigning the bare table name as the
-		 * URI pattern, and one plus the list item's index as the numeric key.
-		 * It then also defines a pattern match for a URI referring to a row ID
-		 * within that table, by adding the standard {@code "/#"} grammar to the
-		 * end of the URI pattern, and then subtracting one plus the list item's
-		 * index from {@link Integer#MAX_VALUE} to obtain the match key.</p>
-		 *
-		 * <p>For example, for a schema which includes tables {@code foo},
-		 * {@code bar}, and {@code baz}, the initializer defines the following
-		 * match table:</p>
-		 *
-		 * <table>
-		 *     <thead>
-		 *         <tr> <th>URI Pattern</th> <th>Match Key</th> </tr>
-		 *     </thead>
-		 *     <tbody>
-		 *         <tr> <td><code>foo</code></td> <td>1</td> </tr>
-		 *         <tr> <td><code>foo/#</code></td> <td>2147483646</td> </tr>
-		 *         <tr> <td><code>bar</code></td> <td>2</td> </tr>
-		 *         <tr> <td><code>bar/#</code></td> <td>2147483645</td> </tr>
-		 *         <tr> <td><code>baz</code></td> <td>3</td> </tr>
-		 *         <tr> <td><code>baz/#</code></td> <td>2147483644</td> </tr>
-		 *     </tbody>
-		 * </table>
-		 *
-		 * @return (fluid)
-		 */
-		protected Switchboard initURIPatterns()
-		{
-			//noinspection unchecked
-			List<Class<? extends SQLightable>> aclsSchema =
-					m_pvd.m_dbh.getSchemaClasses() ;
-			for( int i = 0 ; i < aclsSchema.size() ; i ++ )
-			{ // Add a URI pattern for each table defined by a schematic class.
-				Class<? extends SQLightable> cls = aclsSchema.get(i) ;
-				String sTableName =
-						m_pvd.m_dbh.describe(cls).getTableName() ;
-				int nKey = i + 1 ;
-				this.addURI( m_pvd.getAuthority(), sTableName, nKey ) ;
-				this.addURI( m_pvd.getAuthority(),
-						this.getTableAndIDPattern( sTableName ),
-						Integer.MAX_VALUE - nKey ) ;
-			}
-
-			return this ;
-		}
-
-		protected String getTableAndIDPattern( String sTableName )
-		{
-			return (new StringBuilder())
-				.append( sTableName ).append( "/#" ).toString() ;
-		}
-
-		public boolean verify( Uri uri )
-		throws SQLiteContentException
-		{
-			String sAuthority = uri.getAuthority() ;
-			if( ! m_pvd.getAuthority().equals( sAuthority ) )
-				throw SQLiteContentException.wrongAuthority( sAuthority ) ;
-			return true ;
-		}
+		protected String getIntentDomain()
+		{ return SQLiteHouseKeeper.this.m_dbh.getClass().getCanonicalName() ; }
 	}
 
 /// Member fields //////////////////////////////////////////////////////////////
 
+	/** The context in which the keeper will operate. */
+	protected Context m_ctx = null ;
+
+	/** A persistent handle on the {@link SQLiteHouse} implementation class. */
+	protected Class<H> m_cls ;
+
 	/** A persistent reference to the database helper instance. */
 	protected H m_dbh = null ;
 
-	/** A class which resolves URIs into the provider. */
-	protected Switchboard m_urim = null ;
-
-	/**
-	 * The provider's authority string, which is initialized programmatically by
-	 * default, but which may be overridden in a descendant class.
-	 */
-	protected String m_sAuthority = null ;
+	/** A reference for the contract under which the keeper was registered. */
+	protected SQLiteHouseSignalAPI m_api = null ;
 
 /// Constructors and initializers //////////////////////////////////////////////
 
 	/**
-	 * Bind to a specific, existing instance of a {@link SQLiteHouse}
-	 * implementation.
-	 * @param dbh the instance to which this provider must bind
+	 * Constructs an instance, but does not register it.
+	 * @param ctx the context in which the keeper will operate
+	 * @param cls the {@link SQLiteHouse} implementation class
+	 * @param dbh the {@link SQLiteHouse} implementation instance to which the
+	 *            keeper is bound
 	 */
-	public SQLiteHouseKeeper( H dbh )
+	public SQLiteHouseKeeper( Context ctx, Class<H> cls, H dbh )
 	{
+		m_ctx = ctx ;
+		m_cls = cls ;
 		m_dbh = dbh ;
-		this.initSwitchboard().initAuthority() ;
+		m_api = null ;
 	}
 
-	/**
-	 * Create, and bind to, an instance of a {@link SQLiteHouse} implementation.
-	 * @param cls the implementation class for the database helper
-	 * @param ctx the context in which to create the database instance
-	 */
-	public SQLiteHouseKeeper( Class<H> cls, Context ctx )
-	{ this.bind( cls, ctx, null ).initSwitchboard().initAuthority() ; }
+/// Receiver registration //////////////////////////////////////////////////////
 
 	/**
-	 * Create, and bind to, an instance of a {@link SQLiteHouse} implementation.
-	 * @param cls the implementation class for the database helper
-	 * @param ctx the context in which to create the database instance
-	 * @param cf the cursor factory to be used for the database instance
-	 */
-	public SQLiteHouseKeeper( Class<H> cls, Context ctx, SQLiteDatabase.CursorFactory cf )
-	{ this.bind( cls, ctx, cf ).initSwitchboard().initAuthority() ; }
-
-	/**
-	 * Creates, and binds to, the {@link SQLiteHouse} implementation class
-	 * instance.
-	 * @param cls the implementation class for the database helper
-	 * @param ctx the context in which to create the database instance
-	 * @param cf the cursor factory to be used for the database instance
+	 * Registers the keeper instance as a {@link BroadcastReceiver} in its
+	 * context, using the canonical name of the underlying {@link SQLiteHouse}
+	 * implementation class as the contractual "authority".
 	 * @return (fluid)
-	 * @see SQLiteHouseKeeper#SQLiteHouseKeeper(Class, Context)
-	 * @see SQLiteHouseKeeper#SQLiteHouseKeeper(Class, Context, SQLiteDatabase.CursorFactory)
+	 * @see DefaultSignals
+	 * @see SQLiteHouseSignalAPI
 	 */
-	protected SQLiteHouseKeeper<H> bind( Class<H> cls, Context ctx, SQLiteDatabase.CursorFactory cf )
-	{
-		m_dbh = SQLiteHouse.Factory.init().getInstance( cls, ctx, cf ) ;
-		return this ;
-	}
+	public SQLiteHouseKeeper<H> register()
+	{ return this.register( new DefaultSignals() ) ; }
 
 	/**
-	 * Initializes the instance's URI matcher, which is an instance of the inner
-	 * {@link Switchboard} class. Implementations of {@link SQLiteHouseKeeper}
-	 * may override this method to define custom URI mappings, which will take
-	 * precedence over the default reflection-based URI matching performed by
-	 * {@code Switchboard} when applicable.
+	 * Registers the keeper instance as a {@link BroadcastReceiver} in its
+	 * context.
+	 * @param sigs the signal contract between the keeper and its relays; if
+	 *             {@code null}, then the keeper will be unregistered instead!
 	 * @return (fluid)
 	 */
-	protected SQLiteHouseKeeper<H> initSwitchboard()
+	public SQLiteHouseKeeper<H> register( SQLiteHouseSignalAPI sigs )
 	{
-		m_urim = new Switchboard() ;
+		m_api = sigs ;
+		if( sigs == null )
+			m_ctx.unregisterReceiver(this) ;
+		else
+			m_ctx.registerReceiver( this, sigs.getKeeperIntentFilter() ) ;
 		return this ;
 	}
 
 	/**
-	 * Initializes the authority string for which this provider will be
-	 * registered, and which will be used to resolve URIs. The string is formed
-	 * by reading the full canonical name of the underlying {@link SQLiteHouse}
-	 * implementation class, and appending the value of the
-	 * {@link #PROVIDER_AUTHORITY_SUFFIX} constant ({@code ".provider"}).
-	 * Descendants of this class may choose to override this method, setting the
-	 * value of the provider's {@link #m_sAuthority} member to a custom value.
-	 * However, such a change must also be carried through to the corresponding
-	 * {@link android.content.ContentResolver} implementation.
-	 * @return the provider's authority string
+	 * Unregisters the keeper in its context.
+	 * @return (fluid)
 	 */
-	protected SQLiteHouseKeeper<H> initAuthority()
+	public SQLiteHouseKeeper<H> unregister()
 	{
-		m_sAuthority = (new StringBuilder())
-				.append( m_dbh.getClass().getCanonicalName() )
-				.append( PROVIDER_AUTHORITY_SUFFIX )
-				.toString()
-				;
+		m_ctx.unregisterReceiver(this) ;
+		m_api = null ;
 		return this ;
 	}
 
-/// android.content.ContentProvider ////////////////////////////////////////////
+/// android.content.BroadcastReceiver //////////////////////////////////////////
 
 	@Override
-	public int delete( Uri uri, String sWhereFormat, String[] asWhereArgs )
+	public final void onReceive( Context ctx, Intent sig )
 	{
+		String sAction = IntentUtils.discoverAction(sig) ;
 
+		if( sAction == null || sAction.isEmpty() )
+		{
+			Log.i( LOG_TAG, "Ignoring request with empty action token." ) ;
+			return ;
+		}
+
+		if( m_api == null )
+		{
+			Log.i( LOG_TAG, (new StringBuilder())
+					.append( "No signals are registered! Ignoring action [" )
+					.append( sAction )
+					.append( "]." )
+					.toString()
+				);
+			return ;
+		}
+
+		String sActionToken = m_api.getTokenFromKeeperAction(sAction) ;
+
+		switch( sActionToken )
+		{
+			case SQLiteHouseSignalAPI.KEEPER_INSERT:
+				this.insert( ctx, sig ) ;
+				break ;
+			case SQLiteHouseSignalAPI.KEEPER_SELECT:
+				// TODO Select the records requested in the action.
+				break ;
+			case SQLiteHouseSignalAPI.KEEPER_UPDATE:
+				// TODO Update the database as requested in the action.
+				break ;
+			case SQLiteHouseSignalAPI.KEEPER_DELETE:
+				// TODO Delete the records specified in the action.
+				break ;
+			default:
+				this.handleCustomAction( ctx, sig, sActionToken ) ;
+		}
 	}
 
-	protected int customDelete( Uri uri, String sWhereFormat, String[] asWhereArgs )
-	{ return 0 ; }
-
-/// Other accessors and mutators ///////////////////////////////////////////////
+/// Action handlers ////////////////////////////////////////////////////////////
 
 	/**
-	 * Returns the provider's "authority" string, which contributes to the URI
-	 * at which the provider is reached.
-	 * @return the provider's authority string
+	 * Override this method to handle custom actions not covered by the standard
+	 * set defined in {@link SQLiteHouseSignalAPI}. The default implementation
+	 * writes an information log stating that the action is unrecognized.
+	 * @param ctx the context from which the signal originated
+	 * @param sig the received signal
+	 * @param sToken the action token parsed from the signal
 	 */
-	public String getAuthority()
-	{ return m_sAuthority ; }
+	protected void handleCustomAction( Context ctx, Intent sig, String sToken )
+	{
+		Log.i( LOG_TAG, (new StringBuilder())
+				.append( "Ignoring unrecognized action [" )
+				.append( sToken )
+				.append( "]." )
+				.toString()
+			);
+	}
 
+	/**
+	 * Handles a request to insert data into the underlying database.
+	 * @param ctx the context from which the signal originated (ignored)
+	 * @param sig the received signal
+	 * @param <SC> the schematic class that is discovered along the way
+	 */
+	protected synchronized <SC extends SQLightable> void insert( Context ctx, Intent sig )
+	{
+		long nRowID ;
+		Class<SC> cls = null ;
+		try
+		{
+			cls = m_api.getClassFromExtra(sig) ;
+			SC o = m_api.getDataFromBundle( sig, cls ) ;
+			nRowID = m_dbh.insert(o) ;
+		}
+		catch( SQLiteContentException xContent )
+		{
+			Log.e( LOG_TAG, "Malformed intent received by insert().",
+					xContent ) ;
+			nRowID = INSERT_FAILED ;
+		}
+		catch( IntrospectionException | SchematicException xInspect )
+		{
+			Log.e( LOG_TAG, "Failed to insert an object.", xInspect ) ;
+			nRowID = INSERT_FAILED ;
+		}
+		
+		if( cls != null && nRowID != INSERT_FAILED )
+		{ // Notify relays of the successful insertion.
+			Intent sigNotify = new Intent( m_api.getFormattedRelayAction(
+					SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT ) ) ;
+			sig.putExtra( m_api.getExtraSchemaClassName(),
+					cls.getCanonicalName() ) ;
+			sig.putExtra( m_api.getExtraInsertedRowID(), nRowID ) ;
+			m_ctx.sendBroadcast( sigNotify ) ;
+		}
+		else
+		{ // Notify relays of the insertion failure.
+			Intent sigNotify = new Intent( m_api.getFormattedRelayAction(
+					SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED ) ) ;
+			if( cls != null )
+			{
+				sig.putExtra( m_api.getExtraSchemaClassName(),
+						cls.getCanonicalName() ) ;
+			}
+			m_ctx.sendBroadcast( sigNotify ) ;
+		}
+	}
+
+/// Broadcasts to SQLiteHouseRelay /////////////////////////////////////////////
+
+
+
+/// Other accessors and mutators ///////////////////////////////////////////////
 
 }
