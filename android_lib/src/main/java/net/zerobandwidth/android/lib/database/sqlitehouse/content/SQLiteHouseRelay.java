@@ -183,6 +183,8 @@ extends BroadcastReceiver
 					.toString()
 				);
 		}
+		else
+			Log.e( LOG_TAG, "Keeper failed to insert a row." ) ;
 	}
 
 /// Broadcasts to SQLiteHouseKeeper ////////////////////////////////////////////

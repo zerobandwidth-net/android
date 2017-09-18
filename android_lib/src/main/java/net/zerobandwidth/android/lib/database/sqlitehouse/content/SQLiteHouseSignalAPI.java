@@ -3,13 +3,13 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.content;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 
 import net.zerobandwidth.android.lib.content.IntentUtils;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.content.exceptions.SQLiteContentException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
+import net.zerobandwidth.android.lib.util.CollectionsZ;
 
 /**
  * Defines the contract of signals between implementations of
@@ -101,6 +101,30 @@ public abstract class SQLiteHouseSignalAPI
 			new SQLightable.ReflectionMap() ;
 
 	/**
+	 * A set of custom actions expected to be supported by a
+	 * {@link SQLiteHouseKeeper} implementation.
+	 */
+	protected String[] m_asCustomKeeperActions = null ;
+
+	/**
+	 * The format string to be used when creating keeper action tags.
+	 * Defaults to {@link #DEFAULT_KEEPER_ACTION_FORMAT}.
+	 */
+	protected String m_sKeeperActionFormat = DEFAULT_KEEPER_ACTION_FORMAT ;
+
+	/**
+	 * A set of custom actions expected to be supported by a
+	 * {@link SQLiteHouseRelay} implementation.
+	 */
+	protected String[] m_asCustomRelayActions = null ;
+
+	/**
+	 * The format string to be used when creating relay action tags.
+	 * Defaults to {@link #DEFAULT_RELAY_ACTION_FORMAT}.
+	 */
+	protected String m_sRelayActionFormat = DEFAULT_RELAY_ACTION_FORMAT ;
+
+	/**
 	 * Reveals the "domain" under which the keeper and relay will operate.
 	 * This string forms the root segments of the {@code Intent} action tokens.
 	 * @return the domain linking a keeper and relay
@@ -108,28 +132,57 @@ public abstract class SQLiteHouseSignalAPI
 	protected abstract String getIntentDomain() ;
 
 	/**
-	 * Reveals the set of actions supported by the keeper implementation.
+	 * Accesses the set of keeper actions which will be registered.
 	 *
-	 * By default, this is the value of {@link #KEEPER_ACTIONS}; this may be
-	 * overridden to supply additional custom actions instead.
-	 *
-	 * Overrides <i>should</i> include the value of {@code KEEPER_ACTIONS} in
-	 * the action set; otherwise, the write functions of
-	 * {@link SQLiteHouseRelay} will not function properly.
+	 * By default, this is the value of {@link #KEEPER_ACTIONS}. If the
+	 * {@link SQLiteHouseKeeper} implementation also supports custom actions,
+	 * then they should be registered with {@link #setKeeperActions}, which will
+	 * <i>append</i> the custom list to the default.
 	 *
 	 * @return the list of actions supported by the keeper implementation
 	 */
-	public String[] getKeeperActions()
-	{ return KEEPER_ACTIONS ; }
+	public final String[] getKeeperActions()
+	{
+		if( m_asCustomKeeperActions == null ) return KEEPER_ACTIONS ;
+		else return CollectionsZ.of( String.class )
+				.arrayConcat( KEEPER_ACTIONS, m_asCustomKeeperActions ) ;
+	}
 
 	/**
-	 * Specifies the format for constructing keeper actions. Override this
-	 * method to use a custom format; the default implementation returns
-	 * {@link #DEFAULT_KEEPER_ACTION_FORMAT}.
+	 * Adds a list of custom actions which are expected from a
+	 * {@link SQLiteHouseKeeper} implementation.
+	 * @param asCustomActions the list of custom actions
+	 * @return (fluid)
+	 */
+	public final SQLiteHouseSignalAPI setKeeperActions( String[] asCustomActions )
+	{ m_asCustomKeeperActions = asCustomActions ; return this ; }
+
+	/**
+	 * Accesses the format string used to construct keeper actions.
 	 * @return the format for keeper actions
 	 */
-	public String getKeeperActionFormat()
-	{ return DEFAULT_KEEPER_ACTION_FORMAT ; }
+	public final String getKeeperActionFormat()
+	{ return m_sKeeperActionFormat ; }
+
+	/**
+	 * Sets the format string used to construct actions for {@link Intent}s that
+	 * are dispatched to {@link SQLiteHouseKeeper}s. This format string
+	 * <i>must</i> have two string variables.
+	 *
+	 * Defaults to {@link #DEFAULT_KEEPER_ACTION_FORMAT} if a null or empty
+	 * value is supplied.
+	 *
+	 * @param sFormat the format string
+	 * @return (fluid)
+	 */
+	public final SQLiteHouseSignalAPI setKeeperActionFormat( String sFormat )
+	{
+		if( sFormat == null || sFormat.isEmpty() )
+			m_sKeeperActionFormat = DEFAULT_KEEPER_ACTION_FORMAT ;
+		else
+			m_sKeeperActionFormat = sFormat ;
+		return this ;
+	}
 
 	/**
 	 * Creates a fully-formed action name for the keeper.
@@ -166,28 +219,57 @@ public abstract class SQLiteHouseSignalAPI
 	}
 
 	/**
-	 * Reveals the set of actions supported by the relay implementation.
+	 * Accesses the set of relay actions which will be registered.
 	 *
-	 * By default, this is the value of {@link #RELAY_ACTIONS}; this may be
-	 * overridden to supply additional custom actions if desired.
+	 * By default, this is the value of {@link #RELAY_ACTIONS}. If the
+	 * {@link SQLiteHouseRelay} implementation also supports custom actions,
+	 * then they should be registered with {@link #setRelayActions}, which will
+	 * <i>append</i> the custom list to the default.
 	 *
-	 * Overrides <i>should</i> include the value of {@code RELAY_ACTIONS} in
-	 * the action set; otherwise, the notification functions of
-	 * {@link SQLiteHouseRelay} will not function properly.
-	 *
-	 * @return the list of actions supported by the beacon implementation
+	 * @return the list of actions supported by the relay implementation
 	 */
-	public String[] getRelayActions()
-	{ return RELAY_ACTIONS ; }
+	public final String[] getRelayActions()
+	{
+		if( m_asCustomRelayActions == null ) return RELAY_ACTIONS ;
+		else return CollectionsZ.of( String.class )
+				.arrayConcat( RELAY_ACTIONS, m_asCustomRelayActions ) ;
+	}
 
 	/**
-	 * Specifies the format for constructing relay actions. Override this
-	 * method to use a custom format; the default implementation returns
-	 * {@link #DEFAULT_RELAY_ACTION_FORMAT}.
-	 * @return the format for keeper actions
+	 * Adds a list of custom actions which are expected from a
+	 * {@link SQLiteHouseRelay} implementation.
+	 * @param asCustomActions the list of custom actions
+	 * @return (fluid)
 	 */
-	public String getRelayActionFormat()
-	{ return DEFAULT_RELAY_ACTION_FORMAT ; }
+	public final SQLiteHouseSignalAPI setRelayActions( String[] asCustomActions )
+	{ m_asCustomRelayActions = asCustomActions ; return this ; }
+
+	/**
+	 * Accesses the format string used to construct relay actions.
+	 * @return the format for relay actions
+	 */
+	public final String getRelayActionFormat()
+	{ return m_sRelayActionFormat ; }
+
+	/**
+	 * Sets the format string used to construct actions for {@link Intent}s that
+	 * are dispatched to {@link SQLiteHouseRelay}s. This format string
+	 * <i>must</i> have two string variables.
+	 *
+	 * Defaults to {@link #DEFAULT_RELAY_ACTION_FORMAT} if a null or empty
+	 * value is supplied.
+	 *
+	 * @param sFormat the format string
+	 * @return (fluid)
+	 */
+	public final SQLiteHouseSignalAPI setRelayActionFormat( String sFormat )
+	{
+		if( sFormat == null || sFormat.isEmpty() )
+			m_sRelayActionFormat = DEFAULT_RELAY_ACTION_FORMAT ;
+		else
+			m_sRelayActionFormat = sFormat ;
+		return this ;
+	}
 
 	/**
 	 * Creates a fully-formed action name for the relay.
@@ -301,27 +383,23 @@ public abstract class SQLiteHouseSignalAPI
 			throw SQLiteContentException.expectedExtraNotFound( sExtra, null ) ;
 		String sClass = sig.getStringExtra( sExtra ) ;
 		if( sClass == null || sClass.isEmpty() )
-			throw SQLiteContentException.expectedExtraNotFound( sExtra, null ) ;
+			throw SQLiteContentException.noClassSpecified(null) ;
 		try
 		{
 			Class<?> cls = Class.forName( sClass ) ;
-			if( cls.isAssignableFrom( SQLightable.class ) )
+			if( SQLightable.class.isAssignableFrom(cls) )
 			{
 				// noinspection unchecked - caught explicitly below
 				return ((Class<SC>)(cls)) ;
 			}
 			else
 			{
-				Log.e( LOG_TAG, (new StringBuilder())
-						.append( "Class [" ).append( sClass )
-						.append( "] is not assignable from SQLightable." )
-						.toString()
-				);
-				throw IntrospectionException.instanceFailed( sClass, null ) ;
+				throw IntrospectionException
+						.illegalClassSpecification( cls, null ) ;
 			}
 		}
 		catch( ClassNotFoundException | ClassCastException x )
-		{ throw IntrospectionException.instanceFailed( sClass, x ) ; }
+		{ throw IntrospectionException.illegalClassSpecification( sClass, x ); }
 	}
 
 	/**
@@ -341,6 +419,8 @@ public abstract class SQLiteHouseSignalAPI
 	public <SC extends SQLightable> SC getDataFromBundle( Intent sig, Class<SC> cls )
 	throws SQLiteContentException, IntrospectionException, SchematicException
 	{
+		if( cls == null )
+			throw SQLiteContentException.noClassSpecified(null) ;
 		String sExtra = this.getExtraSchemaDataName() ;
 		if( ! sig.hasExtra( sExtra ) )
 			throw SQLiteContentException.expectedExtraNotFound( sExtra, null ) ;
@@ -361,7 +441,7 @@ public abstract class SQLiteHouseSignalAPI
 	protected <SC extends SQLightable> SQLightable.Reflection<SC> reflect( Class<SC> cls )
 	{
 		if( ! m_mapReflections.containsKey(cls) )
-			m_mapReflections.put( cls, SQLightable.Reflection.reflect(cls) ) ;
+			m_mapReflections.put( cls ) ;
 		return m_mapReflections.get(cls) ;
 	}
 

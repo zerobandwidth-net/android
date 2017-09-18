@@ -33,6 +33,18 @@ extends RuntimeException
 			);
 	}
 
+	/**
+	 * Used when processing an intent that requires a class name, but no class
+	 * name is supplied in the intent.
+	 * @param xCause a root cause, if any
+	 * @return an exception with an appropriate error message
+	 */
+	public static SQLiteContentException noClassSpecified( Throwable xCause )
+	{
+		return new SQLiteContentException(
+				"No class name was supplied in the intent.", xCause ) ;
+	}
+
 	public SQLiteContentException()
 	{ super(DEFAULT_MESSAGE) ; }
 

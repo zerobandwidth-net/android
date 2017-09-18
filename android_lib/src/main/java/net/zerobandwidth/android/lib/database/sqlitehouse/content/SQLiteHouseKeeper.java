@@ -216,32 +216,42 @@ extends BroadcastReceiver
 			Log.e( LOG_TAG, "Failed to insert an object.", xInspect ) ;
 			nRowID = INSERT_FAILED ;
 		}
-		
-		if( cls != null && nRowID != INSERT_FAILED )
-		{ // Notify relays of the successful insertion.
-			Intent sigNotify = new Intent( m_api.getFormattedRelayAction(
-					SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT ) ) ;
-			sig.putExtra( m_api.getExtraSchemaClassName(),
-					cls.getCanonicalName() ) ;
-			sig.putExtra( m_api.getExtraInsertedRowID(), nRowID ) ;
-			m_ctx.sendBroadcast( sigNotify ) ;
-		}
+
+		if( nRowID != INSERT_FAILED )
+			this.notifyInsert( cls, nRowID ) ;
+		else if( cls != null )
+			this.notifyInsertFailed( cls.getCanonicalName() ) ;
 		else
-		{ // Notify relays of the insertion failure.
-			Intent sigNotify = new Intent( m_api.getFormattedRelayAction(
-					SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED ) ) ;
-			if( cls != null )
-			{
-				sig.putExtra( m_api.getExtraSchemaClassName(),
-						cls.getCanonicalName() ) ;
-			}
-			m_ctx.sendBroadcast( sigNotify ) ;
-		}
+			this.notifyInsertFailed( null ) ;
 	}
 
 /// Broadcasts to SQLiteHouseRelay /////////////////////////////////////////////
 
+	/**
+	 * Notifies the relay that an insertion succeeded.
+	 * @param cls the schematic class of the inserted data
+	 * @param nRowID the ID of the inserted row
+	 * @param <SC> the schematic class of the inserted data
+	 */
+	protected synchronized <SC extends SQLightable> void notifyInsert(
+			Class<SC> cls, long nRowID )
+	{
+		Intent sig = new Intent( m_api.getFormattedRelayAction(
+				SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT ) ) ;
+		sig.putExtra( m_api.getExtraSchemaClassName(),
+				cls.getCanonicalName() ) ;
+		sig.putExtra( m_api.getExtraInsertedRowID(), nRowID ) ;
+		m_ctx.sendBroadcast( sig ) ;
+	}
 
+	protected synchronized void notifyInsertFailed( String sClass )
+	{
+		Intent sig = new Intent( m_api.getFormattedRelayAction(
+				SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED ) ) ;
+		if( sClass != null )
+			sig.putExtra( m_api.getExtraSchemaClassName(), sClass ) ;
+		m_ctx.sendBroadcast( sig ) ;
+	}
 
 /// Other accessors and mutators ///////////////////////////////////////////////
 

@@ -769,25 +769,22 @@ public interface SQLightable
 		 */
 		public <SC extends SQLightable> Reflection<SC> get( Class<SC> cls )
 		{
-			//noinspection unchecked
+			//noinspection unchecked - guaranteed logically
 			return ((Reflection<SC>)( super.get(cls) )) ;
 		}
 
 		/**
-		 * As {@link Map#put(Object,Object)}, but forces a linkage between the
-		 * generic specifications of the schematic class between the two method
-		 * parameters. This cast is made unchecked; it is up to the consumer to
-		 * ensure that the types match.
+		 * As {@link Map#put(Object,Object)}, but since we can obtain the
+		 * {@link Reflection} instance on-the-fly, it is not required.
 		 * @param cls the schematic class
-		 * @param tbl the reflection of the schematic class
 		 * @param <SC> the schematic class
 		 * @return the previously-mapped reflection, if any
 		 */
-		public <SC extends SQLightable> Reflection<SC> putExplicit(
-				Class<SC> cls, Reflection<SC> tbl )
+		public <SC extends SQLightable> Reflection<SC> put( Class<SC> cls )
 		{
-			//noinspection unchecked
-			return ((Reflection<SC>)( super.put( cls, tbl ) ))  ;
+			//noinspection unchecked - guaranteed logically
+			return ((Reflection<SC>)
+					( super.put( cls, Reflection.reflect(cls) ) ))  ;
 		}
 	}
 }
