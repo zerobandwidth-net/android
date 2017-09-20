@@ -18,10 +18,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.UPDATE_FAILED;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
 
 /**
  * Exercises {@link SQLiteHouseKeeper}.
@@ -110,10 +115,10 @@ public class SQLiteHouseKeeperTest
 		m_keeper.register(m_api) ;
 		Intent sig = new Intent() ;
 		sig.setAction( m_api.getFormattedKeeperAction( KEEPER_INSERT ) ) ;
-		sig.putExtra( m_api.getExtraSchemaClassName(),
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 				Fargle.class.getCanonicalName() ) ;
-		Fargle fargleOrig = new Fargle( -1, "Fargle:testInsert()", 1 ) ;
-		sig.putExtra( m_api.getExtraSchemaDataName(),
+		Fargle fargleOrig = new Fargle( -1, "Fargle:testInsert()", 9 ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
 				m_api.reflect(Fargle.class).toBundle(fargleOrig) ) ;
 		m_keeper.onReceive( m_ctx, sig ) ;
 
@@ -140,19 +145,79 @@ public class SQLiteHouseKeeperTest
 		long nRowID = m_keeper.insert(sig) ;       // kicker: no class in intent
 		assertEquals( INSERT_FAILED, nRowID ) ;
 
-		sig.putExtra( m_api.getExtraSchemaClassName(),
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 				BorkBorkBork.class.getCanonicalName() ) ;
-		sig.putExtra( m_api.getExtraSchemaDataName(), new Bundle() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				new Bundle() ) ;
 		nRowID = m_keeper.insert(sig) ;     // kicker: getDataFromBundle() fails
 		assertEquals( INSERT_FAILED, nRowID ) ;
 
 		sig = new Intent() ;
-		sig.putExtra( m_api.getExtraSchemaClassName(),
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 				Sparkle.class.getCanonicalName() ) ;
-		sig.putExtra( m_api.getExtraSchemaDataName(),
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
 				m_api.reflect( Sparkle.class ).toBundle(
 						new Sparkle( "0o0o0o pretty!" ) ) ) ;
 		nRowID = m_keeper.insert(sig) ; // kicker: Sparkle not in ValidSpecClass
 		assertEquals( INSERT_FAILED, nRowID ) ;
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouseKeeper#update} via
+	 * {@link SQLiteHouseKeeper#onReceive(Context, Intent)}.
+	 */
+	@Test
+	public void testUpdate()
+	throws Exception // Uncaught exception implies failure.
+	{
+		SQLiteHouseTest.connectTo( m_house ) ;
+		m_keeper.register(m_api) ;
+		Fargle fargle = new Fargle( -1, "Fargle:testUpdate()", 21 ) ;
+		long nRowID = m_house.insert(fargle) ;
+		fargle.setString( "Fargle:testUpdate() UPDATED" ) ;
+		Intent sig = new Intent() ;
+		sig.setAction( m_api.getFormattedKeeperAction( KEEPER_UPDATE ) ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				Fargle.class.getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				m_api.reflect(Fargle.class).toBundle(fargle) ) ;
+		m_keeper.onReceive( m_ctx, sig ) ;
+
+		Fargle fargleFound = m_house.select( Fargle.class, nRowID ) ;
+		assertNotNull(fargleFound) ;
+		assertTrue( fargle.equals(fargleFound) ) ;
+		assertEquals( "Fargle:testUpdate() UPDATED", fargleFound.getString() ) ;
+	}
+
+	/**
+	 * Exercises conditions in {@link SQLiteHouseKeeper#update} that would cause
+	 * it to exit trivially or with failure conditions.
+	 */
+	@Test
+	public void testUpdateNeg()
+	throws Exception // Uncaught exception implies failure.
+	{
+		SQLiteHouseTest.connectTo( m_house ) ;
+		m_keeper.m_api = m_api ;                 // but don't bother registering
+		Intent sig = new Intent() ;
+
+		int nCount = m_keeper.update(sig) ;        // kicker: no class in intent
+		assertEquals( UPDATE_FAILED, nCount ) ;
+
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				BorkBorkBork.class.getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				new Bundle() ) ;
+		nCount = m_keeper.update(sig) ;     // kicker: getDataFromBundle() fails
+		assertEquals( UPDATE_FAILED, nCount ) ;
+
+		sig = new Intent() ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				Sparkle.class.getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				m_api.reflect( Sparkle.class ).toBundle(
+						new Sparkle( "Destined for failure!" ) ) ) ;
+		nCount = m_keeper.update(sig) ; // kicker: Sparkle not in ValidSpecClass
+		assertEquals( UPDATE_FAILED, nCount ) ;
 	}
 }

@@ -12,6 +12,19 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
 
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.UPDATE_FAILED;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_INSERT_ROW_ID;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_MODIFY_ROW_COUNT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE_FAILED;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE_FAILED;
 
 /**
  * A class which can send requests to, and receive notifications from, a
@@ -113,22 +126,22 @@ extends BroadcastReceiver
 
 		switch( sActionToken )
 		{
-			case SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT:
+			case RELAY_NOTIFY_INSERT:
 				this.onRowInserted( sig ) ;
 				break ;
-			case SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED:
+			case RELAY_NOTIFY_INSERT_FAILED:
 				this.onInsertFailed( sig ) ;
 				break ;
-			case SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE:
-				// TODO notify of record updates
+			case RELAY_NOTIFY_UPDATE:
+				this.onRowsUpdated( sig ) ;
 				break ;
-			case SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE_FAILED:
-				// TODO notify of update failure
+			case RELAY_NOTIFY_UPDATE_FAILED:
+				this.onUpdateFailed( sig ) ;
 				break ;
-			case SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE:
+			case RELAY_NOTIFY_DELETE:
 				// TODO notify of record deletions
 				break ;
-			case SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE_FAILED:
+			case RELAY_NOTIFY_DELETE_FAILED:
 				// TODO notify of deletion failure
 				break ;
 			default:
@@ -163,8 +176,10 @@ extends BroadcastReceiver
 	 */
 	protected synchronized void onRowInserted( Intent sig )
 	{
-		final String sExtraRowID = m_api.getExtraInsertedRowID() ;
-		final String sExtraClass = m_api.getExtraSchemaClassName() ;
+		final String sExtraRowID =
+				m_api.getFormattedExtraTag( EXTRA_INSERT_ROW_ID ) ;
+		final String sExtraClass =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
 		if( sig.hasExtra( sExtraClass ) && sig.hasExtra( sExtraRowID ) )
 		{ // Notify anything that cares about the insertion.
 			Log.i( LOG_TAG, (new StringBuilder())
@@ -186,7 +201,8 @@ extends BroadcastReceiver
 	 */
 	protected synchronized void onInsertFailed( Intent sig )
 	{
-		final String sExtraClass = m_api.getExtraSchemaClassName() ;
+		final String sExtraClass =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
 		if( sig.hasExtra( sExtraClass ) )
 		{ // Notify anything that cares that the insertion failed.
 			Log.e( LOG_TAG, (new StringBuilder())
@@ -200,6 +216,55 @@ extends BroadcastReceiver
 			Log.e( LOG_TAG, "Keeper failed to insert a row." ) ;
 	}
 
+
+	/**
+	 * Handles a signal from the keeper that some rows were updated.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onRowsUpdated( Intent sig )
+	{
+		final String sExtraClass =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
+		final String sExtraRowCount =
+				m_api.getFormattedExtraTag( EXTRA_MODIFY_ROW_COUNT ) ;
+		if( sig.hasExtra( sExtraClass ) && sig.hasExtra( sExtraRowCount ) )
+		{ // Notify anything that cares about the update.
+			int nCount = sig.getIntExtra( sExtraRowCount, UPDATE_FAILED ) ;
+			Log.i( LOG_TAG, (new StringBuilder())
+					.append( "Updated [" )
+					.append( nCount )
+					.append(( nCount == 1 ? "] row" : "] rows" ))
+					.append( " in table [" )
+					.append( sig.getStringExtra( sExtraClass ) )
+					.append( "]." )
+					.toString()
+				);
+		}
+		else
+		{ Log.i( LOG_TAG, "At least one row was updated." ) ; }
+	}
+
+	/**
+	 * Handles a signal from the keeper that a table update has failed.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onUpdateFailed( Intent sig )
+	{
+		final String sExtraClass =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
+		if( sig.hasExtra( sExtraClass ) )
+		{ // Notify anything that cares that the update failed.
+			Log.e( LOG_TAG, (new StringBuilder())
+					.append( "Keeper failed to update rows of type [" )
+					.append( sig.getStringExtra( sExtraClass ) )
+					.append( "]." )
+					.toString()
+				);
+		}
+		else
+		{ Log.e( LOG_TAG, "Keeper failed to update rows." ) ; }
+	}
+
 /// Broadcasts to SQLiteHouseKeeper ////////////////////////////////////////////
 
 	/**
@@ -211,12 +276,33 @@ extends BroadcastReceiver
 	 */
 	public <SC extends SQLightable> SQLiteHouseRelay insert( SC o )
 	{
-		Intent sig = new Intent( m_api.getFormattedKeeperAction(
-				SQLiteHouseSignalAPI.KEEPER_INSERT ) ) ;
+		Intent sig = new Intent(
+				m_api.getFormattedKeeperAction( KEEPER_INSERT ) ) ;
 		SQLightable.Reflection<SC> tbl = m_api.reflect(o) ;
-		sig.putExtra( m_api.getExtraSchemaClassName(),
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 				tbl.getTableClass().getCanonicalName() ) ;
-		sig.putExtra( m_api.getExtraSchemaDataName(), tbl.toBundle(o) ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				tbl.toBundle(o) ) ;
+		m_ctx.sendBroadcast( sig ) ;
+		return this ;
+	}
+
+	/**
+	 * Requests an update of a particular row in the keeper's database,
+	 * corresponding to the schematic class instance supplied.
+	 * @param o an instance of the schematic class
+	 * @param <SC> the schematic class
+	 * @return (fluid)
+	 */
+	public <SC extends SQLightable> SQLiteHouseRelay update( SC o )
+	{
+		Intent sig = new Intent(
+				m_api.getFormattedKeeperAction( KEEPER_UPDATE ) ) ;
+		SQLightable.Reflection<SC> tbl = m_api.reflect(o) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				tbl.getTableClass().getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				tbl.toBundle(o) ) ;
 		m_ctx.sendBroadcast( sig ) ;
 		return this ;
 	}

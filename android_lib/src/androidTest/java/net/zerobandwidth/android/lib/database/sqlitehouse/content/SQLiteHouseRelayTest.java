@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Dargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
 
 import org.junit.After;
@@ -14,8 +15,14 @@ import org.junit.runner.RunWith;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_INSERT_ROW_ID;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_MODIFY_ROW_COUNT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE_FAILED;
 
 /**
  * Exercises {@link SQLiteHouseRelay}.
@@ -84,10 +91,10 @@ public class SQLiteHouseRelayTest
 		sig.setAction( m_api.getFormattedRelayAction( RELAY_NOTIFY_INSERT ) ) ;
 		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
 
-		sig.putExtra( m_api.getExtraInsertedRowID(), 42 ) ;
-		sig.putExtra( m_api.getExtraSchemaClassName(),
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_INSERT_ROW_ID ), 42L ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 					Fargle.class.getCanonicalName() ) ;
-		sig.putExtra( m_api.getExtraSchemaDataName(),
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
 				m_api.reflect(Fargle.class).toBundle(
 						new Fargle( 42, "Fargle!", 90 ) ) ) ;
 		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
@@ -106,7 +113,45 @@ public class SQLiteHouseRelayTest
 				m_api.getFormattedRelayAction( RELAY_NOTIFY_INSERT_FAILED ) ) ;
 		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
 
-		sig.putExtra( m_api.getExtraSchemaClassName(), "flugel" ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				"flugel" ) ;
+		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
+	} // Complete execution implies success.
+
+	/**
+	 * Exercises {@link SQLiteHouseRelay#onRowsUpdated} via
+	 * {@link SQLiteHouseRelay#onReceive}.
+	 */
+	@Test
+	public void testOnRowsUpdated()
+	{
+		m_relay.register(m_api) ;
+		Intent sig = new Intent() ;
+		sig.setAction( m_api.getFormattedRelayAction( RELAY_NOTIFY_UPDATE ) ) ;
+		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
+
+		sig.putExtra(
+				m_api.getFormattedExtraTag( EXTRA_MODIFY_ROW_COUNT ), 12 ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				Dargle.class.getCanonicalName() ) ;
+		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
+	} // Complete execution implies success.
+
+	/**
+	 * Exercises {@link SQLiteHouseRelay#onUpdateFailed} via
+	 * {@link SQLiteHouseRelay#onReceive}.
+	 */
+	@Test
+	public void testOnUpdateFailed()
+	{
+		m_relay.register(m_api) ;
+		Intent sig = new Intent() ;
+		sig.setAction(
+				m_api.getFormattedRelayAction( RELAY_NOTIFY_UPDATE_FAILED ) ) ;
+		m_relay.onReceive( m_ctx, sig ) ;
+
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				"contrabassoon" ) ;
 		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
 	} // Complete execution implies success.
 }

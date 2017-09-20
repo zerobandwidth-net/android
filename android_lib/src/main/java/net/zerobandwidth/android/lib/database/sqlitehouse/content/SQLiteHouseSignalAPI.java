@@ -22,11 +22,19 @@ public abstract class SQLiteHouseSignalAPI
 			SQLiteHouseSignalAPI.class.getSimpleName() ;
 
 	/** Name suffix for the extra that contains the schematic class name. */
-	public static final String EXTRA_SCHEMA_CLASS_NAME = ".extra.CLASS" ;
+	public static final String EXTRA_SCHEMA_CLASS_NAME = "CLASS" ;
 	/** Name suffix for the extra that contains the schematic class data. */
-	public static final String EXTRA_SCHEMA_CLASS_DATA = ".extra.DATA" ;
+	public static final String EXTRA_SCHEMA_CLASS_DATA = "DATA" ;
 	/** Name suffix for the extra that contains the inserted row ID. */
-	public static final String EXTRA_INSERT_ROW_ID = ".extra.ROW_ID" ;
+	public static final String EXTRA_INSERT_ROW_ID = "ROW_ID" ;
+	/**
+	 * Name suffix for the extra that contains the number of rows updated or
+	 * deleted.
+	 */
+	public static final String EXTRA_MODIFY_ROW_COUNT = "ROW_COUNT" ;
+
+	/** The default format string for constructing intent extra tags. */
+	public static final String DEFAULT_EXTRA_TAG_FORMAT = "%s.extra.%s" ;
 
 	/** Action suffix for inserting an object. */
 	public static final String KEEPER_INSERT = "INSERT" ;
@@ -74,26 +82,6 @@ public abstract class SQLiteHouseSignalAPI
 			"%s.relay.action.%s" ;
 
 	/**
-	 * Cache of the tag for the extra that contains the canonical name of a
-	 * schematic class.
-	 * Generated and cached by {@link #getExtraSchemaClassName()}.
-	 */
-	protected String m_sExtraSchemaClassName = null ;
-
-	/**
-	 * Cache of the tag for the extra that contains data that could be
-	 * marshalled into a schematic class instance.
-	 * Generated and cached by {@link #getExtraSchemaDataName()}.
-	 */
-	protected String m_sExtraSchemaDataName = null ;
-
-	/**
-	 * Cache of the tag for the extra that contains an inserted row ID.
-	 * Generated and cached by {@link #getExtraInsertedRowID()}.
-	 */
-	protected String m_sExtraRowID = null ;
-
-	/**
 	 * Cache of reflections that have been pushed through the relay.
 	 * Populated by
 	 */
@@ -123,6 +111,12 @@ public abstract class SQLiteHouseSignalAPI
 	 * Defaults to {@link #DEFAULT_RELAY_ACTION_FORMAT}.
 	 */
 	protected String m_sRelayActionFormat = DEFAULT_RELAY_ACTION_FORMAT ;
+
+	/**
+	 * The format string to be used when creating intent extra tags. This is a
+	 * consistent format across both sides of the API.
+	 */
+	protected String m_sExtraTagFormat = DEFAULT_EXTRA_TAG_FORMAT ;
 
 	/**
 	 * Reveals the "domain" under which the keeper and relay will operate.
@@ -305,61 +299,43 @@ public abstract class SQLiteHouseSignalAPI
 	}
 
 	/**
-	 * Constructs the full tag of an extra to be sent in a broadcast.
+	 * Accesses the format string used to construct name tags for {@link Intent}
+	 * extras.
+	 * @return the format for intent extra tags
+	 */
+	public final String getExtraTagFormat()
+	{ return m_sExtraTagFormat ; }
+
+	/**
+	 * Sets the format string used to construct tags for {@link Intent} extras
+	 * that are exchanged between the keeper and the relay.
+	 *
+	 * Defaults to {@link #DEFAULT_EXTRA_TAG_FORMAT} if a null or empty value is
+	 * supplied.
+	 *
+	 * @param sFormat the format string
+	 * @return (fluid)
+	 */
+	public final SQLiteHouseSignalAPI setExtraTagFormat( String sFormat )
+	{
+		if( sFormat == null || sFormat.isEmpty() )
+			m_sExtraTagFormat = DEFAULT_EXTRA_TAG_FORMAT ;
+		else
+			m_sExtraTagFormat = sFormat ;
+		return this ;
+	}
+
+	/**
+	 * Constructs the full name tag for an {@link Intent} extra to be exchanged
+	 * between a keeper and a relay.
 	 * @param sToken the significant part of the extra token which makes it
 	 *               unique among the extras in this API
 	 * @return the fully-formed extra tag
 	 */
-	protected final String constructExtraTag( String sToken )
+	public final String getFormattedExtraTag( String sToken )
 	{
-		return (new StringBuilder())
-			.append( this.getIntentDomain() ).append( sToken )
-			.toString()
-			;
-	}
-
-	/**
-	 * Accesses the full name of the intent extra that will store the canonical
-	 * name of a schematic class to be marshalled. If not yet cached in this
-	 * instance, then it will be constructed and cached.
-	 * @return the name of the intent extra
-	 */
-	public final String getExtraSchemaClassName()
-	{
-		if( m_sExtraSchemaClassName == null )
-		{
-			m_sExtraSchemaClassName =
-					this.constructExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		}
-		return m_sExtraSchemaClassName ;
-	}
-
-	/**
-	 * Accesses the full name of the intent extra that will store the bundled
-	 * data from an instance of the schematic class to be marshalled. If not yet
-	 * cached in this instance, then it will be constructed and cached.
-	 * @return the name of the intent extra
-	 */
-	public final String getExtraSchemaDataName()
-	{
-		if( m_sExtraSchemaDataName == null )
-		{
-			m_sExtraSchemaDataName =
-					this.constructExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;
-		}
-		return m_sExtraSchemaDataName ;
-	}
-
-	/**
-	 * Accesses the full name of the intent extra that will store the numeric ID
-	 * of a row which has been inserted into a database.
-	 * @return the name of the intent extra
-	 */
-	public final String getExtraInsertedRowID()
-	{
-		if( m_sExtraRowID == null )
-			m_sExtraRowID = this.constructExtraTag( EXTRA_INSERT_ROW_ID ) ;
-		return m_sExtraRowID ;
+		return String.format( this.getExtraTagFormat(),
+				this.getIntentDomain(), sToken ) ;
 	}
 
 	/**
@@ -378,7 +354,7 @@ public abstract class SQLiteHouseSignalAPI
 	public <SC extends SQLightable> Class<SC> getClassFromExtra( Intent sig )
 			throws IntrospectionException, SQLiteContentException
 	{
-		String sExtra = this.getExtraSchemaClassName() ;
+		String sExtra = this.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
 		if( ! sig.hasExtra( sExtra ) )
 			throw SQLiteContentException.expectedExtraNotFound( sExtra, null ) ;
 		String sClass = sig.getStringExtra( sExtra ) ;
@@ -421,10 +397,10 @@ public abstract class SQLiteHouseSignalAPI
 	{
 		if( cls == null )
 			throw SQLiteContentException.noClassSpecified(null) ;
-		String sExtra = this.getExtraSchemaDataName() ;
+		String sExtra = this.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;
 		if( ! sig.hasExtra( sExtra ) )
 			throw SQLiteContentException.expectedExtraNotFound( sExtra, null ) ;
-		Bundle bndl = sig.getBundleExtra( this.getExtraSchemaDataName() ) ;
+		Bundle bndl = sig.getBundleExtra( sExtra ) ;
 		if( bndl == null )
 			throw SQLiteContentException.expectedExtraNotFound( sExtra, null ) ;
 		SQLightable.Reflection<SC> tbl = this.reflect(cls) ;

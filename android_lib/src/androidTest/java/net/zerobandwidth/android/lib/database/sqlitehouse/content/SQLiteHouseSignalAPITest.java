@@ -17,10 +17,12 @@ import org.junit.runner.RunWith;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.DEFAULT_EXTRA_TAG_FORMAT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.DEFAULT_KEEPER_ACTION_FORMAT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.DEFAULT_RELAY_ACTION_FORMAT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_ACTIONS;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_ACTIONS;
@@ -191,37 +193,25 @@ public class SQLiteHouseSignalAPITest
 	}
 
 	/**
-	 * Exercises {@link SQLiteHouseSignalAPI#getExtraSchemaClassName},
-	 * {@link SQLiteHouseSignalAPI#getExtraSchemaDataName()}, and
-	 * {@link SQLiteHouseSignalAPI#getExtraInsertedRowID()}.
-	 *
-	 * Each method is executed twice &mdash; once to test the method's
-	 * auto-caching ability, and the second time to verify that it is fetching
-	 * from that cache.
+	 * Exercises {@link SQLiteHouseSignalAPI#getExtraTagFormat()},
+	 * {@link SQLiteHouseSignalAPI#setExtraTagFormat(String)}, and
+	 * {@link SQLiteHouseSignalAPI#getFormattedExtraTag(String)}.
 	 */
 	@Test
-	public void testExtraTagGenerators()
+	public void testExtraFormatter()
 	{
-		assertNull( m_api.m_sExtraSchemaClassName ) ;
+		assertEquals( DEFAULT_EXTRA_TAG_FORMAT, m_api.getExtraTagFormat() ) ;
 		assertEquals( "org.totallyfake.unittest.extra.CLASS",
-				m_api.getExtraSchemaClassName() ) ;
-		assertNotNull( m_api.m_sExtraSchemaClassName ) ;
-		assertEquals( "org.totallyfake.unittest.extra.CLASS",
-				m_api.getExtraSchemaClassName() ) ;
-
-		assertNull( m_api.m_sExtraSchemaDataName ) ;
-		assertEquals( "org.totallyfake.unittest.extra.DATA",
-				m_api.getExtraSchemaDataName() ) ;
-		assertNotNull( m_api.m_sExtraSchemaDataName ) ;
-		assertEquals( "org.totallyfake.unittest.extra.DATA",
-				m_api.getExtraSchemaDataName() ) ;
-
-		assertNull( m_api.m_sExtraRowID ) ;
-		assertEquals( "org.totallyfake.unittest.extra.ROW_ID",
-				m_api.getExtraInsertedRowID() ) ;
-		assertNotNull( m_api.m_sExtraRowID ) ;
-		assertEquals( "org.totallyfake.unittest.extra.ROW_ID",
-				m_api.getExtraInsertedRowID() ) ;
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ) ;
+		m_api.setExtraTagFormat( "%s.foo.bar.baz.extra.%s" ) ;
+		String sFormattedTag =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;
+		assertEquals( "org.totallyfake.unittest.foo.bar.baz.extra.DATA",
+				sFormattedTag ) ;
+		m_api.setExtraTagFormat( null ) ;
+		assertEquals( DEFAULT_EXTRA_TAG_FORMAT, m_api.getExtraTagFormat() ) ;
+		m_api.setExtraTagFormat( "" ) ;
+		assertEquals( DEFAULT_EXTRA_TAG_FORMAT, m_api.getExtraTagFormat() ) ;
 	}
 
 	/** Exercises {@link SQLiteHouseSignalAPI#getClassFromExtra}. */
@@ -229,7 +219,8 @@ public class SQLiteHouseSignalAPITest
 	public void testGetClassFromExtra()
 	{
 		Intent sig = new Intent() ;
-		final String sExtraName = m_api.getExtraSchemaClassName() ;
+		final String sExtraName =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
 		sig.putExtra( sExtraName, Fargle.class.getCanonicalName() ) ;
 		Class<? extends SQLightable> cls = m_api.getClassFromExtra(sig) ;
 		assertNotNull( cls ) ;
@@ -241,7 +232,8 @@ public class SQLiteHouseSignalAPITest
 	public void testGetClassFromExtraNeg()
 	{
 		Intent sig = new Intent() ;
-		final String sExtraName = m_api.getExtraSchemaClassName() ;
+		final String sExtraName =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
 		SQLiteContentException xContent = null ;
 		IntrospectionException xIntr = null ;
 
@@ -283,7 +275,8 @@ public class SQLiteHouseSignalAPITest
 	public void testGetDataFromBundle()
 	{
 		Intent sig = new Intent() ;
-		final String sExtraData = m_api.getExtraSchemaDataName() ;
+		final String sExtraData =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;
 		final Fargle fargle = new Fargle( 1, "foo", 47 ) ;
 		final Bundle bndl =
 				SQLightable.Reflection.reflect(Fargle.class).toBundle(fargle) ;
@@ -296,7 +289,8 @@ public class SQLiteHouseSignalAPITest
 	@Test
 	public void testGetDataFromBundleNeg()
 	{
-		final String sExtraData = m_api.getExtraSchemaDataName() ;
+		final String sExtraData =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;
 		SQLiteContentException xContent = null ;
 
 		Intent sig = new Intent() ;
