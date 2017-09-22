@@ -398,4 +398,25 @@ public class SQLightableReflectionTest
 		assertEquals( MAGIC_ID_COLUMN_NAME,
 				tblQuargle.getKeyOrMagicIDColumn().getName() ) ;
 	}
+
+	/**
+	 * Exercises methods that create
+	 * {@link net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder}
+	 * instances bound to the table name that is discovered by a reflection.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testQueryBuilderGetters()
+	{
+		SQLightable.Reflection<Quargle> tblQuargle =
+				SQLightable.Reflection.reflect( Quargle.class ) ;
+		assertTrue( tblQuargle.buildInsert().toString().startsWith(
+				"INSERT INTO quargles" ) ) ;
+		assertTrue( tblQuargle.buildUpdate().toString().startsWith(
+				"UPDATE quargles" ) ) ;
+		assertTrue( tblQuargle.buildSelect().toString().startsWith(
+				"SELECT * FROM quargles" ) ) ;
+		assertTrue( tblQuargle.buildDelete().toString().startsWith(
+				"DELETE FROM quargles" ) ) ;
+	}
 }

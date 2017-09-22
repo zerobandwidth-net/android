@@ -14,6 +14,7 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.content.exceptions.SQL
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
 
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.UPDATE_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_INSERT_ROW_ID;
@@ -24,6 +25,8 @@ import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteH
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_SELECT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE;
@@ -63,7 +66,7 @@ extends BroadcastReceiver
 	extends SQLiteHouseSignalAPI
 	{
 		protected String getIntentDomain()
-		{ return SQLiteHouseKeeper.this.m_dbh.getClass().getCanonicalName() ; }
+		{ return SQLiteHouseKeeper.this.m_house.getClass().getCanonicalName(); }
 	}
 
 /// Member fields //////////////////////////////////////////////////////////////
@@ -75,7 +78,7 @@ extends BroadcastReceiver
 	protected Class<H> m_cls ;
 
 	/** A persistent reference to the database helper instance. */
-	protected H m_dbh = null ;
+	protected H m_house = null ;
 
 	/** A reference for the contract under which the keeper was registered. */
 	protected SQLiteHouseSignalAPI m_api = null ;
@@ -93,7 +96,7 @@ extends BroadcastReceiver
 	{
 		m_ctx = ctx ;
 		m_cls = cls ;
-		m_dbh = dbh ;
+		m_house = dbh ;
 		m_api = null ;
 	}
 
@@ -176,7 +179,7 @@ extends BroadcastReceiver
 				this.update(sig) ;
 				break ;
 			case KEEPER_DELETE:
-				// TODO Delete the records specified in the action.
+				this.delete(sig) ;
 				break ;
 			default:
 				this.handleCustomAction( ctx, sig, sActionToken ) ;
@@ -219,7 +222,7 @@ extends BroadcastReceiver
 		{
 			cls = m_api.getClassFromExtra(sig) ;
 			o = m_api.getDataFromBundle( sig, cls ) ;
-			nRowID = m_dbh.insert(o) ;
+			nRowID = m_house.insert(o) ;
 		}
 		catch( SQLiteContentException xContent )
 		{
@@ -234,7 +237,7 @@ extends BroadcastReceiver
 		}
 
 		if( nRowID != INSERT_FAILED )
-			this.notifyInsert( nRowID, cls, o ) ;
+			this.notifyInserted( nRowID, cls, o ) ;
 		else if( cls != null )
 			this.notifyInsertFailed( cls.getCanonicalName() ) ;
 		else
@@ -257,7 +260,7 @@ extends BroadcastReceiver
 		{
 			cls = m_api.getClassFromExtra(sig) ;
 			SC o = m_api.getDataFromBundle( sig, cls ) ;
-			nRowsUpdated = m_dbh.update(o) ;
+			nRowsUpdated = m_house.update(o) ;
 		}
 		catch( SQLiteContentException xContent )
 		{
@@ -272,13 +275,51 @@ extends BroadcastReceiver
 		}
 
 		if( nRowsUpdated != UPDATE_FAILED )
-			this.notifyUpdate( cls, nRowsUpdated ) ;
+			this.notifyUpdated( cls, nRowsUpdated ) ;
 		else if( cls != null )
 			this.notifyUpdateFailed( cls.getCanonicalName() ) ;
 		else
 			this.notifyUpdateFailed( null ) ;
 
 		return nRowsUpdated ;
+	}
+
+	/**
+	 * Handles a request to delete a record in the underlying database.
+	 * @param sig the received signal
+	 * @param <SC> the schematic class of the row to be deleted
+	 * @return the number of deleted rows (probably 0, 1, or -1)
+	 */
+	protected synchronized <SC extends SQLightable> int delete( Intent sig )
+	{
+		int nRowsDeleted ;
+		Class<SC> cls = null ;
+		try
+		{
+			cls = m_api.getClassFromExtra(sig) ;
+			SC o = m_api.getDataFromBundle( sig, cls ) ;
+			nRowsDeleted = m_house.delete(o) ;
+		}
+		catch( SQLiteContentException xContent )
+		{
+			Log.e( LOG_TAG, "Malformed intent received by delete().",
+					xContent ) ;
+			nRowsDeleted = DELETE_FAILED ;
+		}
+		catch( IntrospectionException | SchematicException xSchema )
+		{
+			Log.e( LOG_TAG, "Failed to delete an object.", xSchema ) ;
+			nRowsDeleted = DELETE_FAILED ;
+		}
+
+		if( nRowsDeleted != DELETE_FAILED )
+			this.notifyDeleted( cls, nRowsDeleted ) ;
+		else if( cls != null )
+			this.notifyDeleteFailed( cls.getCanonicalName() ) ;
+		else
+			this.notifyDeleteFailed( null ) ;
+
+		return nRowsDeleted ;
 	}
 
 /// Broadcasts to SQLiteHouseRelay /////////////////////////////////////////////
@@ -289,7 +330,7 @@ extends BroadcastReceiver
 	 * @param nRowID the ID of the inserted row
 	 * @param <SC> the schematic class of the inserted data
 	 */
-	protected synchronized <SC extends SQLightable> void notifyInsert(
+	protected synchronized <SC extends SQLightable> void notifyInserted(
 			long nRowID, Class<SC> cls, SC row )
 	{
 		Intent sig = new Intent( m_api.getFormattedRelayAction(
@@ -325,7 +366,7 @@ extends BroadcastReceiver
 	 * @param nRows the number of rows that were updated
 	 * @param <SC> the schematic class of the updated data
 	 */
-	protected synchronized <SC extends SQLightable> void notifyUpdate(
+	protected synchronized <SC extends SQLightable> void notifyUpdated(
 			Class<SC> cls, int nRows )
 	{
 		Intent sig = new Intent( m_api.getFormattedRelayAction(
@@ -345,6 +386,40 @@ extends BroadcastReceiver
 	{
 		Intent sig = new Intent( m_api.getFormattedRelayAction(
 				RELAY_NOTIFY_UPDATE_FAILED ) ) ;
+		if( sClass != null )
+		{
+			sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+					sClass ) ;
+		}
+		m_ctx.sendBroadcast( sig ) ;
+	}
+
+	/**
+	 * Notifies the relay that rows have been deleted.
+	 * @param cls the schematic class of the deleted data
+	 * @param nRows the number of rows that were updated
+	 * @param <SC> the schematic class of the updated data
+	 */
+	protected synchronized <SC extends SQLightable> void notifyDeleted(
+			Class<SC> cls, int nRows )
+	{
+		Intent sig = new Intent( m_api.getFormattedRelayAction(
+				RELAY_NOTIFY_DELETE ) ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				cls.getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_MODIFY_ROW_COUNT ),
+				nRows ) ;
+		m_ctx.sendBroadcast( sig ) ;
+	}
+
+	/**
+	 * Notifies the relay that a deletion failed.
+	 * @param sClass the name of the class that would have had rows deleted
+	 */
+	protected synchronized void notifyDeleteFailed( String sClass )
+	{
+		Intent sig = new Intent( m_api.getFormattedRelayAction(
+				RELAY_NOTIFY_DELETE_FAILED ) ) ;
 		if( sClass != null )
 		{
 			sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),

@@ -433,5 +433,4 @@ public abstract class SQLiteHouseSignalAPI
 		// noinspection unchecked - guaranteed by signature
 		return this.reflect( ((Class<SC>)( o.getClass() )) ) ;
 	}
-
 }

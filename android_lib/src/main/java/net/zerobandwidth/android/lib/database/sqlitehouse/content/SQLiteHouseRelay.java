@@ -11,6 +11,7 @@ import net.zerobandwidth.android.lib.content.IntentUtils;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
 
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.UPDATE_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_INSERT_ROW_ID;
@@ -139,10 +140,10 @@ extends BroadcastReceiver
 				this.onUpdateFailed( sig ) ;
 				break ;
 			case RELAY_NOTIFY_DELETE:
-				// TODO notify of record deletions
+				this.onRowsDeleted( sig ) ;
 				break ;
 			case RELAY_NOTIFY_DELETE_FAILED:
-				// TODO notify of deletion failure
+				this.onDeleteFailed( sig ) ;
 				break ;
 			default:
 				this.handleCustomAction( ctx, sig, sActionToken ) ;
@@ -263,6 +264,54 @@ extends BroadcastReceiver
 		}
 		else
 		{ Log.e( LOG_TAG, "Keeper failed to update rows." ) ; }
+	}
+
+	/**
+	 * Handles a signal from the keeper that some rows were deleted.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onRowsDeleted( Intent sig )
+	{
+		final String sExtraClass =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
+		final String sExtraRowCount =
+				m_api.getFormattedExtraTag( EXTRA_MODIFY_ROW_COUNT ) ;
+		if( sig.hasExtra(sExtraClass) && sig.hasExtra(sExtraRowCount) )
+		{
+			int nCount = sig.getIntExtra( sExtraRowCount, DELETE_FAILED ) ;
+			Log.i( LOG_TAG, (new StringBuilder())
+					.append( "Deleted [" )
+					.append( nCount )
+					.append(( nCount == 1 ? "] row" : "] rows" ))
+					.append( " from table [" )
+					.append( sig.getStringExtra( sExtraClass ) )
+					.append( "]." )
+					.toString()
+				);
+		}
+		else
+		{ Log.i( LOG_TAG, "At least one row was deleted." ) ; }
+	}
+
+	/**
+	 * Handles a signal from the keeper that a row deletion failed.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onDeleteFailed( Intent sig )
+	{
+		final String sExtraClass =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
+		if( sig.hasExtra( sExtraClass ) )
+		{ // Notify anything that cares that the deletion failed.
+			Log.e( LOG_TAG, (new StringBuilder())
+					.append( "Keeper failed to delete rows of type [" )
+					.append( sig.getStringExtra( sExtraClass ) )
+					.append( "]." )
+					.toString()
+				);
+		}
+		else
+		{ Log.e( LOG_TAG, "Keeper failed to delete rows." ) ; }
 	}
 
 /// Broadcasts to SQLiteHouseKeeper ////////////////////////////////////////////

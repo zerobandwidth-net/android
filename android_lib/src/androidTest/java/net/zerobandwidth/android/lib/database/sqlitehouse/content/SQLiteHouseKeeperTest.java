@@ -21,10 +21,12 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.UPDATE_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_DELETE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
 
@@ -219,5 +221,66 @@ public class SQLiteHouseKeeperTest
 						new Sparkle( "Destined for failure!" ) ) ) ;
 		nCount = m_keeper.update(sig) ; // kicker: Sparkle not in ValidSpecClass
 		assertEquals( UPDATE_FAILED, nCount ) ;
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouseKeeper#delete} via
+	 * {@link SQLiteHouseKeeper#onReceive}.
+	 */
+	@Test
+	public void testDelete()
+	throws Exception // Uncaught exception implies failure.
+	{
+		SQLiteHouseTest.connectTo( m_house ) ;
+		m_keeper.register(m_api) ;
+		Fargle oOne = new Fargle( 1, "Fargle:testDelete(1)", 41 ) ;
+		long nRowID = m_house.insert(oOne) ;
+		Fargle oTwo = new Fargle( 2, "Fargle:testDelete(2)", 42 ) ;
+		m_house.insert(oTwo) ;
+
+		Intent sig = new Intent() ;
+		sig.setAction( m_api.getFormattedKeeperAction( KEEPER_DELETE ) ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				Fargle.class.getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				m_api.reflect(Fargle.class).toBundle(oOne) ) ;
+		m_keeper.onReceive( m_ctx, sig ) ;
+
+		Fargle oFound = m_house.select( Fargle.class, nRowID ) ;
+		assertNull( oFound ) ;
+		oFound = m_house.search(oOne) ;
+		assertNull( oFound ) ;
+	}
+
+	/**
+	 * Exercises conditions in {@link SQLiteHouseKeeper#delete} that would cause
+	 * it to exit trivially or with failure conditions.
+	 */
+	@Test
+	public void testDeleteNeg()
+	throws Exception // Uncaught exception implies failure.
+	{
+		SQLiteHouseTest.connectTo( m_house ) ;
+		m_keeper.m_api = m_api ;                 // but don't bother registering
+		Intent sig = new Intent() ;
+
+		int nCount = m_keeper.delete(sig) ;        // kicker: no class in intent
+		assertEquals( DELETE_FAILED, nCount ) ;
+
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				BorkBorkBork.class.getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				new Bundle() ) ;
+		nCount = m_keeper.delete(sig) ;     // kicker: getDataFromBundle() fails
+		assertEquals( DELETE_FAILED, nCount ) ;
+
+		sig = new Intent() ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				Sparkle.class.getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				m_api.reflect( Sparkle.class ).toBundle(
+						new Sparkle( "Can't delete what isn't there!" ) ) ) ;
+		nCount = m_keeper.delete(sig) ; // kicker: Sparkle not in ValidSpecClass
+		assertEquals( DELETE_FAILED, nCount ) ;
 	}
 }

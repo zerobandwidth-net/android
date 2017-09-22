@@ -43,7 +43,8 @@ import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_VAR;
  *           shared methods.
  * @param <R> The return type of the underlying {@code SQLiteDatabase} function.
  *           This is set explicitly in the declaration of the implementation
- *           class, and will be the return type of {@link #executeOn}.
+ *           class, and will be the return type of {@link #execute} and
+ *           {@link #executeOn}.
  *
  * @since zerobandwidth-net/android 0.1.1 (#20)
  */
@@ -193,6 +194,8 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 */
 	public static String toSQLInputParams( ContentValues vals )
 	{
+		if( vals == null || vals.size() == 0 ) return "" ; // trivially
+
 		StringBuilder sb = new StringBuilder() ;
 		List<Map.Entry<String,Object>> aEntries =
 				new ArrayList<>( vals.valueSet() ) ;
