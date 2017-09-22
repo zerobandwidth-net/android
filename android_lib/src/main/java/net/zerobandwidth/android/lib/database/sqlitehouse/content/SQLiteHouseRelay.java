@@ -356,6 +356,26 @@ extends BroadcastReceiver
 		return this ;
 	}
 
+	/**
+	 * Requests deletion of a particular row in the keeper's database,
+	 * corresponding to the schematic class instance supplied.
+	 * @param o an instance of the schematic class
+	 * @param <SC> the schematic class
+	 * @return (fluid)
+	 */
+	public <SC extends SQLightable> SQLiteHouseRelay delete( SC o )
+	{
+		Intent sig = new Intent(
+				m_api.getFormattedRelayAction( KEEPER_UPDATE ) ) ;
+		SQLightable.Reflection<SC> tbl = m_api.reflect(o) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				tbl.getTableClass().getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				tbl.toBundle(o) ) ;
+		m_ctx.sendBroadcast( sig ) ;
+		return this ;
+	}
+
 /// Other instance methods /////////////////////////////////////////////////////
 
 }
