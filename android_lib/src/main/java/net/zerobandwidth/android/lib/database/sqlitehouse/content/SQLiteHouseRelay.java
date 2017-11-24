@@ -18,6 +18,7 @@ import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteH
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_MODIFY_ROW_COUNT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_DELETE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE;
@@ -324,6 +325,16 @@ extends BroadcastReceiver
 	 * @return (fluid)
 	 */
 	public <SC extends SQLightable> SQLiteHouseRelay insert( SC o )
+	{ m_ctx.sendBroadcast( this.buildInsertSignal(o) ) ; return this ; }
+
+	/**
+	 * Constructs the {@link Intent} to be sent by {@link #insert}.
+	 * This is a separate method only so that it can be unit-tested.
+	 * @param o an instance of the schematic class to be inserted
+	 * @param <SC> the schematic class
+	 * @return the intent to be sent by {@link @insert}
+	 */
+	protected <SC extends SQLightable> Intent buildInsertSignal( SC o )
 	{
 		Intent sig = new Intent(
 				m_api.getFormattedKeeperAction( KEEPER_INSERT ) ) ;
@@ -332,8 +343,7 @@ extends BroadcastReceiver
 				tbl.getTableClass().getCanonicalName() ) ;
 		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
 				tbl.toBundle(o) ) ;
-		m_ctx.sendBroadcast( sig ) ;
-		return this ;
+		return sig ;
 	}
 
 	/**
@@ -344,6 +354,16 @@ extends BroadcastReceiver
 	 * @return (fluid)
 	 */
 	public <SC extends SQLightable> SQLiteHouseRelay update( SC o )
+	{ m_ctx.sendBroadcast( this.buildUpdateSignal(o) ) ; return this ; }
+
+	/**
+	 * Constructs the {@link Intent} to be sent by {@link #update}.
+	 * This is a separate method only so that it can be unit-tested.
+	 * @param o an instance of the schematic class to be used as update input
+	 * @param <SC> the schematic class
+	 * @return the intent to be sent by {@link #update}
+	 */
+	protected <SC extends SQLightable> Intent buildUpdateSignal( SC o )
 	{
 		Intent sig = new Intent(
 				m_api.getFormattedKeeperAction( KEEPER_UPDATE ) ) ;
@@ -352,8 +372,7 @@ extends BroadcastReceiver
 				tbl.getTableClass().getCanonicalName() ) ;
 		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
 				tbl.toBundle(o) ) ;
-		m_ctx.sendBroadcast( sig ) ;
-		return this ;
+		return sig ;
 	}
 
 	/**
@@ -364,16 +383,25 @@ extends BroadcastReceiver
 	 * @return (fluid)
 	 */
 	public <SC extends SQLightable> SQLiteHouseRelay delete( SC o )
+	{ m_ctx.sendBroadcast( this.buildDeleteSignal(o) ) ; return this ; }
+
+	/**
+	 * Constructs the {@link Intent} to be sent by {@link #delete}.
+	 * This is a separate method only so that it can be unit-tested.
+	 * @param o an instance of the schematic class to be deleted
+	 * @param <SC> the schematic class
+	 * @return the intent to be sent by {@link #delete}
+	 */
+	protected <SC extends SQLightable> Intent buildDeleteSignal( SC o )
 	{
 		Intent sig = new Intent(
-				m_api.getFormattedRelayAction( KEEPER_UPDATE ) ) ;
+				m_api.getFormattedKeeperAction( KEEPER_DELETE ) ) ;
 		SQLightable.Reflection<SC> tbl = m_api.reflect(o) ;
 		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 				tbl.getTableClass().getCanonicalName() ) ;
 		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
 				tbl.toBundle(o) ) ;
-		m_ctx.sendBroadcast( sig ) ;
-		return this ;
+		return sig ;
 	}
 
 /// Other instance methods /////////////////////////////////////////////////////

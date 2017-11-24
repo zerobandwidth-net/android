@@ -16,10 +16,14 @@ import org.junit.runner.RunWith;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_INSERT_ROW_ID;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_MODIFY_ROW_COUNT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_DELETE;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT;
@@ -83,6 +87,29 @@ public class SQLiteHouseRelayTest
 	} // Complete execution implies success.
 
 	/**
+	 * Exercises {@link SQLiteHouseRelay#buildInsertSignal}, to verify that we
+	 * are constructing the {@link Intent} correctly.
+	 */
+	@Test
+	public void testInsertSignal()
+	{
+		m_relay.register(m_api) ;
+		Fargle fargle = new Fargle( 8, "Insert this!", 24 ) ;
+		Intent sig = m_relay.buildInsertSignal(fargle) ;
+		assertEquals( m_api.getFormattedKeeperAction(KEEPER_INSERT),
+				sig.getAction() ) ;
+		assertEquals( Fargle.class.getCanonicalName(),
+				sig.getStringExtra(
+						m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME )
+			));
+		Fargle fargleFromSig = m_api.reflect(Fargle.class).fromBundle(
+				sig.getBundleExtra(
+						m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA )
+			));
+		assertTrue( fargle.equals(fargleFromSig) ) ;
+	}
+
+	/**
 	 * Exercises {@link SQLiteHouseRelay#onRowInserted(Intent)} via
 	 * {@link SQLiteHouseRelay#onReceive(Context, Intent)}.
 	 */
@@ -122,6 +149,29 @@ public class SQLiteHouseRelayTest
 	} // Complete execution implies success.
 
 	/**
+	 * Exercises {@link SQLiteHouseRelay#buildUpdateSignal}, to verify that we
+	 * are constructing the {@link Intent} correctly.
+	 */
+	@Test
+	public void testUpdateSignal()
+	{
+		m_relay.register(m_api) ;
+		Fargle fargle = new Fargle( 21, "Update this!", 24 ) ;
+		Intent sig = m_relay.buildUpdateSignal(fargle) ;
+		assertEquals( m_api.getFormattedKeeperAction(KEEPER_UPDATE),
+				sig.getAction() ) ;
+		assertEquals( Fargle.class.getCanonicalName(),
+				sig.getStringExtra(
+						m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME )
+			));
+		Fargle fargleFromSig = m_api.reflect(Fargle.class).fromBundle(
+				sig.getBundleExtra(
+						m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA )
+			));
+		assertTrue( fargle.equals(fargleFromSig) ) ;
+	}
+
+	/**
 	 * Exercises {@link SQLiteHouseRelay#onRowsUpdated} via
 	 * {@link SQLiteHouseRelay#onReceive}.
 	 */
@@ -157,6 +207,29 @@ public class SQLiteHouseRelayTest
 				"contrabassoon" ) ;
 		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
 	} // Complete execution implies success.
+
+	/**
+	 * Exercises {@link SQLiteHouseRelay#buildDeleteSignal}, to verify that we
+	 * are constructing the {@link Intent} correctly.
+	 */
+	@Test
+	public void testDeleteSignal()
+	{
+		m_relay.register(m_api) ;
+		Fargle fargle = new Fargle( 4, "Delete this!", 24 ) ;
+		Intent sig = m_relay.buildDeleteSignal(fargle) ;
+		assertEquals( m_api.getFormattedKeeperAction(KEEPER_DELETE),
+				sig.getAction() ) ;
+		assertEquals( Fargle.class.getCanonicalName(),
+				sig.getStringExtra(
+						m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME )
+				));
+		Fargle fargleFromSig = m_api.reflect(Fargle.class).fromBundle(
+				sig.getBundleExtra(
+						m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA )
+				));
+		assertTrue( fargle.equals(fargleFromSig) ) ;
+	}
 
 	/**
 	 * Exercises {@link SQLiteHouseRelay#onRowsDeleted(Intent)} via
