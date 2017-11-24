@@ -28,10 +28,15 @@ public abstract class SQLiteHouseSignalAPI
 	/** Name suffix for the extra that contains the inserted row ID. */
 	public static final String EXTRA_INSERT_ROW_ID = "ROW_ID" ;
 	/**
-	 * Name suffix for the extra that contains the number of rows updated or
-	 * deleted.
+	 * Name suffix for the extra that contains the number of rows selected,
+	 * updated, or deleted.
 	 */
-	public static final String EXTRA_MODIFY_ROW_COUNT = "ROW_COUNT" ;
+	public static final String EXTRA_RESULT_ROW_COUNT = "ROW_COUNT" ;
+	/**
+	 * Name suffix for the extra that contains the bundle that defines a set of
+	 * selection parameters.
+	 */
+	public static final String EXTRA_SELECTION_QUERY_SPEC = "SELECTION_SPEC" ;
 
 	/** The default format string for constructing intent extra tags. */
 	public static final String DEFAULT_EXTRA_TAG_FORMAT = "%s.extra.%s" ;
@@ -58,6 +63,11 @@ public abstract class SQLiteHouseSignalAPI
 	/** Action suffix for notifying a relay that an insertion failed. */
 	public static final String RELAY_NOTIFY_INSERT_FAILED =
 			"NOTIFY_INSERT_FAILED" ;
+	/** Action suffix when sending a result set to a relay. */
+	public static final String RELAY_RECEIVE_SELECTION = "RECEIVE_SELECTION" ;
+	/** Action suffix when notifying a relay that a selection failed. */
+	public static final String RELAY_NOTIFY_SELECT_FAILED =
+			"NOTIFY_SELECT_FAILED" ;
 	/** Action suffix for notifying a relay that a record was updated. */
 	public static final String RELAY_NOTIFY_UPDATE = "NOTIFY_UPDATE" ;
 	/** Action suffix for notifying a relay that an update failed. */
@@ -73,6 +83,7 @@ public abstract class SQLiteHouseSignalAPI
 	public static final String[] RELAY_ACTIONS =
 	{
 		RELAY_NOTIFY_INSERT, RELAY_NOTIFY_INSERT_FAILED,
+		RELAY_RECEIVE_SELECTION, RELAY_NOTIFY_SELECT_FAILED,
 		RELAY_NOTIFY_UPDATE, RELAY_NOTIFY_UPDATE_FAILED,
 		RELAY_NOTIFY_DELETE, RELAY_NOTIFY_DELETE_FAILED
 	};

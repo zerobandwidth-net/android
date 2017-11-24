@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.test.runner.AndroidJUnit4;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouseTest;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.BorkBorkBork;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
@@ -17,18 +19,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_DESC;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.UPDATE_FAILED;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_RESULT_ROW_COUNT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_DELETE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_RECEIVE_SELECTION;
 
 /**
  * Exercises {@link SQLiteHouseKeeper}.
@@ -282,5 +289,49 @@ public class SQLiteHouseKeeperTest
 						new Sparkle( "Can't delete what isn't there!" ) ) ) ;
 		nCount = m_keeper.delete(sig) ; // kicker: Sparkle not in ValidSpecClass
 		assertEquals( DELETE_FAILED, nCount ) ;
+	}
+
+	/** Exercises {@link SQLiteHouseKeeper#parseSelectionSpec}. */
+	@Test
+	public void testParseSelectionSpec()
+	{
+		net.zerobandwidth.android.lib.content.querybuilder.SelectionBuilder
+			qbSpec = net.zerobandwidth.android.lib.content.querybuilder
+						.QueryBuilder.select()
+							.columns( "fargle_string" )
+							.where( "fargle_id=?", "1" )
+							.orderBy( "fargle_string", SQL_ORDER_DESC )
+							;
+		net.zerobandwidth.android.lib.database.querybuilder.SelectionBuilder
+			qbKeeper = m_keeper.parseSelectionSpec(
+					Fargle.class, qbSpec.toBundle() ) ;
+		assertEquals( "SELECT fargle_string FROM fargles WHERE fargle_id=1 ORDER BY fargle_string DESC ;",
+				qbKeeper.toString() ) ;
+	}
+
+	/** Exercises {@link SQLiteHouseKeeper#buildResultBroadcast}. */
+	@Test
+	public void testBuildResultBroadcast()
+	{
+		ArrayList<Fargle> aoRowsInput = new ArrayList<>() ;
+		aoRowsInput.add( new Fargle( 1, "foo", 19 ) ) ;
+		aoRowsInput.add( new Fargle( 2, "bar", 5 ) ) ;
+		aoRowsInput.add( new Fargle( 3, "baz", 12 ) ) ;
+		m_keeper.m_api = m_api ;
+		Intent sig = m_keeper.buildResultBroadcast( Fargle.class, aoRowsInput );
+		assertEquals( m_api.getFormattedRelayAction( RELAY_RECEIVE_SELECTION ),
+				sig.getAction() ) ;
+		assertEquals( 3, sig.getIntExtra(
+				m_api.getFormattedExtraTag( EXTRA_RESULT_ROW_COUNT ), -1
+			));
+		Parcelable[] apclRows = sig.getParcelableArrayExtra(
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ) ;
+		assertEquals( 3, apclRows.length ) ;
+		SQLightable.Reflection<Fargle> tbl = m_api.reflect(Fargle.class) ;
+		ArrayList<Fargle> aoRowsOutput = new ArrayList<>( aoRowsInput.size() ) ;
+		for( Parcelable pclRow : apclRows )
+			aoRowsOutput.add( tbl.fromBundle( ((Bundle)(pclRow)) ) ) ;
+		for( int i = 0 ; i < aoRowsInput.size() ; i++ )
+			assertTrue( aoRowsInput.get(i).equals( aoRowsOutput.get(i) ) ) ;
 	}
 }

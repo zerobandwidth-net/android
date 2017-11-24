@@ -5,7 +5,10 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 
 /**
@@ -25,6 +28,31 @@ public class CollectionsZTest
 		assertEquals( 2, az.length ) ;
 		az[0] = 42 ;
 		az[1] = 50 ;
+	}
+
+	/** Exercises {@link CollectionsZ#toArray} with a positive test. */
+	@Test
+	public void testToArray()
+	{
+		ArrayList<String> asInput = new ArrayList<>() ;
+		asInput.add( "foo" ) ;
+		asInput.add( "bar" ) ;
+		asInput.add( "baz" ) ;
+		String[] asOutput = CollectionsZ.of(String.class).toArray(asInput) ;
+		assertEquals( 3, asOutput.length ) ;
+		for( int i = 0 ; i < asInput.size() ; i++ )
+			assertEquals( asInput.get(i), asOutput[i] ) ;
+	}
+
+	/** Exercises {@link CollectionsZ#toArray} with negative tests. */
+	@Test
+	public void testToArrayNeg()
+	{
+		String[] as = CollectionsZ.of(String.class).toArray(null) ;
+		assertNull(as) ;
+		as = CollectionsZ.of(String.class).toArray( new ArrayList<String>() ) ;
+		assertNotNull(as) ;
+		assertEquals( 0, as.length ) ;
 	}
 
 	/** Exercises {@link CollectionsZ#arrayConcat} with positive tests. */

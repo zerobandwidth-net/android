@@ -3,6 +3,7 @@ package net.zerobandwidth.android.lib.content.querybuilder;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.support.annotation.RequiresApi;
 import android.support.test.runner.AndroidJUnit4;
@@ -17,6 +18,8 @@ import org.junit.runner.RunWith;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static net.zerobandwidth.android.lib.content.ContentUtils.QUERY_ORDER_DESCENDING;
 
 /**
  * Exercises {@link SelectionBuilder}.
@@ -112,7 +115,7 @@ extends ProviderTestCase2<MockContentProvider>
 		SelectionBuilder qb = new SelectionBuilder() ;
 		qb.orderBy( "foo" ) ;
 		assertEquals( "foo ASC", qb.getSortSpecString() ) ;
-		qb.orderBy( "foo", ContentUtils.QUERY_ORDER_DESCENDING ) ;
+		qb.orderBy( "foo", QUERY_ORDER_DESCENDING ) ;
 		assertEquals( "foo DESC", qb.getSortSpecString() ) ;
 		qb.orderBy( "bar" ) ;
 		assertEquals( "foo DESC, bar ASC", qb.getSortSpecString() ) ;
@@ -157,5 +160,34 @@ extends ProviderTestCase2<MockContentProvider>
 		assertNotNull( xBroken ) ;
 		this.getProvider().setBrokenSelect( false ) ;
 		*/
+	}
+
+	/**
+	 * Exercises {@link SelectionBuilder#toBundle}.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testToBundle()
+	{
+		ContentResolver rslv = this.getMockContentResolver() ;
+		Uri uri = QueryBuilderTest.MockContext.getMockURI() ;
+		SelectionBuilder qb = new SelectionBuilder( rslv, uri )
+				.columns( "foo", "bar", "baz" )
+				.where( "fargle=? AND bargle=?", "FARGLE", "BARGLE" )
+				.orderBy( "foo", QUERY_ORDER_DESCENDING )
+				;
+		Bundle bndl = qb.toBundle() ;
+		assertEquals( uri.toString(), bndl.getString("uri") ) ;
+		String[] asColumns = bndl.getStringArray("columns") ;
+		assertEquals( 3, asColumns.length ) ;
+		assertEquals( "foo", asColumns[0] ) ;
+		assertEquals( "bar", asColumns[1] ) ;
+		assertEquals( "baz", asColumns[2] ) ;
+		assertEquals( "fargle=? AND bargle=?", bndl.getString("where_format") );
+		String[] asWhereParams = bndl.getStringArray("where_columns") ;
+		assertEquals( 2, asWhereParams.length ) ;
+		assertEquals( "FARGLE", asWhereParams[0] ) ;
+		assertEquals( "BARGLE", asWhereParams[1] ) ;
+		assertEquals( "foo DESC", bndl.getString("order_by") ) ;
 	}
 }

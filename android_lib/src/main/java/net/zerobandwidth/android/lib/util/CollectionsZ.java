@@ -3,6 +3,7 @@ package net.zerobandwidth.android.lib.util;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Provides additional utility methods for working with collections, beyond the
@@ -63,6 +64,23 @@ public final class CollectionsZ<I>
 	@SuppressWarnings("unchecked") // guaranteed by restriction on m_cls
 	protected I[] newArray( int nSize )
 	{ return ((I[])( Array.newInstance( m_cls, nSize ) )) ; }
+
+	/**
+	 * Provides a sane implementation of {@code toArray()} for collections which
+	 * returns an array of the object's type.
+	 * @param a the collection to be converted to an array
+	 * @return an array of elements in the collection, or {@code null} if the
+	 *  input was also null
+	 */
+	public I[] toArray( Collection<I> a )
+	{
+		if( a == null )
+			return null ;
+		else if( a.size() == 0 )
+			return this.newArray(0) ;
+		else
+			return a.toArray( this.newArray( a.size() ) ) ;
+	}
 
 	/**
 	 * Concatenates an arbitrary number of arrays of the same object type

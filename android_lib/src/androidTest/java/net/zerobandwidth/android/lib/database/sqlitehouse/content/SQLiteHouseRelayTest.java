@@ -2,9 +2,12 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.content;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import net.zerobandwidth.android.lib.content.querybuilder.SelectionBuilder;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Dargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
@@ -14,15 +17,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
+
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_DESC;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_INSERT_ROW_ID;
-import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_MODIFY_ROW_COUNT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_RESULT_ROW_COUNT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SELECTION_QUERY_SPEC;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_DELETE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_SELECT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE_FAILED;
@@ -30,6 +39,7 @@ import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteH
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE_FAILED;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_RECEIVE_SELECTION;
 
 /**
  * Exercises {@link SQLiteHouseRelay}.
@@ -184,7 +194,7 @@ public class SQLiteHouseRelayTest
 		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
 
 		sig.putExtra(
-				m_api.getFormattedExtraTag( EXTRA_MODIFY_ROW_COUNT ), 21 ) ;
+				m_api.getFormattedExtraTag(EXTRA_RESULT_ROW_COUNT), 21 ) ;
 		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 				Dargle.class.getCanonicalName() ) ;
 		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
@@ -223,11 +233,11 @@ public class SQLiteHouseRelayTest
 		assertEquals( Fargle.class.getCanonicalName(),
 				sig.getStringExtra(
 						m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME )
-				));
+			));
 		Fargle fargleFromSig = m_api.reflect(Fargle.class).fromBundle(
 				sig.getBundleExtra(
 						m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA )
-				));
+			));
 		assertTrue( fargle.equals(fargleFromSig) ) ;
 	}
 
@@ -243,7 +253,7 @@ public class SQLiteHouseRelayTest
 		sig.setAction( m_api.getFormattedRelayAction( RELAY_NOTIFY_DELETE ) ) ;
 		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
 
-		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_MODIFY_ROW_COUNT ), 4 );
+		sig.putExtra( m_api.getFormattedExtraTag(EXTRA_RESULT_ROW_COUNT), 4 ) ;
 		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 				Blargh.class.getCanonicalName() ) ;
 		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
@@ -264,6 +274,70 @@ public class SQLiteHouseRelayTest
 
 		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 				"ultramaroon" ) ;
+		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
+	} // Complete execution implies success.
+
+	/**
+	 * Exercises {@link SQLiteHouseRelay#buildSelectionSignal}, to verify that
+	 * we are constructing the {@link Intent} correctly.
+	 */
+	@Test
+	public void testSelectionSignal()
+	throws Exception // Uncaught exception implies failure.
+	{
+		m_relay.register(m_api) ;
+		SelectionBuilder q = new SelectionBuilder()
+				.columns( "foo", "bar", "baz" )
+				.where( "flargle=?", "1" )
+				.orderBy( "blargle", SQL_ORDER_DESC )
+				;
+		Intent sig = m_relay.buildSelectionSignal( Fargle.class, q ) ;
+		assertEquals( m_api.getFormattedKeeperAction( KEEPER_SELECT ),
+				sig.getAction() ) ;
+		assertEquals( Fargle.class.getCanonicalName(),
+				sig.getStringExtra(
+						m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME )
+			));
+		Bundle bndl = sig.getBundleExtra(
+				m_api.getFormattedExtraTag( EXTRA_SELECTION_QUERY_SPEC ) ) ;
+		String[] asColumns = bndl.getStringArray("columns") ;
+		assertNotNull(asColumns) ;
+		assertEquals( "foo", asColumns[0] ) ;
+		assertEquals( "bar", asColumns[1] ) ;
+		assertEquals( "baz", asColumns[2] ) ;
+		assertEquals( "flargle=?", bndl.getString("where_format") ) ;
+		String[] asWhereArgs = bndl.getStringArray("where_params") ;
+		assertNotNull(asWhereArgs) ;
+		assertEquals( "1", asWhereArgs[0] ) ;
+		String[] asOrderByCols = bndl.getStringArray("order_by_cols") ;
+		assertNotNull(asOrderByCols) ;
+		assertEquals( "blargle", asOrderByCols[0] ) ;
+		String[] asOrderByDirs = bndl.getStringArray("order_by_dirs") ;
+		assertNotNull(asOrderByDirs) ;
+		assertEquals( SQL_ORDER_DESC, asOrderByDirs[0] ) ;
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouseRelay#onRowsSelected(Intent)} via
+	 * {@link SQLiteHouseRelay#onReceive}.
+	 */
+	@Test
+	public void testOnRowsSelected()
+	{
+		m_relay.register(m_api) ;
+		Intent sig = new Intent() ;
+		sig.setAction( m_api.getFormattedRelayAction(RELAY_RECEIVE_SELECTION) );
+		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
+		sig.putExtra( m_api.getFormattedExtraTag(EXTRA_RESULT_ROW_COUNT), 3 ) ;
+		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				Fargle.class.getCanonicalName() ) ;
+		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
+		ArrayList<Bundle> bndlRows = new ArrayList<>(3) ;
+		SQLightable.Reflection<Fargle> tbl = m_api.reflect(Fargle.class) ;
+		bndlRows.add( tbl.toBundle( new Fargle( 1, "foo", 19 ) ) ) ;
+		bndlRows.add( tbl.toBundle( new Fargle( 2, "bar", 19 ) ) ) ;
+		bndlRows.add( tbl.toBundle( new Fargle( 3, "baz", 19 ) ) ) ;
 		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
 	} // Complete execution implies success.
 }

@@ -4,29 +4,39 @@ import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 
 import net.zerobandwidth.android.lib.content.ContentUtils;
 import net.zerobandwidth.android.lib.content.IntentUtils;
+import net.zerobandwidth.android.lib.content.querybuilder.SelectionBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
+import net.zerobandwidth.android.lib.database.sqlitehouse.content.exceptions.SQLiteContentException;
+
+import java.util.ArrayList;
 
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.UPDATE_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_INSERT_ROW_ID;
-import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_MODIFY_ROW_COUNT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_RESULT_ROW_COUNT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SELECTION_QUERY_SPEC;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_DELETE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_SELECT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_SELECT_FAILED;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE_FAILED;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_RECEIVE_SELECTION;
 
 /**
  * A class which can send requests to, and receive notifications from, a
@@ -146,6 +156,12 @@ extends BroadcastReceiver
 			case RELAY_NOTIFY_DELETE_FAILED:
 				this.onDeleteFailed( sig ) ;
 				break ;
+			case RELAY_RECEIVE_SELECTION:
+				this.onRowsSelected( sig ) ;
+				break ;
+			case RELAY_NOTIFY_SELECT_FAILED:
+				this.onSelectionFailed( sig ) ;
+				break ;
 			default:
 				this.handleCustomAction( ctx, sig, sActionToken ) ;
 		}
@@ -228,7 +244,7 @@ extends BroadcastReceiver
 		final String sExtraClass =
 				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
 		final String sExtraRowCount =
-				m_api.getFormattedExtraTag( EXTRA_MODIFY_ROW_COUNT ) ;
+				m_api.getFormattedExtraTag(EXTRA_RESULT_ROW_COUNT) ;
 		if( sig.hasExtra( sExtraClass ) && sig.hasExtra( sExtraRowCount ) )
 		{ // Notify anything that cares about the update.
 			int nCount = sig.getIntExtra( sExtraRowCount, UPDATE_FAILED ) ;
@@ -276,7 +292,7 @@ extends BroadcastReceiver
 		final String sExtraClass =
 				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
 		final String sExtraRowCount =
-				m_api.getFormattedExtraTag( EXTRA_MODIFY_ROW_COUNT ) ;
+				m_api.getFormattedExtraTag( EXTRA_RESULT_ROW_COUNT ) ;
 		if( sig.hasExtra(sExtraClass) && sig.hasExtra(sExtraRowCount) )
 		{
 			int nCount = sig.getIntExtra( sExtraRowCount, DELETE_FAILED ) ;
@@ -313,6 +329,70 @@ extends BroadcastReceiver
 		}
 		else
 		{ Log.e( LOG_TAG, "Keeper failed to delete rows." ) ; }
+	}
+
+	/**
+	 * Handles a signal payload from the keeper, containing a set of selected
+	 * rows from the database.
+	 * @param sig the received signal
+	 * @param <SC> the schematic class
+	 */
+	protected synchronized <SC extends SQLightable> void onRowsSelected( Intent sig )
+	{
+		int nCount = sig.getIntExtra(
+				m_api.getFormattedExtraTag( EXTRA_RESULT_ROW_COUNT ), -1 ) ;
+		if( nCount == -1 )
+		{ // Short-circuit; signal doesn't tell us how many results there are.
+			Log.w( LOG_TAG, "No row count included in selection results." ) ;
+			return ;
+		}
+
+		Class<SC> cls ;
+		try { cls = m_api.getClassFromExtra(sig) ; }
+		catch( SQLiteContentException x )
+		{ // Short-circuit; can't figure out how to marshal results.
+			Log.w( LOG_TAG, (new StringBuilder())
+					.append( "Can't discover class to marshal [" )
+					.append( nCount )
+					.append(( nCount == 1 ? "] result" : "] results" ))
+					.append( "from the keeper's signal." )
+					.toString()
+				, x );
+			return ;
+		}
+		String sExtra = m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;
+		if( ! sig.hasExtra(sExtra) )
+		{ // Short-circuit; can't find the data extra (should at least be empty)
+			Log.w( LOG_TAG, "Selection result signal had no data." ) ;
+			return ;
+		}
+		Parcelable[] apclRows = sig.getParcelableArrayExtra(sExtra) ;
+		if( apclRows == null ) return ;
+		ArrayList<SC> aoRows = new ArrayList<>( apclRows.length ) ;
+		SQLightable.Reflection<SC> tbl = m_api.reflect(cls) ;
+		for( Parcelable pclRow : apclRows )
+			aoRows.add( tbl.fromBundle( ((Bundle)(pclRow)) ) ) ;
+	}
+
+	/**
+	 * Handles a signal from the keeper that a row selection failed.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onSelectionFailed( Intent sig )
+	{
+		final String sExtraClass =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
+		if( sig.hasExtra( sExtraClass ) )
+		{ // Notify anything that cares that the selection failed.
+			Log.e( LOG_TAG, (new StringBuilder())
+					.append( "Keeper failed to select rows of type [" )
+					.append( sig.getStringExtra( sExtraClass ) )
+					.append( "]." )
+					.toString()
+				);
+		}
+		else
+		{ Log.e( LOG_TAG, "Keeper failed to select rows." ) ; }
 	}
 
 /// Broadcasts to SQLiteHouseKeeper ////////////////////////////////////////////
@@ -401,6 +481,38 @@ extends BroadcastReceiver
 				tbl.getTableClass().getCanonicalName() ) ;
 		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
 				tbl.toBundle(o) ) ;
+		return sig ;
+	}
+
+	/**
+	 * Requests the selection of a set of rows from the keeper's database.
+	 * @param cls the schematic class that would contain the rows
+	 * @param q a query against that data set
+	 * @param <SC> the schematic class
+	 * @return (fluid)
+	 */
+	public <SC extends SQLightable> SQLiteHouseRelay select(
+			Class<SC> cls, SelectionBuilder q )
+	{ m_ctx.sendBroadcast( this.buildSelectionSignal(cls,q) ) ; return this ; }
+
+	/**
+	 * Constructs the {@link Intent} to be sent by {@link #select}.
+	 * This is a separate method only so that it can be unit-tested.
+	 * @param cls the schematic class that would contain the rows
+	 * @param q a query against that data set
+	 * @param <SC> the schematic class
+	 * @return the intent to be sent by {@link #select}
+	 */
+	protected <SC extends SQLightable> Intent buildSelectionSignal(
+			Class<SC> cls, SelectionBuilder q )
+	{
+		Intent sig = new Intent(
+				m_api.getFormattedKeeperAction( KEEPER_SELECT ) ) ;
+		SQLightable.Reflection<SC> tbl = m_api.reflect(cls) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				tbl.getTableClass().getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SELECTION_QUERY_SPEC ),
+				q.toBundle() ) ;
 		return sig ;
 	}
 
