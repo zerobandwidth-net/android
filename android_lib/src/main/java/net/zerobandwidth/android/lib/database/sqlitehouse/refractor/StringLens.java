@@ -2,8 +2,11 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Marshals strings.
@@ -15,7 +18,7 @@ implements Refractor<String>
 {
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_TEXT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_TEXT ; }
 
 	/**
 	 * Defines the non-null default string value as an empty string.
@@ -27,19 +30,29 @@ implements Refractor<String>
 
 	@Override
 	public String toSQLiteString( String o )
-	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
-				String.format( "'%s'", o ) ) ;
-	}
+	{ return ( o == null ? SQLITE_NULL : String.format( "'%s'", o ) ) ; }
 
 	@Override
-	public Refractor<String> addToContentValues( ContentValues vals, String sKey, String val )
+	public StringLens addToContentValues( ContentValues vals, String sKey, String val )
 	{
 		vals.put( sKey, val ) ;
+		return this ;
+	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public StringLens addToBundle( Bundle bndl, String sKey, String val )
+	{
+		bndl.putString( sKey, val ) ;
 		return this ;
 	}
 
 	@Override
 	public String fromCursor( Cursor crs, String sKey )
 	{ return crs.getString( crs.getColumnIndex( sKey ) ) ; }
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public String fromBundle( Bundle bndl, String sKey )
+	{ return bndl.getString( sKey ) ; }
 }

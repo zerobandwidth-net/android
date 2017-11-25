@@ -2,12 +2,15 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.text.TextUtils;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import java.util.Collection;
 import java.util.Collections;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Provides a canonical implementation of a {@link Lens} which can marshal a
@@ -47,19 +50,37 @@ implements Refractor<C>
 
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_TEXT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_TEXT ; }
 
 	@Override
 	public String toSQLiteString( C o )
 	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
+		return ( o == null ? SQLITE_NULL :
 			String.format( "'%s'", this.toStringValue(o) ) ) ;
 	}
 
 	@Override
-	public Refractor<C> addToContentValues( ContentValues vals, String sKey, C val )
+	public StringCollectionLens<C> addToContentValues(
+			ContentValues vals, String sKey, C val )
 	{
 		vals.put( sKey, this.toStringValue(val) ) ;
+		return this ;
+	}
+
+	/**
+	 * Adds the collection of strings to a {@link Bundle} as a string array.
+	 *
+	 * This will <i>always</i> be rendered in the bundle as a string array,
+	 * regardless of the algorithm that would marshal the collection to/from a
+	 * database as a string serialization.
+	 *
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Override
+	public StringCollectionLens<C> addToBundle(
+			Bundle bndl, String sKey, C val )
+	{
+		bndl.putStringArray( sKey, val.toArray( new String[val.size()] ) ) ;
 		return this ;
 	}
 
@@ -70,6 +91,25 @@ implements Refractor<C>
 		if( sValues == null ) return null ;
 		C asValues = this.getCollectionInstance() ;
 		Collections.addAll( asValues, sValues.split( this.getDelimiter() ) ) ;
+		return asValues ;
+	}
+
+	/**
+	 * Fetches a collection of strings from a {@link Bundle} as a string array.
+	 *
+	 * This will <i>always</i> be rendered in the bundle as a string array,
+	 * regardless of the algorithm that would marshal the collection to/from a
+	 * database as a string serialization.
+	 *
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Override
+	public C fromBundle( Bundle bndl, String sKey )
+	{
+		String[] asBundled = bndl.getStringArray( sKey ) ;
+		if( asBundled == null || asBundled.length == 0 ) return null ;
+		C asValues = this.getCollectionInstance() ;
+		Collections.addAll( asValues, asBundled ) ;
 		return asValues ;
 	}
 }

@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.support.test.runner.AndroidJUnit4;
 
 import net.zerobandwidth.android.lib.database.MockCursor;
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +34,7 @@ public class StringListLensesTest
 	/**
 	 * Exercises {@link CommaDelimStringsListLens}.
 	 */
+	@SuppressWarnings( "deprecation" ) // check deprecated stuff still works
 	@Test
 	public void testCommaDelimArrayList()
 	{
@@ -44,9 +45,10 @@ public class StringListLensesTest
 		assertNull( lens.toStringValue(null) ) ;
 		assertEquals( "foo,bar,baz", lens.toStringValue( asTestValues ) ) ;
 
+		assertEquals( SQLiteSyntax.SQLITE_TYPE_TEXT, lens.getSQLiteDataType() );
 		assertEquals( Refractor.SQLITE_TYPE_TEXT, lens.getSQLiteDataType() ) ;
 
-		assertEquals( SQLitePortal.SQLITE_NULL, lens.toSQLiteString(null) ) ;
+		assertEquals( SQLiteSyntax.SQLITE_NULL, lens.toSQLiteString(null) ) ;
 		assertEquals( "'foo,bar,baz'", lens.toSQLiteString( asTestValues ) ) ;
 
 		ContentValues vals = new ContentValues() ;
@@ -67,6 +69,7 @@ public class StringListLensesTest
 	/**
 	 * Exercises {@link FormFeedDelimStringsListLens}.
 	 */
+	@SuppressWarnings( "deprecation" ) // check deprecated stuff still works
 	@Test
 	public void testFormFeedDelimArrayList()
 	{
@@ -77,9 +80,10 @@ public class StringListLensesTest
 		assertNull( lens.toStringValue(null) ) ;
 		assertEquals( "foo\fbar\fbaz", lens.toStringValue( asTestValues ) ) ;
 
+		assertEquals( SQLiteSyntax.SQLITE_TYPE_TEXT, lens.getSQLiteDataType() ) ;
 		assertEquals( Refractor.SQLITE_TYPE_TEXT, lens.getSQLiteDataType() ) ;
 
-		assertEquals( SQLitePortal.SQLITE_NULL, lens.toSQLiteString(null) ) ;
+		assertEquals( SQLiteSyntax.SQLITE_NULL, lens.toSQLiteString(null) ) ;
 		assertEquals( "'foo\fbar\fbaz'", lens.toSQLiteString( asTestValues ) ) ;
 
 		ContentValues vals = new ContentValues() ;

@@ -14,6 +14,14 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTabl
 public class Flargle
 implements SQLightable
 {
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	public Flargle( int nID, String s, int z )
+	{
+		m_nFargleID = nID ;
+		m_sString = s ;
+		m_zInteger = z ;
+	}
+
 	@SQLiteColumn( name = "fargle_id", index = 0, is_nullable = false )
 	@SQLitePrimaryKey
 	protected int m_nFargleID ;
@@ -26,4 +34,8 @@ implements SQLightable
 
 	@SQLiteColumn( name = "flargle_addition", since = 2, sql_default = "NEW!" )
 	protected String m_sAddition = "NEW!" ;
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	public String getString()
+	{ return m_sString ; }
 }

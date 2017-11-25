@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -12,16 +11,19 @@ import net.zerobandwidth.android.lib.database.SQLiteColumnInfo;
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.querybuilder.DeletionBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
-import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
+import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.StringLens;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.BorkBorkBork;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Dargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Flargle;
-import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Quargle;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.UpgradeSpecClass;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.ValidSpecClass;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +42,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_INT;
 
 /**
  * Exercises {@link SQLiteHouse}.
@@ -62,51 +65,16 @@ public class SQLiteHouseTest
 	}
 
 	/**
-	 * Used as the canonical "valid" {@link SQLiteHouse} implementation for
-	 * various unit tests.
-	 * @since zerobandwidth-net/android 0.1.4 (#26)
-	 */
-	@SuppressWarnings( "DefaultAnnotationParam" )
-	@SQLiteDatabaseSpec(
-			database_name = "valid_spec_class_db",
-			schema_version = 1,
-			classes = { Fargle.class, Dargle.class, Blargh.class }
-	)
-	protected static class ValidSpecClass
-	extends SQLiteHouse<ValidSpecClass>
-	{
-		protected ValidSpecClass( SQLiteHouse.Factory factory )
-		{ super(factory) ; }
-
-		protected SQLiteDatabase getDB()
-		{ return m_db ; }
-	}
-
-
-	@SQLiteDatabaseSpec(
-			database_name = "valid_spec_class_db",
-			schema_version = 2,
-			classes =
-				{ Flargle.class, Dargle.class, Quargle.class, Blargh.class }
-	)
-	protected static class UpgradeSpecClass
-	extends SQLiteHouse<UpgradeSpecClass>
-	{
-		protected UpgradeSpecClass( SQLiteHouse.Factory factory )
-		{ super(factory) ; }
-	}
-
-	/**
 	 * Shorthand to provide a valid context for the unit test.
 	 * @return a usable context
 	 */
-	protected static Context getTestContext()
+	public static Context getTestContext()
 	{ return InstrumentationRegistry.getTargetContext() ; }
 
 	/**
 	 * Milliseconds until we give up on a connection to a database.
 	 */
-	protected static final int CONNECTION_TIMEOUT = 1000 ;
+	public static final int CONNECTION_TIMEOUT = 1000 ;
 
 	/**
 	 * Shorthand for obtaining a connection to a test database.
@@ -115,7 +83,7 @@ public class SQLiteHouseTest
 	 * @return an instance of the test class
 	 * @throws Exception if anything goes wrong while connecting
 	 */
-	protected static <DBH extends SQLiteHouse> DBH connectTo( DBH dbh )
+	public static <DBH extends SQLiteHouse> DBH connectTo( DBH dbh )
 	throws Exception
 	{
 		dbh.openDB() ;
@@ -132,7 +100,7 @@ public class SQLiteHouseTest
 	 * @param cls the test database class
 	 * @param <DBH> the test database class
 	 */
-	protected static <DBH extends SQLiteHouse> void delete( Class<DBH> cls )
+	public static <DBH extends SQLiteHouse> void delete( Class<DBH> cls )
 	{
 		getTestContext().deleteDatabase(
 			cls.getAnnotation( SQLiteDatabaseSpec.class ).database_name() ) ;
@@ -168,129 +136,44 @@ public class SQLiteHouseTest
 	public void testFactorySuccess()
 	throws Exception // Any uncaught exception is a failure.
 	{
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		assertEquals( "valid_spec_class_db", dbh.getDatabaseName() ) ;
 		assertEquals( 1, dbh.getLatestSchemaVersion() ) ;
 		assertEquals( 3, dbh.m_aclsSchema.size() ) ;
+		assertEquals( 3, dbh.getSchemaClasses().size() ) ;
 		assertTrue( dbh.m_aclsSchema.contains( Fargle.class ) ) ;
 		assertTrue( dbh.m_aclsSchema.contains( Dargle.class ) ) ;
 		assertTrue( dbh.m_aclsSchema.contains( Blargh.class ) ) ;
 	}
 
 	/**
-	 * Ensures that {@link SQLiteHouse#processFieldsOfClasses()} properly
-	 * discovers annotated fields and ignores non-annotated fields. Also ensures
-	 * that each table's primary key is discovered.
+	 * Ensures that {@link SQLiteHouse} properly discovers annotated fields and
+	 * ignores non-annotated fields. Also ensures that each table's primary key
+	 * is discovered.
 	 */
 	@Test
 	public void testFieldDiscovery()
 	{
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
-		assertEquals( 3, dbh.m_mapFields.size() ) ;
-
-		// Test discovery in Fargle class.
-		List<Field> afldFargle = dbh.m_mapFields.get( Fargle.class ) ;
-		assertEquals( 3, afldFargle.size() ) ;
-		for( Field fld : afldFargle )
-		{ // Verify that only annotated fields were discovered.
-			SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
-			assertNotNull(antCol) ;
-		}
-		// Assuming that the sorting worked, we can call out fields explicitly.
-		assertEquals( "m_nFargleID", afldFargle.get(0).getName() ) ;
-		assertEquals( "m_sString", afldFargle.get(1).getName() ) ;
-		assertEquals( "m_zInteger", afldFargle.get(2).getName() ) ;
-		assertEquals( "m_nFargleID", dbh.m_mapKeys.get(Fargle.class).getName() ) ;
-
-		// Test discovery in Dargle class.
-		List<Field> afldDargle = dbh.m_mapFields.get( Dargle.class ) ;
-		assertEquals( 3, afldDargle.size() ) ;
-		for( Field fld : afldDargle )
-		{ // Verify that only annotated fields were discovered.
-			SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;
-			assertNotNull(antCol) ;
-		}
-		assertEquals( "m_nRowID", afldDargle.get(0).getName() ) ;       // (#43)
-		assertEquals( "m_sString", afldDargle.get(1).getName() ) ;
-		assertEquals( "m_bBoolean", afldDargle.get(2).getName() ) ;
-		assertEquals( "m_sString", dbh.m_mapKeys.get(Dargle.class).getName() ) ;
-
-		// Test discovery in Blargh class.
-		List<Field> afldBlargh = dbh.m_mapFields.get( Blargh.class ) ;
-		assertEquals( 1, afldBlargh.size() ) ;
-		assertEquals( "m_sString", afldBlargh.get(0).getName() ) ;
-	}
-
-	/**
-	 * Exercises {@link SQLiteHouse#getTableCreationSQL}.
-	 */
-	@Test
-	public void testTableCreationSQL()
-	{
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
-
-		SQLiteHouse.QueryContext<ValidSpecClass> qctx = dbh.getQueryContext() ;
-
-		qctx.loadTableDef( Fargle.class ) ;
-		String sFargleSQL = dbh.getTableCreationSQL(qctx) ;
-		String sFargleExpected = (new StringBuilder())
-				.append( "CREATE TABLE IF NOT EXISTS " )
-				.append( "fargles" )
-				.append( " ( _id INTEGER PRIMARY KEY AUTOINCREMENT" )
-				.append( ", fargle_id INTEGER UNIQUE NOT NULL" )
-				.append( ", fargle_string TEXT NULL DEFAULT NULL" )
-				.append( ", fargle_num INTEGER NULL DEFAULT 42" )
-				.append( " )" )
-				.toString()
-				;
-		assertEquals( sFargleExpected, sFargleSQL ) ;
-
-		qctx.loadTableDef( Dargle.class ) ;
-		String sDargleSQL = dbh.getTableCreationSQL(qctx) ;
-		String sDargleExpected = (new StringBuilder())
-				.append( "CREATE TABLE IF NOT EXISTS " )
-				.append( "dargles" )
-				.append( " ( _id INTEGER PRIMARY KEY AUTOINCREMENT" )
-				.append( ", dargle_string TEXT UNIQUE NOT NULL" )
-				.append( ", is_dargly INTEGER NULL DEFAULT 1" )
-				.append( " )" )
-				.toString()
-				;
-		assertEquals( sDargleExpected, sDargleSQL ) ;
-
-		qctx.loadTableDef( Blargh.class ) ;
-		String sBlarghSQL = dbh.getTableCreationSQL(qctx) ;
-		String sBlarghExpected = (new StringBuilder())
-				.append( "CREATE TABLE IF NOT EXISTS " )
-				.append( "blargh" )
-				.append( " ( _id INTEGER PRIMARY KEY AUTOINCREMENT" )
-				.append( ", blargh_string TEXT NULL DEFAULT NULL" )
-				.append( " )" )
-				.toString()
-				;
-		assertEquals( sBlarghExpected, sBlarghSQL ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		assertEquals( 3, dbh.m_mapReflections.size() ) ;
+		assertNotNull( dbh.describe( Fargle.class ) ) ;
+		assertNotNull( dbh.describe( Dargle.class ) ) ;
+		assertNotNull( dbh.describe( Blargh.class ) ) ;
 	}
 
 	/**
 	 * Ensures that, having opened a database connection and created the
 	 * database for the first time, the file creates what we expected.
 	 * @see SQLiteHouse#onCreate
-	 * @see SQLiteHouse#getTableCreationSQL
 	 * @see <a href="http://www.sqlite.org/lang_analyze.html">SQLite Documentation: ANALYZE</a>
 	 */
+	@SuppressWarnings( "deprecation" ) // verify deprecated stuff also works
 	@Test
 	public void testDatabaseCreation()
 	throws Exception // Any uncaught exception is a failure.
 	{
-		Context ctx = getTestContext() ;
-
 		delete( ValidSpecClass.class ) ;
-
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, ctx, null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 
 		try
 		{
@@ -300,7 +183,9 @@ public class SQLiteHouseTest
 			assertEquals( 4, mapInfo.size() ) ; // 3 defined plus auto-ID
 			SQLiteColumnInfo infoFargleID = mapInfo.get("fargle_id") ;
 			assertEquals( 1, infoFargleID.nColumnID ) ;
+			// Continue testing legacy constant until it's removed.
 			assertEquals( Refractor.SQLITE_TYPE_INT, infoFargleID.sColumnType );
+			assertEquals( SQLITE_TYPE_INT, infoFargleID.sColumnType ) ;
 			assertTrue( infoFargleID.bNotNull ) ;
 			assertEquals( null, infoFargleID.sDefault ) ;
 			assertFalse( infoFargleID.bPrimaryKey ) ;
@@ -313,25 +198,19 @@ public class SQLiteHouseTest
 	 * Ensures that the upgrade algorithm works, by swapping an upgraded table
 	 * into the definition.
 	 * @see SQLiteHouse#onUpgrade
-	 * @see SQLiteHouse#getAddColumnSQL
-	 * @see SQLiteHouse#getTableCreationSQL
 	 */
 	@Test
 	public void testDatabaseUpgrade()
 	throws Exception // Any uncaught exception is a failure.
 	{
-		Context ctx = getTestContext() ;
-
 		delete( ValidSpecClass.class ) ;
 		delete( UpgradeSpecClass.class ) ;
 
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, ctx, null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try { connectTo(dbh) ; }
 		finally { dbh.close() ; }
 
-		UpgradeSpecClass dbhUpgrade = SQLiteHouse.Factory.init().getInstance(
-				UpgradeSpecClass.class, ctx, null ) ;
+		UpgradeSpecClass dbhUpgrade = UpgradeSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbhUpgrade) ;
@@ -346,7 +225,9 @@ public class SQLiteHouseTest
 			// Show that the "fargles" table got upgraded.
 			Map<String,SQLiteColumnInfo> mapFlargle =
 					dbhUpgrade.getColumnMapForTable( "fargles" ) ;
-			assertEquals( "'NEW!'", mapFlargle.get("flargle_addition").sDefault );
+			SQLiteColumnInfo infoAddition = mapFlargle.get("flargle_addition") ;
+			assertNotNull( infoAddition ) ;
+			assertEquals( "'NEW!'", infoAddition.sDefault ) ;
 
 			// Show that the "quargles" table got created.
 			List<SQLiteColumnInfo> infoQuargle =
@@ -366,8 +247,7 @@ public class SQLiteHouseTest
 	@Test
 	public void testGetQueryContext()
 	{
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		SQLiteHouse.QueryContext<ValidSpecClass> qctx =
 				dbh.getQueryContext( Fargle.class ) ;
 		assertEquals( Fargle.class, qctx.clsTable ) ;
@@ -384,8 +264,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		try
 		{
@@ -416,8 +295,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -440,8 +318,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		try
 		{
@@ -489,8 +366,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		try
 		{
@@ -532,16 +408,13 @@ public class SQLiteHouseTest
 		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }
 	}
 
-	/**
-	 * Exercises {@link SQLiteHouse#search(SQLightable)}.
-	 */
+	/** Exercises {@link SQLiteHouse#search(SQLightable)}. */
 	@Test
 	public void testSearch()
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -552,9 +425,39 @@ public class SQLiteHouseTest
 			Fargle fargleResult = dbh.search(fargleOne) ;
 			assertTrue( fargleOne.equals(fargleResult) ) ;
 			assertFalse( fargleTwo.equals(fargleResult) ) ;
+
+			// (#50) Now look for something that won't be there.
+			Fargle fargleThree = new Fargle( 30, "Not inserted.", 3 ) ;
+			assertNull( dbh.search(fargleThree) ) ;
 		}
 		finally
 		{ dbh.close() ; }
+	}
+
+
+	/**
+	 * Exercises {@link SQLiteHouse#search(SQLightable)} with
+	 * {@link Blargh}, which defines no key columns.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testSearchWithoutKeyColumn()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		SchematicException xSchema = null ;
+		try
+		{
+			connectTo(dbh) ;
+			Blargh blargh = new Blargh( "blaaaaargh" ) ;
+			dbh.search( blargh ) ;
+		}
+		catch( SchematicException x )
+		{ xSchema = x ; }
+		finally
+		{ dbh.close() ; }
+		assertNotNull( xSchema ) ;
 	}
 
 	/**
@@ -566,8 +469,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -579,21 +481,45 @@ public class SQLiteHouseTest
 			assertTrue( dargleResult.isDargly() ) ;         // matches dargleOne
 			dargleResult = dbh.search( Dargle.class, "dargle_two" ) ;
 			assertFalse( dargleResult.isDargly() ) ;        // matches dargleTwo
+
+			// (#50) Now look for something that won't be there.
+			assertNull( dbh.search( Dargle.class, "not_a_real_dargle" ) ) ;
 		}
 		finally
 		{ dbh.close() ; }
 	}
 
 	/**
-	 * Exercises {@link SQLiteHouse#select(Class,long)}.
+	 * Exercises {@link SQLiteHouse#search(Class,String)} with
+	 * {@link Blargh}, which defines no key columns.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
 	 */
+	@Test
+	public void testSearchByStringIDWithoutKeyColumn()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		SchematicException xSchema = null ;
+		try
+		{
+			connectTo(dbh) ;
+			dbh.search( Blargh.class, "blaaaaargh" ) ;
+		}
+		catch( SchematicException x )
+		{ xSchema = x ; }
+		finally
+		{ dbh.close() ; }
+		assertNotNull( xSchema ) ;
+	}
+
+	/** Exercises {@link SQLiteHouse#select(Class,long)}. */
 	@Test
 	public void testSelect()
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -603,6 +529,9 @@ public class SQLiteHouseTest
 			long idTwo = dbh.insert(fargleTwo) ;
 			assertTrue( fargleOne.equals( dbh.select(Fargle.class,idOne) ) ) ;
 			assertTrue( fargleTwo.equals( dbh.select(Fargle.class,idTwo) ) ) ;
+
+			// (#50) Now look for something that won't be there.
+			assertNull( dbh.select( Fargle.class, 90 ) ) ;
 		}
 		finally
 		{ dbh.close() ; }
@@ -617,10 +546,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
-		SQLiteHouse.QueryContext<ValidSpecClass> qctx =
-				dbh.getQueryContext(Blargh.class) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		try
 		{
@@ -644,7 +570,7 @@ public class SQLiteHouseTest
 					;
 			assertTrue( crs.moveToFirst() ) ;
 			assertEquals( 1, crs.getCount() ) ;
-			Blargh blarghTwoFetched = dbh.fromCursor( qctx, crs ) ;
+			Blargh blarghTwoFetched = dbh.fromCursor( crs, Blargh.class ) ;
 			SQLitePortal.closeCursor(crs) ;
 			assertTrue( blarghTwoFetched.equals(blarghTwo) ) ;
 
@@ -654,7 +580,7 @@ public class SQLiteHouseTest
 					.execute()
 					;
 			assertTrue( crs.moveToFirst() ) ;
-			Blargh blarghTwoIDFetched = dbh.fromCursor( qctx, crs ) ;
+			Blargh blarghTwoIDFetched = dbh.fromCursor( crs, Blargh.class ) ;
 			SQLitePortal.closeCursor(crs) ;
 			assertTrue( blarghTwoIDFetched.equals(blarghTwo) ) ;
 		}
@@ -675,11 +601,10 @@ public class SQLiteHouseTest
 		final int ITERATIONS = 10 ;                            // Tune to taste.
 		final Random RNG = new Random() ;
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		Cursor crs = null ;
 		List<Fargle> aInputs = new ArrayList<>() ;
-		List<Fargle> aResults = null ;
+		List<Fargle> aResults ;
 		try
 		{
 			connectTo(dbh) ;
@@ -698,13 +623,27 @@ public class SQLiteHouseTest
 					.execute()
 					;
 			aResults = dbh.processResultSet( Fargle.class, crs ) ;
+
+			assertNotNull(aResults) ;
+			assertEquals( aInputs.size(), aResults.size() ) ;
+			for( int i = 0 ; i < aInputs.size() ; i++ )
+				assertTrue( aInputs.get(i).equals( aResults.get(i) ) ) ;
+
+			// (#50) Also verify that empty cursors are handled properly.
+			crs = dbh.selectFrom( Fargle.class )
+					.where( "fargle_string=?", "boogityboogityboo" )
+					.execute()
+					;
+			aResults = dbh.processResultSet( Fargle.class, crs ) ;
+			assertEquals( 0, crs.getCount() ) ;
+			assertEquals( 0, aResults.size() ) ;
+			//noinspection deprecation
+			aResults = dbh.processResultSet( dbh.getQueryContext(),
+					crs, Fargle.class ) ;
+			assertEquals( 0, aResults.size() ) ;
 		}
 		finally
 		{ SQLitePortal.closeCursor(crs) ; dbh.close() ; }
-		assertNotNull(aResults) ;
-		assertEquals( aInputs.size(), aResults.size() ) ;
-		for( int i = 0 ; i < aInputs.size() ; i++ )
-			assertTrue( aInputs.get(i).equals( aResults.get(i) ) ) ;
 	}
 
 	/**
@@ -715,8 +654,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -737,6 +675,30 @@ public class SQLiteHouseTest
 	}
 
 	/**
+	 * Exercises {@link SQLiteHouse#delete(SQLightable)} with
+	 * {@link Blargh}, which defines no key columns.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testDeleteWithoutKeyColumn()
+	throws Exception // Any uncaught exception is a failure.
+	{
+		delete( ValidSpecClass.class ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		SchematicException xSchema = null ;
+		try
+		{
+			connectTo(dbh) ;
+			dbh.delete( new Blargh( "blaaaaaaaargh" ) ) ;
+		}
+		catch( SchematicException x )
+		{ xSchema = x ; }
+		finally
+		{ dbh.close() ; }
+		assertNotNull( xSchema ) ;
+	}
+
+	/**
 	 * Exercises {@link SQLiteHouse#deleteFrom(Class)}.
 	 */
 	@Test
@@ -744,8 +706,7 @@ public class SQLiteHouseTest
 	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
-		ValidSpecClass dbh = SQLiteHouse.Factory.init().getInstance(
-				ValidSpecClass.class, getTestContext(), null ) ;
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		try
 		{
 			connectTo(dbh) ;
@@ -770,5 +731,104 @@ public class SQLiteHouseTest
 		}
 		finally
 		{ dbh.close() ; }
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#getRefractorForField(Field)} with good and
+	 * bad inputs.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testGetRefractor()
+	throws NoSuchFieldException
+	{
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+
+		SQLightable.Reflection<Fargle> tbl =
+				SQLightable.Reflection.reflect( Fargle.class ) ;
+		assertEquals( StringLens.class,
+				dbh.getRefractorForField(
+						tbl.getField("fargle_string") ).getClass()
+			);
+
+		IntrospectionException xIntro = null ;
+		try
+		{ // Get an instance of a broken refractor.
+			dbh.getRefractorForField(
+					BorkBorkBork.class.getField( "m_oBorked" ) ) ;
+		}
+		catch( IntrospectionException x ) { xIntro = x ; }
+		assertNotNull( xIntro ) ;
+
+		xIntro = null ;
+		try
+		{ // Try to get a refractor for a column that can't provide one.
+			dbh.getRefractorForField(
+					BorkBorkBork.class.getField( "m_oAlsoBorked" ) ) ;
+		}
+		catch( IntrospectionException x ) { xIntro = x ; }
+		assertNotNull( xIntro ) ;
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#setSchemaClasses(List)} by forcing it to
+	 * rewrite the schematic class list.
+	 * This should never happen in practice, but fills a gap in test coverage.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testReprocessSchema()
+	{
+		SQLiteHouse.Factory dbf = SQLiteHouse.Factory.init() ;
+		ValidSpecClass dbh = dbf.getInstance(
+				ValidSpecClass.class, getTestContext(), null ) ;
+		dbh.setSchemaClasses( dbf.m_aclsSchema ) ;       // Force re-processing.
+		assertEquals( 3, dbh.m_aclsSchema.size() ) ;
+		assertTrue( dbh.m_aclsSchema.contains( Fargle.class ) ) ;
+		assertTrue( dbh.m_aclsSchema.contains( Dargle.class ) ) ;
+		assertTrue( dbh.m_aclsSchema.contains( Blargh.class ) ) ;
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#processReflections()} by forcing it to
+	 * rewrite the reflection map.
+	 * This should never happen in practice, but fills a gap in test coverage.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testReprocessReflections()
+	{
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		dbh.processReflections() ;  // Force a re-processing of the reflections.
+		assertTrue( dbh.m_mapReflections.containsKey( Fargle.class ) ) ;
+		assertTrue( dbh.m_mapReflections.containsKey( Dargle.class ) ) ;
+		assertTrue( dbh.m_mapReflections.containsKey( Blargh.class ) ) ;
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#describe}.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testDescribe()
+	{
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		assertNotNull( dbh.describe( Fargle.class ) ) ;
+		assertNull( dbh.describe( BorkBorkBork.class ) ) ;
+	}
+
+	/**
+	 * Exercises {@link SQLiteHouse#getReflection(Class)}.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Test
+	public void testGetReflection()
+	{
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		assertNotNull( dbh.getReflection( Dargle.class ) ) ;
+		SchematicException xSchema = null ;
+		try { dbh.getReflection( Flargle.class ) ; }
+		catch( SchematicException x ) { xSchema = x ; }
+		assertNotNull( xSchema ) ;
 	}
 }

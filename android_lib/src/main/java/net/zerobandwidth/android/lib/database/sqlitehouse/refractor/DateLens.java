@@ -2,10 +2,13 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import java.util.Date;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Marshals {@link java.util.Date} objects.
@@ -24,7 +27,7 @@ implements Refractor<Date>
 {
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_INT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_INT ; }
 
 	/**
 	 * When a date cannot be null, this class provides a default value at the
@@ -38,14 +41,22 @@ implements Refractor<Date>
 	@Override
 	public String toSQLiteString( Date o )
 	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
+		return ( o == null ? SQLITE_NULL :
 			Long.toString( o.getTime() ) ) ;
 	}
 
 	@Override
-	public Refractor<Date> addToContentValues( ContentValues vals, String sKey, Date val )
+	public DateLens addToContentValues( ContentValues vals, String sKey, Date val )
 	{
 		vals.put( sKey, val.getTime() ) ;
+		return this ;
+	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public DateLens addToBundle( Bundle bndl, String sKey, Date val )
+	{
+		bndl.putLong( sKey, val.getTime() ) ;
 		return this ;
 	}
 
@@ -55,4 +66,9 @@ implements Refractor<Date>
 		long ts = crs.getLong( crs.getColumnIndex( sKey ) ) ;
 		return new Date( ts ) ;
 	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public Date fromBundle( Bundle bndl, String sKey )
+	{ return new Date( bndl.getLong( sKey ) ) ; }
 }

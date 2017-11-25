@@ -3,7 +3,10 @@ package net.zerobandwidth.android.lib.database.querybuilder;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_ALL;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_FAILED;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_DELETE_FROM;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_WHERE;
 
 /**
  * Builds a SQLite {@code DELETE} query.
@@ -24,7 +27,7 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * <pre>
  * int nDeleted = QueryBuilder.deleteFrom( sTableName )
  *     .where( "active=? OR last_active_ts<=?",
- *         QueryBuilder.WHERE_FALSE, SQLitePortal.now() - 86400 )
+ *         QueryBuilder.WHERE_FALSE, TimeUtils.now() - 86400 )
  *     .executeOn( db )
  *     ;
  * </pre>
@@ -32,22 +35,11 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * @since zerobandwidth-net/android 0.1.1 (#20)
  * @see SQLiteDatabase#delete(String, String, String[])
  */
-@SuppressWarnings( "unused" )                              // This is a library.
 public class DeletionBuilder
 extends QueryBuilder<DeletionBuilder,Integer>
 {
 	protected static final String LOG_TAG =
 			DeletionBuilder.class.getSimpleName() ;
-
-	/**
-	 * Similar to the standard magic number returned when an insertion query
-	 * fails (see {@link SQLitePortal#INSERT_FAILED}, this return value from
-	 * {@link #executeOn(SQLiteDatabase)} indicates that the delete operation
-	 * could not be carried out because of an exception.
-	 */
-	public static final int DELETE_FAILED = -1 ;
-
-	protected static final String SQL_DELETE_FROM = "DELETE FROM " ;
 
 	public DeletionBuilder( String sTableName )
 	{ super( sTableName ) ; }
@@ -57,13 +49,14 @@ extends QueryBuilder<DeletionBuilder,Integer>
 	 * @return (fluid)
 	 */
 	public DeletionBuilder deleteAll()
-	{ return this.where( SQLitePortal.DELETE_ALL ) ; }
+	{ return this.where( DELETE_ALL ) ; }
 
 	/**
 	 * Deletes rows based on the builder's {@code WHERE} clause.
 	 * @param db the database instance on which the query should be executed.
-	 * @return the number of rows deleted, or {@link #DELETE_FAILED} if the
-	 *  operation fails
+	 * @return the number of rows deleted, or
+	 *  {@link net.zerobandwidth.android.lib.database.SQLiteSyntax#DELETE_FAILED}
+	 *  if the operation fails
 	 */
 	@Override
 	public Integer executeOn( SQLiteDatabase db )

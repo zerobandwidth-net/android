@@ -25,7 +25,7 @@ implements SQLightable
 
 	// None of the following should be discovered as columns.
 
-	protected String m_sRedHerring1 ;
+	public String m_sRedHerring1 ;
 	protected String m_sRedHerring2 ;
 	protected int m_zRedHerring3 ;
 	protected float m_rRedHerring4 ;
