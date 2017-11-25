@@ -74,6 +74,15 @@ implements SQLightable
 	{ return m_nRowID ; }
 
 	/**
+	 * Mutator for the auto-incremented row ID.
+	 * @param nID the table row ID
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public Dargle setRowID( long nID )
+	{ m_nRowID = nID ; return this ; }
+
+	/**
 	 * Accesses the string.
 	 * @return the string member
 	 */
@@ -95,4 +104,13 @@ implements SQLightable
 	 */
 	public Dargle toggle()
 	{ m_bBoolean = ! m_bBoolean ; return this ; }
+
+	/**
+	 * Accesses the "ignored" integer member. Used to verify that the field is
+	 * usually not set by various reflexive methods of {@link SQLightable}.
+	 * @return the "ignored" integer member
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public int getIgnored()
+	{ return m_zIgnoreThisField ; }
 }

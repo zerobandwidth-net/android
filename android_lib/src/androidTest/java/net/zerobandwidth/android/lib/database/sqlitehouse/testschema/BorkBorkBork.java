@@ -2,6 +2,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.testschema;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
@@ -51,7 +52,15 @@ implements SQLightable
 		{ return this ; }
 
 		@Override
+		public BorkedLens addToBundle( Bundle bndl, String sKey, BorkedField val )
+		{ return this ; }
+
+		@Override
 		public BorkedField fromCursor( Cursor crs, String sKey )
+		{ return null ; }
+
+		@Override
+		public BorkedField fromBundle( Bundle bndl, String sKey )
 		{ return null ; }
 	}
 

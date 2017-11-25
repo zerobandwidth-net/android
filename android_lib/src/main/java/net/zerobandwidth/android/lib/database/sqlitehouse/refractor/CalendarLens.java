@@ -2,6 +2,7 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
@@ -64,9 +65,17 @@ implements Refractor<C>
 	}
 
 	@Override
-	public Refractor<C> addToContentValues( ContentValues vals, String sKey, C val )
+	public CalendarLens<C> addToContentValues( ContentValues vals, String sKey, C val )
 	{
 		vals.put( sKey, val.getTimeInMillis() ) ;
+		return this ;
+	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public CalendarLens<C> addToBundle( Bundle bndl, String sKey, C val )
+	{
+		bndl.putLong( sKey, val.getTimeInMillis() ) ;
 		return this ;
 	}
 
@@ -76,6 +85,17 @@ implements Refractor<C>
 		long ts = crs.getLong( crs.getColumnIndex( sKey ) ) ;
 		//noinspection unchecked
 		C cal = (C)(C.getInstance()) ;
+		cal.setTimeInMillis(ts) ;
+		return cal ;
+	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public C fromBundle( Bundle bndl, String sKey )
+	{
+		long ts = bndl.getLong( sKey ) ;
+		// noinspection unchecked
+		C cal = (C)( C.getInstance() ) ;
 		cal.setTimeInMillis(ts) ;
 		return cal ;
 	}

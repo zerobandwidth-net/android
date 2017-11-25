@@ -34,8 +34,7 @@ public class UpgradeSpecClass
 	{
 		return SQLiteHouse.Factory.init().getInstance(
 				UpgradeSpecClass.class,
-				InstrumentationRegistry.getTargetContext(),
-				null
+				InstrumentationRegistry.getTargetContext()
 			);
 	}
 

@@ -2,8 +2,14 @@ package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.util.Log;
 
+import net.zerobandwidth.android.lib.database.querybuilder.DeletionBuilder;
+import net.zerobandwidth.android.lib.database.querybuilder.InsertionBuilder;
+import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
+import net.zerobandwidth.android.lib.database.querybuilder.SelectionBuilder;
+import net.zerobandwidth.android.lib.database.querybuilder.UpdateBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
@@ -59,8 +65,100 @@ public interface SQLightable
 	{
 		public static final String LOG_TAG = Reflection.class.getSimpleName() ;
 
-		public static <ST extends SQLightable> Reflection<ST> reflect( Class<ST> cls )
+		/**
+		 * Obtain a reflection of the specified schematic class.
+		 * @param cls the schematic class
+		 * @param <ST> the schematic class
+		 * @return a reflection of the class
+		 */
+		public static <ST extends SQLightable> Reflection<ST>
+		reflect( Class<ST> cls )
 		{ return new Reflection<>( cls ) ; }
+
+		/**
+		 * Standardized way to choose the name of a SQLite table based on the
+		 * schematic class definition and its annotations, if any.
+		 * @param cls the schematic class
+		 * @param <ST> the schematic class
+		 * @return either the name specified in the annotation, or a lower-cased
+		 *  transformation of the class name itself, if the annotation is not
+		 *  provided
+		 */
+		public static <ST extends SQLightable> String
+		getTableName( Class<ST> cls )
+		{ return getTableName( cls, cls.getAnnotation( SQLiteTable.class ) ) ; }
+
+		/**
+		 * Standardized way to choose the name of a SQLite table based on the
+		 * annotation attached to the schematic class.
+		 * @param cls the schematic class
+		 * @param antTable the annotation that describes the table defined by
+		 *                 the class (may be null)
+		 * @param <ST> the schematic class
+		 * @return either the name specified in the annotation, or a lower-cased
+		 *  transformation of the class name itself, if the annotation is not
+		 *  present
+		 * @see #getTableName(Class)
+		 * @see #getTableName()
+		 */
+		protected static <ST extends SQLightable> String getTableName(
+				Class<ST> cls, SQLiteTable antTable )
+		{
+			return ( antTable == null ?
+					cls.getSimpleName().toLowerCase() : antTable.value() ) ;
+		}
+
+		/**
+		 * Shorthand to get an instance of {@link InsertionBuilder} initialized
+		 * with the table name that would be reflected for the specified
+		 * schematic class. Use this method when you need a query builder but
+		 * don't need to retain a copy of the reflection.
+		 * @param cls the schematic class
+		 * @param <ST> the schematic class
+		 * @return a builder for an {@code INSERT} statement
+		 */
+		public static <ST extends SQLightable> InsertionBuilder
+		buildInsert( Class<ST> cls )
+		{ return QueryBuilder.insertInto( getTableName(cls) ) ; }
+
+		/**
+		 * Shorthand to get an instance of {@link UpdateBuilder} initialized
+		 * with the table name that would be reflected for the specified
+		 * schematic class. Use this method when you need a query builder but
+		 * don't need to retain a copy of the reflection.
+		 * @param cls the schematic class
+		 * @param <ST> the schematic class
+		 * @return a builder for an {@code UPDATE} statement
+		 */
+		public static <ST extends SQLightable> UpdateBuilder
+		buildUpdate( Class<ST> cls )
+		{ return QueryBuilder.update( getTableName(cls) ) ; }
+
+		/**
+		 * Shorthand to get an instance of {@link SelectionBuilder} initialized
+		 * with the table name that would be reflected for the specified
+		 * schematic class. Use this method when you need a query builder but
+		 * don't need to retain a copy of the reflection.
+		 * @param cls the schematic class
+		 * @param <ST> the schematic class
+		 * @return a builder for a {@code SELECT} statement
+		 */
+		public static <ST extends SQLightable> SelectionBuilder
+		buildSelect( Class<ST> cls )
+		{ return QueryBuilder.selectFrom( getTableName(cls) ) ; }
+
+		/**
+		 * Shorthand to get an instance of {@link DeletionBuilder} initialized
+		 * with the table name that would be reflected for the specified
+		 * schematic class. Use this method when you need a query builder but
+		 * don't need to retain a copy of the reflection.
+		 * @param cls the schematic class
+		 * @param <ST> the schematic class
+		 * @return a builder for a {@code DELETE} statement
+		 */
+		public static <ST extends SQLightable> DeletionBuilder
+		buildDelete( Class<ST> cls )
+		{ return QueryBuilder.deleteFrom( getTableName(cls) ) ; }
 
 		/**
 		 * Provides a syntactic shorthand for working with maps of fields to
@@ -379,16 +477,12 @@ public interface SQLightable
 		 * will be derived by lower-casing the simple name of the schematic
 		 * class itself.
 		 * @return the name of the table
+		 * @see #getTableName(Class, SQLiteTable)
 		 */
 		public String getTableName()
 		{
 			if( m_sTableName == null )
-			{ // Discover the name once, then use the stored value thereafter.
-				if( m_antTable == null )
-					m_sTableName = m_clsTable.getSimpleName().toLowerCase() ;
-				else
-					m_sTableName = m_antTable.value() ;
-			}
+				m_sTableName = getTableName( m_clsTable, m_antTable ) ;
 			return m_sTableName ;
 		}
 
@@ -551,6 +645,29 @@ public interface SQLightable
 		}
 
 		/**
+		 * Constructs an empty instance of the {@link SQLightable}
+		 * implementation class reflected in this object.
+		 * @return an empty instance of the schematic class
+		 * @throws IntrospectionException if the schematic class could not be
+		 *  constructed for some reason
+		 */
+		public T getInstance()
+		throws IntrospectionException
+		{
+			try
+			{
+				Constructor ctor = m_clsTable.getDeclaredConstructor() ;
+				if( ctor == null ) // try something different
+					ctor = m_clsTable.getConstructor() ;
+				ctor.setAccessible(true) ;
+				//noinspection unchecked - guaranteed
+				return ((T)(ctor.newInstance())) ;
+			}
+			catch( Exception x )
+			{ throw IntrospectionException.instanceFailed( m_clsTable, x ) ; }
+		}
+
+		/**
 		 * Reads a row of data from the specified cursor, and marshals it into a
 		 * schematic class instance corresponding to the table from which the
 		 * row was fetched.
@@ -564,18 +681,7 @@ public interface SQLightable
 		public T fromCursor( Cursor crs )
 		throws IntrospectionException, SchematicException
 		{
-			T oResult ;
-			try
-			{
-				Constructor ctor = m_clsTable.getDeclaredConstructor() ;
-				if( ctor == null ) // try something different
-					ctor = m_clsTable.getConstructor() ;
-				ctor.setAccessible(true) ;
-				//noinspection unchecked - guaranteed
-				oResult = ((T)(ctor.newInstance())) ;
-			}
-			catch( Exception x )
-			{ throw IntrospectionException.instanceFailed( m_clsTable, x ) ; }
+			T oResult = this.getInstance() ; // Can throw IntrospectionException
 
 			Collection<Column> aColumns = this.getColumnMap().values() ;
 			for( Column col : aColumns )
@@ -584,6 +690,41 @@ public interface SQLightable
 				{
 					col.getField().set( oResult,
 						col.getRefractor().fromCursor( crs, col.getName() ) ) ;
+				}
+				catch( IllegalAccessException xAccess )
+				{
+					throw SchematicException.fieldWasInaccessible(
+							m_clsTable.getCanonicalName(),
+							col.getName(), xAccess
+						);
+				}
+			}
+
+			return oResult ;
+		}
+
+		/**
+		 * Reads fields from a supplied {@link Bundle}, and marshals it into a
+		 * schematic class instance.
+		 * @param bndl the bundle into which data was marshalled
+		 * @return an instance of the class, containing the bundled data
+		 * @throws IntrospectionException if the data class could not be
+		 *  constructed for some reason
+		 * @throws SchematicException if the data could not be properly
+		 *  marshalled into the class instance
+		 */
+		public T fromBundle( Bundle bndl )
+		throws IntrospectionException, SchematicException
+		{
+			T oResult = this.getInstance() ; // Can throw IntrospectionException
+
+			Collection<Column> aColumns = this.getColumnMap().values() ;
+			for( Column col : aColumns )
+			{
+				try
+				{
+					col.getField().set( oResult,
+						col.getRefractor().fromBundle( bndl, col.getName() ) ) ;
 				}
 				catch( IllegalAccessException xAccess )
 				{
@@ -647,6 +788,86 @@ public interface SQLightable
 			}
 			return vals ;
 		}
+
+		/**
+		 * Extracts the values of all known fields, corresponding to database
+		 * table columns, from a schematic class instance, and returns a
+		 * {@link Bundle} instance containing those values.
+		 * @param oSource the object to be processed
+		 * @return the values that would be stored in the database
+		 * @throws SchematicException if no {@link Refractor} implementation can
+		 *  be found for one of the column's fields
+		 */
+		public Bundle toBundle( T oSource )
+		throws SchematicException
+		{
+			Bundle bndl = new Bundle() ;
+			for( Column col : this.getColumnMap().values() )
+			{
+				Refractor lens = col.getRefractor() ;
+
+				if( lens == null )
+					throw SchematicException.noLensForColumn( col, null ) ;
+
+				try
+				{
+					// noinspection unchecked - lens corresponds to field
+					lens.addToBundle( bndl, col.getName(),
+							lens.getValueFrom( oSource, col.getField() ) ) ;
+				}
+				catch( IllegalAccessException xAccess )
+				{
+					throw SchematicException.fieldWasInaccessible(
+							m_clsTable.getCanonicalName(),
+							col.getField().getName(),
+							xAccess
+						);
+				}
+				catch( SchematicException xSchema )
+				{
+					Log.e( LOG_TAG, (new StringBuilder())
+								.append( "Could not get value for field [" )
+								.append( col.getField().getName() )
+								.append( "] from a bundle:" )
+								.toString(),
+							xSchema
+						);
+				} // and continue
+			}
+			return bndl ;
+		}
+
+		/**
+		 * Get an instance of an {@link InsertionBuilder} initialized with the
+		 * table name discovered by this reflection.
+		 * @return a builder for an {@code INSERT} statement
+		 */
+		public InsertionBuilder buildInsert()
+		{ return QueryBuilder.insertInto( this.getTableName() ) ; }
+
+		/**
+		 * Get an instance of an {@link UpdateBuilder} initialized with the
+		 * table name discovered by this reflection.
+		 * @return a builder for an {@code UPDATE} statement
+		 */
+		public UpdateBuilder buildUpdate()
+		{ return QueryBuilder.update( this.getTableName() ) ; }
+
+		/**
+		 * Get an instance of a {@link SelectionBuilder} initialized with the
+		 * table name discovered by this reflection.
+		 * @return a builder for a {@code SELECT} statement
+		 */
+		public SelectionBuilder buildSelect()
+		{ return QueryBuilder.selectFrom( this.getTableName() ) ; }
+
+		/**
+		 * Get an instance of a {@link DeletionBuilder} initialized with the
+		 * table name discovered by this reflection.
+		 * @return a builder for a {@code DELETE} statement
+		 */
+		public DeletionBuilder buildDelete()
+		{ return QueryBuilder.deleteFrom( this.getTableName() ) ; }
 	}
 
 	/**
@@ -672,25 +893,27 @@ public interface SQLightable
 		 */
 		public <SC extends SQLightable> Reflection<SC> get( Class<SC> cls )
 		{
-			//noinspection unchecked
+			//noinspection unchecked - guaranteed logically
 			return ((Reflection<SC>)( super.get(cls) )) ;
 		}
 
 		/**
-		 * As {@link Map#put(Object,Object)}, but forces a linkage between the
-		 * generic specifications of the schematic class between the two method
-		 * parameters. This cast is made unchecked; it is up to the consumer to
-		 * ensure that the types match.
+		 * As {@link Map#put(Object,Object)}, but since we can obtain the
+		 * {@link Reflection} instance on-the-fly, it is not required.
 		 * @param cls the schematic class
-		 * @param tbl the reflection of the schematic class
 		 * @param <SC> the schematic class
 		 * @return the previously-mapped reflection, if any
 		 */
-		public <SC extends SQLightable> Reflection<SC> put(
-				Class<SC> cls, Reflection<SC> tbl )
+		public <SC extends SQLightable> Reflection<SC> put( Class<SC> cls )
 		{
-			//noinspection unchecked
-			return ((Reflection<SC>)( super.put( cls, tbl ) ))  ;
+			if( this.containsKey( cls ) )
+				return this.get(cls) ;
+			else
+			{
+				//noinspection unchecked - guaranteed logically
+				return ((Reflection<SC>)
+						( super.put( cls, Reflection.reflect(cls) ) ))  ;
+			}
 		}
 	}
 }

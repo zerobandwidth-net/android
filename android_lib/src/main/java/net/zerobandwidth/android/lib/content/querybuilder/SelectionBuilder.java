@@ -4,11 +4,15 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.OperationCanceledException;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import net.zerobandwidth.android.lib.util.CollectionsZ;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -267,5 +271,60 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 		}
 		catch( Exception x )
 		{ throw new ExecutionException( LOG_TAG, x ) ; }
+	}
+
+	/**
+	 * Creates a bundle that describes the query itself, <i>not</i> the result
+	 * set that it would select. Used to pass the query specification across an
+	 * intent broadcast, in a provider/resolver model. The schema for this
+	 * bundle is consistent and is defined as follows:
+	 *
+	 * <dl>
+	 *     <dt>{@link String} {@code uri}</dt>
+	 *     <dd>The URI at which the query is aimed.</dd>
+	 *     <dt>{@link String}[] {@code columns}</dt>
+	 *     <dd>The list of selection columns. Null implies all columns.</dd>
+	 *     <dt>{@link String} {@code where_format}</dt>
+	 *     <dd>The format string for the query's {@code WHERE} clause.</dd>
+	 *     <dt>{@link String}[] {@code where_params}</dt>
+	 *     <dd>
+	 *         The list of parameters to be substituted in the query's
+	 *         {@code WHERE} clause format string.
+	 *     </dd>
+	 *     <dt>{@link String}[] {@code order_by_cols} <i>(optional)</i></dt>
+	 *     <dd>The list of columns on which the query is to be sorted.</dd>
+	 *     <dt>{@link String}[] {@code order_by_dirs} <i>(optional)</i></dt>
+	 *     <dd>
+	 *         The list of sort directions (ascending/descending) for each
+	 *         column mentioned in {@code order_by_cols}.
+	 *     </dd>
+	 * </dl>
+	 *
+	 * @return a bundle describing the selection query itself
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public Bundle toBundle()
+	{
+		Bundle bndl = new Bundle() ;
+		bndl.putString( "uri", ( this.m_uri != null ?
+				this.m_uri.toString() : null ) ) ;
+		bndl.putStringArray( "columns", this.getColumns() ) ;
+		bndl.putString( "where_format", this.getWhereFormat() ) ;
+		bndl.putStringArray( "where_params", this.getWhereParams() ) ;
+		if( ! this.m_mapSortSpec.isEmpty() )
+		{
+			ArrayList<String> asOrderByCols = new ArrayList<>() ;
+			ArrayList<String> asOrderByDirs = new ArrayList<>() ;
+			for( Map.Entry<String,String> spec : this.m_mapSortSpec.entrySet() )
+			{
+				asOrderByCols.add( spec.getKey() ) ;
+				asOrderByDirs.add( spec.getValue() ) ;
+			}
+			bndl.putStringArray( "order_by_cols",
+					CollectionsZ.of(String.class).toArray(asOrderByCols) ) ;
+			bndl.putStringArray( "order_by_dirs",
+					CollectionsZ.of(String.class).toArray(asOrderByDirs) ) ;
+		}
+		return bndl ;
 	}
 }
