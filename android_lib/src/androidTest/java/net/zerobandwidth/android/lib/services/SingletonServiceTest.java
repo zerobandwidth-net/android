@@ -184,8 +184,13 @@ public class SingletonServiceTest
 	 *
 	 * Note that, because of the way service testing works in Android, this test
 	 * case is inherently unstable, and returns a lot of false negatives.
+	 * Because of this, as of version 0.1.7, the {@code Test} annotation has
+	 * been commented out. In any version in which any changes are made to
+	 * {@link SingletonService}, this test will be enabled and rerun as part of
+	 * the verification process. Until then, because it is so consistently
+	 * unstable, it has been removed.
 	 */
-	@Test
+	//@Test
 	public void testAcrossContexts()
 	{
 		final int ACTIVITY_DELAY_MS = 7500 ; // Activity timeout delay. Tune to taste.
