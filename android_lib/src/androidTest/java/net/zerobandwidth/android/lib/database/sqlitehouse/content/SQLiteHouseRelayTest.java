@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -51,6 +52,40 @@ public class SQLiteHouseRelayTest
 	protected Context m_ctx = null ;
 	protected SQLiteHouseRelay m_relay = null ;
 	protected ValidTestSchemaAPI m_api = new ValidTestSchemaAPI() ;
+
+	/**
+	 * Used to exercise {@link SQLiteHouseRelay}'s listener management methods.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	private class MockRelayListener
+	implements SQLiteHouseRelay.Listener
+	{
+		@Override
+		public void onRowInserted( long nRowID ) {}
+
+		@Override
+		public void onInsertFailed() {}
+
+		@Override
+		public void onRowsUpdated( int nCount ) {}
+
+		@Override
+		public void onUpdateFailed() {}
+
+		@Override
+		public void onRowsDeleted( int nCount ) {}
+
+		@Override
+		public void onDeleteFailed() {}
+
+		@Override
+		public <SC extends SQLightable> void onRowsSelected(
+				Class<SC> cls, int nTotalCount, List<SC> aoRows )
+		{}
+
+		@Override
+		public void onSelectFailed() {}
+	}
 
 	@Before
 	public void setup()
@@ -95,6 +130,28 @@ public class SQLiteHouseRelayTest
 		m_relay.register(m_api) ;
 		m_relay.onReceive( m_ctx, sig ) ;      // kicker: falls through switch()
 	} // Complete execution implies success.
+
+	/**
+	 * Exercises the listener management methods of {@link SQLiteHouseRelay}.
+	 */
+	@Test
+	public void testListenerManagement()
+	{
+		assertNotNull( m_relay.m_vListeners ) ;
+		SQLiteHouseRelay.Listener l = new MockRelayListener() ;
+		m_relay.addListener(l) ;
+		assertEquals( 1, m_relay.m_vListeners.size() ) ;
+		assertTrue( m_relay.m_vListeners.contains(l) ) ;
+		m_relay.addListener(l) ; // Prove idempotence of method.
+		assertEquals( 1, m_relay.m_vListeners.size() ) ;
+
+		m_relay.removeListener(l) ;
+		assertNotNull( m_relay.m_vListeners ) ;
+		assertEquals( 0, m_relay.m_vListeners.size() ) ;
+		m_relay.removeListener(l) ; // Prove idempotence of method.
+		assertNotNull( m_relay.m_vListeners ) ;
+		assertEquals( 0, m_relay.m_vListeners.size() ) ;
+	}
 
 	/**
 	 * Exercises {@link SQLiteHouseRelay#buildInsertSignal}, to verify that we
@@ -340,4 +397,6 @@ public class SQLiteHouseRelayTest
 		bndlRows.add( tbl.toBundle( new Fargle( 3, "baz", 19 ) ) ) ;
 		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
 	} // Complete execution implies success.
+
+
 }

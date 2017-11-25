@@ -117,10 +117,6 @@ public class SQLiteHouseSignalAPITest
 		}
 	}
 
-
-	///////////////////////////////////////////
-
-
 	/**
 	 * Exercises {@link SQLiteHouseSignalAPI#getRelayActions} and
 	 * {@link SQLiteHouseSignalAPI#setRelayActions}.
@@ -214,14 +210,25 @@ public class SQLiteHouseSignalAPITest
 		assertEquals( DEFAULT_EXTRA_TAG_FORMAT, m_api.getExtraTagFormat() ) ;
 	}
 
+	/** Exercises {@link SQLiteHouseSignalAPI#getExtraSchemaClassName}. */
+	@Test
+	public void testGetExtraSchemaClassName()
+	{
+		Intent sig = new Intent() ;
+		final String sExtraName =
+				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
+		sig.putExtra( sExtraName, "foo" ) ;
+		String sValue = m_api.getExtraSchemaClassName(sig) ;
+		assertEquals( "foo", sValue ) ;
+	}
+
 	/** Exercises {@link SQLiteHouseSignalAPI#getClassFromExtra}. */
 	@Test
 	public void testGetClassFromExtra()
 	{
 		Intent sig = new Intent() ;
-		final String sExtraName =
-				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		sig.putExtra( sExtraName, Fargle.class.getCanonicalName() ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
+				Fargle.class.getCanonicalName() ) ;
 		Class<? extends SQLightable> cls = m_api.getClassFromExtra(sig) ;
 		assertNotNull( cls ) ;
 		assertEquals( Fargle.class.getCanonicalName(), cls.getCanonicalName() );

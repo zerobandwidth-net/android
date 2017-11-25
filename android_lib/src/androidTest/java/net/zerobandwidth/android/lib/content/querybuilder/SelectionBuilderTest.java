@@ -9,8 +9,6 @@ import android.support.annotation.RequiresApi;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.ProviderTestCase2;
 
-import net.zerobandwidth.android.lib.content.ContentUtils;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -179,15 +177,22 @@ extends ProviderTestCase2<MockContentProvider>
 		Bundle bndl = qb.toBundle() ;
 		assertEquals( uri.toString(), bndl.getString("uri") ) ;
 		String[] asColumns = bndl.getStringArray("columns") ;
+		assertNotNull(asColumns) ;
 		assertEquals( 3, asColumns.length ) ;
 		assertEquals( "foo", asColumns[0] ) ;
 		assertEquals( "bar", asColumns[1] ) ;
 		assertEquals( "baz", asColumns[2] ) ;
 		assertEquals( "fargle=? AND bargle=?", bndl.getString("where_format") );
-		String[] asWhereParams = bndl.getStringArray("where_columns") ;
+		String[] asWhereParams = bndl.getStringArray("where_params") ;
+		assertNotNull(asWhereParams) ;
 		assertEquals( 2, asWhereParams.length ) ;
 		assertEquals( "FARGLE", asWhereParams[0] ) ;
 		assertEquals( "BARGLE", asWhereParams[1] ) ;
-		assertEquals( "foo DESC", bndl.getString("order_by") ) ;
+		String[] asOrderByCols = bndl.getStringArray("order_by_cols") ;
+		assertNotNull(asOrderByCols) ;
+		assertEquals( "foo", asOrderByCols[0] ) ;
+		String[] asOrderByDirs = bndl.getStringArray("order_by_dirs") ;
+		assertNotNull(asOrderByDirs) ;
+		assertEquals( QUERY_ORDER_DESCENDING, asOrderByDirs[0] ) ;
 	}
 }

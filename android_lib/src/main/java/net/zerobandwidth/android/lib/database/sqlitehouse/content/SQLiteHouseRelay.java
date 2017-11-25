@@ -16,6 +16,8 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
 import net.zerobandwidth.android.lib.database.sqlitehouse.content.exceptions.SQLiteContentException;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
@@ -59,6 +61,70 @@ import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteH
 public class SQLiteHouseRelay
 extends BroadcastReceiver
 {
+/// Inner Classes //////////////////////////////////////////////////////////////
+
+	/**
+	 * Methods that must be implemented by any class that wants to process the
+	 * information received in signals from a {@link SQLiteHouseKeeper}.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public interface Listener
+	{
+		/**
+		 * Called by {@link SQLiteHouseRelay#onRowInserted} to inform the
+		 * listener of a successful insertion.
+		 * @param nRowID the integer ID of the new database row
+		 */
+		void onRowInserted( long nRowID ) ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onInsertFailed} to inform the
+		 * listener of a failed insertion.
+		 */
+		void onInsertFailed() ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onRowsUpdated} to inform the
+		 * listener of a successful update.
+		 * @param nCount the number of rows that were updated
+		 */
+		void onRowsUpdated( int nCount ) ;
+		/**
+		 * Called by {@link SQLiteHouseRelay#onUpdateFailed} to inform the
+		 * listener of a failed update.
+		 */
+		void onUpdateFailed() ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onRowsDeleted} to inform the
+		 * listener of a successful deletion.
+		 * @param nCount the number of rows that were deleted
+		 */
+		void onRowsDeleted( int nCount ) ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onDeleteFailed} to inform the
+		 * listener of a failed deletion.
+		 */
+		void onDeleteFailed() ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onRowsSelected} to pass the results
+		 * of a successful selection to the listener.
+		 * @param cls the schematic class that will marshal the data
+		 * @param nTotalCount the total number of rows
+		 * @param aoRows the rows themselves, already marshalled
+		 * @param <SC> the schematic class
+		 */
+		<SC extends SQLightable> void onRowsSelected( Class<SC> cls, int nTotalCount, List<SC> aoRows ) ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onSelectFailed} to inform the
+		 * listener of a failed selection.
+		 */
+		void onSelectFailed() ;
+	}
+
 /// Static constants ///////////////////////////////////////////////////////////
 
 	public static final String LOG_TAG = SQLiteHouseRelay.class.getSimpleName();
@@ -71,6 +137,9 @@ extends BroadcastReceiver
 	/** A reference for the contract under which the relay is registered. */
 	protected SQLiteHouseSignalAPI m_api = null ;
 
+	/** The set of active listeners. */
+	protected Vector<Listener> m_vListeners = null ;
+
 /// Constructors and initializers //////////////////////////////////////////////
 
 	/**
@@ -80,6 +149,7 @@ extends BroadcastReceiver
 	public SQLiteHouseRelay( Context ctx )
 	{
 		m_ctx = ctx ;
+		m_vListeners = new Vector<>() ;
 	}
 
 	/**
@@ -160,11 +230,41 @@ extends BroadcastReceiver
 				this.onRowsSelected( sig ) ;
 				break ;
 			case RELAY_NOTIFY_SELECT_FAILED:
-				this.onSelectionFailed( sig ) ;
+				this.onSelectFailed( sig ) ;
 				break ;
 			default:
 				this.handleCustomAction( ctx, sig, sActionToken ) ;
 		}
+	}
+
+/// Listener management ////////////////////////////////////////////////////////
+
+	/**
+	 * Registers a listener.
+	 * The method is idempotent; if the same listener is passed multiple times,
+	 * then it will be added only if it is not already present.
+	 * @param l the listener to be registered
+	 * @return (fluid)
+	 */
+	public SQLiteHouseRelay addListener( Listener l )
+	{
+		if( ! m_vListeners.contains(l) )
+			m_vListeners.add(l) ;
+		return this ;
+	}
+
+	/**
+	 * Unregisters a listener.
+	 * The method is idempotent; if the same listener is passed multiple times,
+	 * then it will be removed only if it is still present.
+	 * @param l the listener to be removed
+	 * @return (fluid)
+	 */
+	public SQLiteHouseRelay removeListener( Listener l )
+	{
+		if( m_vListeners.contains(l) )
+			m_vListeners.remove(l) ;
+		return this ;
 	}
 
 /// Action handlers ////////////////////////////////////////////////////////////
@@ -194,23 +294,22 @@ extends BroadcastReceiver
 	 */
 	protected synchronized void onRowInserted( Intent sig )
 	{
-		final String sExtraRowID =
-				m_api.getFormattedExtraTag( EXTRA_INSERT_ROW_ID ) ;
-		final String sExtraClass =
-				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		if( sig.hasExtra( sExtraClass ) && sig.hasExtra( sExtraRowID ) )
-		{ // Notify anything that cares about the insertion.
-			Log.i( LOG_TAG, (new StringBuilder())
-					.append( "Row ID [" )
-					.append( sig.getLongExtra( sExtraRowID, INSERT_FAILED ) )
-					.append( "] of type [" )
-					.append( sig.getStringExtra( sExtraClass ) )
-					.append( "] inserted into the database." )
-					.toString()
-				);
-		}
-		else
-		{ Log.i( LOG_TAG, "A row has been inserted into the database." ) ; }
+		long nRowID = sig.getLongExtra(
+				m_api.getFormattedExtraTag( EXTRA_INSERT_ROW_ID ),
+				INSERT_FAILED
+			);
+		String sClass = m_api.getExtraSchemaClassName(sig) ;
+		Log.i( LOG_TAG, (new StringBuilder())
+				.append( "Row ID [" )
+				.append(( nRowID == INSERT_FAILED ? "(unknown)" : nRowID ))
+				.append( "] of class [" )
+				.append(( sClass == null ? "(unknown)" : sClass ))
+				.append( "] inserted into the database." )
+				.toString()
+			);
+
+		for( Listener l : m_vListeners )
+			l.onRowInserted(nRowID) ;
 	}
 
 	/**
@@ -219,19 +318,16 @@ extends BroadcastReceiver
 	 */
 	protected synchronized void onInsertFailed( Intent sig )
 	{
-		final String sExtraClass =
-				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		if( sig.hasExtra( sExtraClass ) )
-		{ // Notify anything that cares that the insertion failed.
-			Log.e( LOG_TAG, (new StringBuilder())
-					.append( "Keeper failed to insert a row of type [" )
-					.append( sig.getStringExtra( sExtraClass ) )
-					.append( "]." )
-					.toString()
-				);
-		}
-		else
-			Log.e( LOG_TAG, "Keeper failed to insert a row." ) ;
+		String sClass = m_api.getExtraSchemaClassName(sig) ;
+		Log.e( LOG_TAG, (new StringBuilder())
+				.append( "Keeper failed to insert a row of type [" )
+				.append(( sClass == null ? "(unknown)" : sClass ))
+				.append( "]." )
+				.toString()
+			);
+
+		for( Listener l : m_vListeners )
+			l.onInsertFailed() ;
 	}
 
 
@@ -241,25 +337,22 @@ extends BroadcastReceiver
 	 */
 	protected synchronized void onRowsUpdated( Intent sig )
 	{
-		final String sExtraClass =
-				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		final String sExtraRowCount =
-				m_api.getFormattedExtraTag(EXTRA_RESULT_ROW_COUNT) ;
-		if( sig.hasExtra( sExtraClass ) && sig.hasExtra( sExtraRowCount ) )
-		{ // Notify anything that cares about the update.
-			int nCount = sig.getIntExtra( sExtraRowCount, UPDATE_FAILED ) ;
-			Log.i( LOG_TAG, (new StringBuilder())
-					.append( "Updated [" )
-					.append( nCount )
-					.append(( nCount == 1 ? "] row" : "] rows" ))
-					.append( " in table [" )
-					.append( sig.getStringExtra( sExtraClass ) )
-					.append( "]." )
-					.toString()
-				);
-		}
-		else
-		{ Log.i( LOG_TAG, "At least one row was updated." ) ; }
+		int nCount = sig.getIntExtra(
+				m_api.getFormattedExtraTag( EXTRA_RESULT_ROW_COUNT ),
+				UPDATE_FAILED
+			);
+		String sClass = m_api.getExtraSchemaClassName(sig) ;
+		Log.i( LOG_TAG, (new StringBuilder())
+				.append( "Updated [" )
+				.append(( nCount == UPDATE_FAILED ? "(unknown)" : nCount ))
+				.append(( nCount == 1 ? "] row of type [" : "] rows of type [" ))
+				.append(( sClass == null ? "(unknown)" : sClass ))
+				.append( "]." )
+				.toString()
+			);
+
+		for( Listener l : m_vListeners )
+			l.onRowsUpdated(nCount) ;
 	}
 
 	/**
@@ -268,19 +361,16 @@ extends BroadcastReceiver
 	 */
 	protected synchronized void onUpdateFailed( Intent sig )
 	{
-		final String sExtraClass =
-				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		if( sig.hasExtra( sExtraClass ) )
-		{ // Notify anything that cares that the update failed.
-			Log.e( LOG_TAG, (new StringBuilder())
-					.append( "Keeper failed to update rows of type [" )
-					.append( sig.getStringExtra( sExtraClass ) )
-					.append( "]." )
-					.toString()
-				);
-		}
-		else
-		{ Log.e( LOG_TAG, "Keeper failed to update rows." ) ; }
+		String sClass = m_api.getExtraSchemaClassName(sig) ;
+		Log.e( LOG_TAG, (new StringBuilder())
+				.append( "Keeper failed to update rows of type [" )
+				.append(( sClass == null ? "(unknown)" : sClass ))
+				.append( "]." )
+				.toString()
+			);
+
+		for( Listener l : m_vListeners )
+			l.onUpdateFailed() ;
 	}
 
 	/**
@@ -289,25 +379,22 @@ extends BroadcastReceiver
 	 */
 	protected synchronized void onRowsDeleted( Intent sig )
 	{
-		final String sExtraClass =
-				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		final String sExtraRowCount =
-				m_api.getFormattedExtraTag( EXTRA_RESULT_ROW_COUNT ) ;
-		if( sig.hasExtra(sExtraClass) && sig.hasExtra(sExtraRowCount) )
-		{
-			int nCount = sig.getIntExtra( sExtraRowCount, DELETE_FAILED ) ;
-			Log.i( LOG_TAG, (new StringBuilder())
-					.append( "Deleted [" )
-					.append( nCount )
-					.append(( nCount == 1 ? "] row" : "] rows" ))
-					.append( " from table [" )
-					.append( sig.getStringExtra( sExtraClass ) )
-					.append( "]." )
-					.toString()
-				);
-		}
-		else
-		{ Log.i( LOG_TAG, "At least one row was deleted." ) ; }
+		int nCount = sig.getIntExtra(
+				m_api.getFormattedExtraTag( EXTRA_RESULT_ROW_COUNT ),
+				DELETE_FAILED
+			);
+		String sClass = m_api.getExtraSchemaClassName(sig) ;
+		Log.i( LOG_TAG, (new StringBuilder())
+				.append( "Deleted [" )
+				.append(( nCount == DELETE_FAILED ? "(unknown)" : nCount ))
+				.append(( nCount == 1 ? "] row of type [" : "] rows of type [" ))
+				.append(( sClass == null ? "(unknown)" : sClass ))
+				.append( "]." )
+				.toString()
+			);
+
+		for( Listener l : m_vListeners )
+			l.onRowsDeleted(nCount) ;
 	}
 
 	/**
@@ -316,19 +403,16 @@ extends BroadcastReceiver
 	 */
 	protected synchronized void onDeleteFailed( Intent sig )
 	{
-		final String sExtraClass =
-				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		if( sig.hasExtra( sExtraClass ) )
-		{ // Notify anything that cares that the deletion failed.
-			Log.e( LOG_TAG, (new StringBuilder())
-					.append( "Keeper failed to delete rows of type [" )
-					.append( sig.getStringExtra( sExtraClass ) )
-					.append( "]." )
-					.toString()
-				);
-		}
-		else
-		{ Log.e( LOG_TAG, "Keeper failed to delete rows." ) ; }
+		String sClass = m_api.getExtraSchemaClassName(sig) ;
+		Log.e( LOG_TAG, (new StringBuilder())
+				.append( "Keeper failed to delete rows of type [" )
+				.append(( sClass == null ? "(unknown)" : sClass ))
+				.append( "]." )
+				.toString()
+			);
+
+		for( Listener l : m_vListeners )
+			l.onDeleteFailed() ;
 	}
 
 	/**
@@ -344,10 +428,10 @@ extends BroadcastReceiver
 		if( nCount == -1 )
 		{ // Short-circuit; signal doesn't tell us how many results there are.
 			Log.w( LOG_TAG, "No row count included in selection results." ) ;
-			return ;
+			this.onSelectFailed(sig) ;
 		}
 
-		Class<SC> cls ;
+		Class<SC> cls = null ;
 		try { cls = m_api.getClassFromExtra(sig) ; }
 		catch( SQLiteContentException x )
 		{ // Short-circuit; can't figure out how to marshal results.
@@ -358,13 +442,13 @@ extends BroadcastReceiver
 					.append( "from the keeper's signal." )
 					.toString()
 				, x );
-			return ;
+			this.onSelectFailed(sig) ;
 		}
 		String sExtra = m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;
 		if( ! sig.hasExtra(sExtra) )
 		{ // Short-circuit; can't find the data extra (should at least be empty)
 			Log.w( LOG_TAG, "Selection result signal had no data." ) ;
-			return ;
+			this.onSelectFailed(sig) ;
 		}
 		Parcelable[] apclRows = sig.getParcelableArrayExtra(sExtra) ;
 		if( apclRows == null ) return ;
@@ -372,27 +456,27 @@ extends BroadcastReceiver
 		SQLightable.Reflection<SC> tbl = m_api.reflect(cls) ;
 		for( Parcelable pclRow : apclRows )
 			aoRows.add( tbl.fromBundle( ((Bundle)(pclRow)) ) ) ;
+
+		for( Listener l : m_vListeners )
+			l.onRowsSelected( cls, nCount, aoRows ) ;
 	}
 
 	/**
 	 * Handles a signal from the keeper that a row selection failed.
 	 * @param sig the received signal
 	 */
-	protected synchronized void onSelectionFailed( Intent sig )
+	protected synchronized void onSelectFailed( Intent sig )
 	{
-		final String sExtraClass =
-				m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		if( sig.hasExtra( sExtraClass ) )
-		{ // Notify anything that cares that the selection failed.
-			Log.e( LOG_TAG, (new StringBuilder())
-					.append( "Keeper failed to select rows of type [" )
-					.append( sig.getStringExtra( sExtraClass ) )
-					.append( "]." )
-					.toString()
-				);
-		}
-		else
-		{ Log.e( LOG_TAG, "Keeper failed to select rows." ) ; }
+		String sClass = m_api.getExtraSchemaClassName(sig) ;
+		Log.e( LOG_TAG, (new StringBuilder())
+				.append( "Keeper failed to select rows of type [" )
+				.append(( sClass == null ? "(unknown)" : sClass ))
+				.append( "]." )
+				.toString()
+			);
+
+		for( Listener l : m_vListeners )
+			l.onSelectFailed() ;
 	}
 
 /// Broadcasts to SQLiteHouseKeeper ////////////////////////////////////////////

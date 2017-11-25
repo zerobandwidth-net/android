@@ -350,6 +350,18 @@ public abstract class SQLiteHouseSignalAPI
 	}
 
 	/**
+	 * Shorthand to retrieve the schematic class name, which is used by almost
+	 * every keeper and relay function.
+	 * @param sig the intent
+	 * @return the schematic class name as given in the intent
+	 */
+	public String getExtraSchemaClassName( Intent sig )
+	{
+		return sig.getStringExtra( this.getFormattedExtraTag(
+				EXTRA_SCHEMA_CLASS_NAME ) ) ;
+	}
+
+	/**
 	 * Discovers and returns the schematic class definition that is named in an
 	 * intent sent from a relay to a keeper.
 	 * @param sig the intent
@@ -365,10 +377,7 @@ public abstract class SQLiteHouseSignalAPI
 	public <SC extends SQLightable> Class<SC> getClassFromExtra( Intent sig )
 			throws IntrospectionException, SQLiteContentException
 	{
-		String sExtra = this.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ) ;
-		if( ! sig.hasExtra( sExtra ) )
-			throw SQLiteContentException.expectedExtraNotFound( sExtra, null ) ;
-		String sClass = sig.getStringExtra( sExtra ) ;
+		String sClass = this.getExtraSchemaClassName(sig) ;
 		if( sClass == null || sClass.isEmpty() )
 			throw SQLiteContentException.noClassSpecified(null) ;
 		try
