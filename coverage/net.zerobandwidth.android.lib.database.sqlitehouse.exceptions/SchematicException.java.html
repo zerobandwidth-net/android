@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SchematicException.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.database.sqlitehouse.exceptions</a> &gt; <span class="el_source">SchematicException.java</span></div><h1>SchematicException.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.database.sqlitehouse.exceptions;
 
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+
+import java.lang.reflect.Field;
+import java.util.List;
+
 /**
  * Thrown by
  * {@link net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse}
@@ -7,7 +12,6 @@
  * in some schematic class.
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
-@SuppressWarnings(&quot;unused&quot;) // This is a library.
 public class SchematicException
 extends RuntimeException
 {
@@ -23,11 +27,11 @@ extends RuntimeException
 	public static SchematicException fieldWasInaccessible(
 			String sClassName, String sFieldName, IllegalAccessException xAccess )
 	{
-<span class="nc" id="L26">		return new SchematicException( (new StringBuilder())</span>
-<span class="nc" id="L27">				.append( &quot;Field [&quot; ).append( sFieldName )</span>
-<span class="nc" id="L28">				.append( &quot;] in class [&quot; ).append( sClassName )</span>
-<span class="nc" id="L29">				.append( &quot;] was inaccessible. This shouldn't be possible!&quot; )</span>
-<span class="nc" id="L30">				.toString()</span>
+<span class="nc" id="L30">		return new SchematicException( (new StringBuilder())</span>
+<span class="nc" id="L31">				.append( &quot;Field [&quot; ).append( sFieldName )</span>
+<span class="nc" id="L32">				.append( &quot;] in class [&quot; ).append( sClassName )</span>
+<span class="nc" id="L33">				.append( &quot;] was inaccessible. This shouldn't be possible!&quot; )</span>
+<span class="nc" id="L34">				.toString()</span>
 			, xAccess ) ;
 	}
 
@@ -45,30 +49,131 @@ extends RuntimeException
 	 * @since zerobandwidth-net/android 0.1.6 (#47)
 	 */
 	public static SchematicException columnNotFound(
-			String sClassName, String sFieldName, String sTableName, Exception x )
+			String sClassName, String sFieldName, String sTableName, Throwable x )
 	{
-<span class="nc" id="L50">		return new SchematicException( (new StringBuilder())</span>
-<span class="nc" id="L51">				.append( &quot;Column for field [&quot; ).append( sFieldName )</span>
-<span class="nc" id="L52">				.append( &quot;] in class [&quot; ).append( sClassName )</span>
-<span class="nc" id="L53">				.append( &quot;] not found in table [&quot; ).append( sTableName )</span>
-<span class="nc" id="L54">				.append( &quot;]; versions or annotations might be mismatched.&quot; )</span>
-<span class="nc" id="L55">				.toString()</span>
+<span class="nc" id="L54">		return new SchematicException( (new StringBuilder())</span>
+<span class="nc" id="L55">				.append( &quot;Column for field [&quot; ).append( sFieldName )</span>
+<span class="nc" id="L56">				.append( &quot;] in class [&quot; ).append( sClassName )</span>
+<span class="nc" id="L57">				.append( &quot;] not found in table [&quot; ).append( sTableName )</span>
+<span class="nc" id="L58">				.append( &quot;]; versions or annotations might be mismatched.&quot; )</span>
+<span class="nc" id="L59">				.toString()</span>
 			, x ) ;
+	}
+
+	/**
+	 * Returns an exception to be thrown when a field that was supposed to
+	 * represent a column isn't properly annotated.
+	 * @param fld the field
+	 * @return a new exception with an informative message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException fieldNotAnnotated( Field fld )
+	{
+<span class="fc" id="L72">		return new SchematicException( (new StringBuilder())</span>
+<span class="fc" id="L73">				.append( &quot;Cannot analyze field [&quot; ).append( fld.getName() )</span>
+<span class="fc" id="L74">				.append( &quot;] of class [&quot; )</span>
+<span class="fc" id="L75">				.append( fld.getDeclaringClass().getCanonicalName() )</span>
+<span class="fc" id="L76">				.append( &quot;]: Field is not properly annotated.&quot; )</span>
+<span class="fc" id="L77">				.toString()</span>
+			);
+	}
+
+	/**
+	 * Returns an exception to be thrown when an attempt to create or update the
+	 * SQLite database fails because the SQL statement failed.
+	 * @param refl a reflection of the schematic class that failed
+	 * @param sSQL the SQL statement that was executed
+	 * @param xCause the root cause of the failure, if any (may be null)
+	 * @return a new exception with an informative message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException tableCreationOrUpdateFailed(
+			SQLightable.Reflection refl, String sSQL, Throwable xCause )
+	{
+<span class="nc" id="L93">		String sMessage = (new StringBuilder())</span>
+<span class="nc" id="L94">				.append( &quot;Failed to create table for class [&quot; )</span>
+<span class="nc" id="L95">				.append( refl.getTableClass().getCanonicalName() )</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">				.append( &quot;] when executing SQL statement: &quot; )</span>
+<span class="nc" id="L97">				.append(( sSQL == null ? &quot;(null)&quot; : sSQL ))</span>
+<span class="nc" id="L98">				.toString()</span>
+				;
+<span class="nc" id="L100">		return new SchematicException( sMessage, xCause ) ;</span>
+	}
+
+	/**
+	 * Returns an exception to be thrown when a column operation cannot continue
+	 * because the column's
+	 * {@link net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor}
+	 * implementation cannot be determined.
+	 * @param col the column on which the operation would be performed
+	 * @param xCause the cause of the failure, if any (may be null)
+	 * @return a new exception with an informative error message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException noLensForColumn(
+			SQLightable.Reflection.Column col, Throwable xCause )
+<span class="fc" id="L115">	{ return noLensForField( col.getField(), xCause ) ; }</span>
+
+	/**
+	 * Returns an exception to be thrown when an operation cannot continue
+	 * because a field/column's
+	 * {@link net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor}
+	 * implementation cannot be determined
+	 * @param fld the field on which the operation would be performed
+	 * @param xCause the cause of the failure, if any (may be null)
+	 * @return a new exception with an informative error message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException noLensForField( Field fld, Throwable xCause )
+	{
+<span class="fc" id="L129">		String sMessage = (new StringBuilder())</span>
+<span class="fc" id="L130">				.append( &quot;No refractor implementation found for field [&quot; )</span>
+<span class="fc" id="L131">				.append( fld.getName() )</span>
+<span class="fc" id="L132">				.append( &quot;] of class [&quot; )</span>
+<span class="fc" id="L133">				.append( fld.getDeclaringClass().getCanonicalName() )</span>
+<span class="fc" id="L134">				.append( &quot;].&quot; )</span>
+<span class="fc" id="L135">				.toString()</span>
+				;
+<span class="fc" id="L137">		return new SchematicException( sMessage, xCause ) ;</span>
+	}
+
+	/**
+	 * Returns an exception to be thrown when a method tries to operate on a
+	 * schematic class that is not actually part of a defined schema.
+	 * @param cls the class that is not part of the schema
+	 * @param aclsSchema the classes that are part of the schema
+	 * @return a new exception with an informative error message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static SchematicException classNotInSchema(
+			Class&lt;? extends SQLightable&gt; cls,
+			List&lt;Class&lt;? extends SQLightable&gt;&gt; aclsSchema )
+	{
+<span class="fc" id="L152">		StringBuilder sb = (new StringBuilder())</span>
+<span class="fc" id="L153">			.append( &quot;Class [&quot; ).append( cls.getSimpleName() )</span>
+<span class="fc" id="L154">			.append( &quot;] is not part of the schema: { &quot; )</span>
+			;
+<span class="fc bfc" id="L156" title="All 2 branches covered.">		for( Class&lt;? extends SQLightable&gt; clsSchema : aclsSchema )</span>
+<span class="fc" id="L157">			sb.append( clsSchema.getSimpleName() ).append( &quot; &quot; ) ;</span>
+<span class="fc" id="L158">		sb.append( &quot;}&quot; ) ;</span>
+<span class="fc" id="L159">		return new SchematicException( sb.toString() ) ;</span>
 	}
 
 	public static final String DEFAULT_MESSAGE =
 			&quot;Defined database schema does not support this operation.&quot; ;
 
+	@SuppressWarnings( &quot;unused&quot; )
 	public SchematicException()
-<span class="nc" id="L63">	{ super( DEFAULT_MESSAGE ) ; }</span>
+<span class="nc" id="L167">	{ super( DEFAULT_MESSAGE ) ; }</span>
 
 	public SchematicException( String sMessage )
-<span class="nc" id="L66">	{ super( sMessage ) ; }</span>
+<span class="fc" id="L170">	{ super( sMessage ) ; }</span>
 
+	@SuppressWarnings( &quot;unused&quot; )
 	public SchematicException( Throwable xCause )
-<span class="nc" id="L69">	{ super( DEFAULT_MESSAGE, xCause ) ; }</span>
+<span class="nc" id="L174">	{ super( DEFAULT_MESSAGE, xCause ) ; }</span>
 
 	public SchematicException( String sMessage, Throwable xCause )
-<span class="nc" id="L72">	{ super( sMessage, xCause ) ; }</span>
+<span class="fc" id="L177">	{ super( sMessage, xCause ) ; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

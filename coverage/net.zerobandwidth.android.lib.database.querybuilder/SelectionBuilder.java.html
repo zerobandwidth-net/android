@@ -4,10 +4,18 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_GROUP_BY;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_HAVING;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_LIMIT;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_BY;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_WHERE;
 
 /**
  * Builds a SQLite {@code SELECT} query.
@@ -37,27 +45,29 @@ import java.util.Vector;
  * @since zerobandwidth-net/android 0.1.1 (#20)
  * @see SQLiteDatabase#query
  */
-@SuppressWarnings( &quot;unused&quot; )                              // This is a library.
 public class SelectionBuilder
 extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 {
 	/**
-	 * Specifies that the selection should include all columns.
-	 * @see #columns(String...)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SELECT_ALL}
 	 */
-<span class="fc" id="L48">	public static final String SELECT_ALL_COLUMNS = null ;</span>
+	@SuppressWarnings( &quot;unused&quot; ) // Great!
+<span class="fc" id="L56">	public static final String SELECT_ALL_COLUMNS = SQLiteSyntax.SELECT_ALL ;</span>
 
 	/**
-	 * Specifies that a column should be ordered ascending.
-	 * @see #orderBy(String, String)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SQL_ORDER_ASC}
 	 */
-	public static final String ORDER_ASC = &quot;ASC&quot; ;
+	@SuppressWarnings( &quot;unused&quot; ) // Great!
+	public static final String ORDER_ASC = SQLiteSyntax.SQL_ORDER_ASC ;
 
 	/**
-	 * Specifies that a column should be ordered descending.
-	 * @see #orderBy(String, String)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SQL_ORDER_DESC}
 	 */
-	public static final String ORDER_DESC = &quot;DESC&quot; ;
+	@SuppressWarnings( &quot;unused&quot; ) // Great!
+	public static final String ORDER_DESC = SQLiteSyntax.SQL_ORDER_DESC ;
 
 	/**
 	 * Specifies that no result count limit should be enforced.
@@ -65,48 +75,30 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 */
 	public static final int NO_LIMIT = -1 ;
 
-	protected static final String SQL_SELECT = &quot;SELECT &quot; ;
-
-	protected static final String SQL_ALL_COLUMNS = &quot;*&quot; ;
-
-	protected static final String SQL_FROM = &quot; FROM &quot; ;
-
-	protected static final String SQL_GROUP_BY = &quot; GROUP BY &quot; ;
-
-	protected static final String SQL_HAVING = &quot; HAVING &quot; ;
-
-	protected static final String SQL_ORDER_BY = &quot; ORDER BY &quot; ;
-
-	protected static final String SQL_ORDER_ASCENDING = &quot; ASC &quot; ;
-
-	protected static final String SQL_ORDER_DESCENDING = &quot; DESC &quot; ;
-
-	protected static final String SQL_LIMIT = &quot; LIMIT &quot; ;
-
 	/** Flag specifying whether to select distinct results. */
-<span class="fc" id="L87">	protected boolean m_bDistinct = false ;</span>
+<span class="fc" id="L79">	protected boolean m_bDistinct = false ;</span>
 
 	/** The columns to be selected. */
-<span class="fc" id="L90">	protected Vector&lt;String&gt; m_vColumns = null ;</span>
+<span class="fc" id="L82">	protected Vector&lt;String&gt; m_vColumns = null ;</span>
 
 	/** The SQLite {@code GROUP BY} clause to be used, if any. */
-<span class="fc" id="L93">	protected String m_sGroupBy = null ;</span>
+<span class="fc" id="L85">	protected String m_sGroupBy = null ;</span>
 
 	/** The SQLite {@code HAVING} clause to be used, if any. */
-<span class="fc" id="L96">	protected String m_sHaving = null ;</span>
+<span class="fc" id="L88">	protected String m_sHaving = null ;</span>
 
 	/** The mapping of SQLite {@code ORDER BY} clauses and directions, if any. */
-<span class="fc" id="L99">	protected HashMap&lt;String,String&gt; m_mapOrderBy = null ;</span>
+<span class="fc" id="L91">	protected HashMap&lt;String,String&gt; m_mapOrderBy = null ;</span>
 
 	/** A limit on the number of results to be returned, if any. */
-<span class="fc" id="L102">	protected int m_nLimit = NO_LIMIT ;</span>
+<span class="fc" id="L94">	protected int m_nLimit = NO_LIMIT ;</span>
 
 	public SelectionBuilder( String sTableName )
 	{
-<span class="fc" id="L106">		super( sTableName ) ;</span>
-<span class="fc" id="L107">		this.initColumns() ;</span>
-<span class="fc" id="L108">		m_mapOrderBy = new HashMap&lt;&gt;() ;</span>
-<span class="fc" id="L109">	}</span>
+<span class="fc" id="L98">		super( sTableName ) ;</span>
+<span class="fc" id="L99">		this.initColumns() ;</span>
+<span class="fc" id="L100">		m_mapOrderBy = new HashMap&lt;&gt;() ;</span>
+<span class="fc" id="L101">	}</span>
 
 	/**
 	 * Initializes the vector of columns to be shown, if limited.
@@ -114,9 +106,9 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 */
 	protected SelectionBuilder initColumns()
 	{
-<span class="fc bfc" id="L117" title="All 2 branches covered.">		if( m_vColumns == null )</span>
-<span class="fc" id="L118">			m_vColumns = new Vector&lt;&gt;() ;</span>
-<span class="fc" id="L119">		return this ;</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">		if( m_vColumns == null )</span>
+<span class="fc" id="L110">			m_vColumns = new Vector&lt;&gt;() ;</span>
+<span class="fc" id="L111">		return this ;</span>
 	}
 
 	/**
@@ -125,21 +117,21 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 * @return (fluid)
 	 */
 	public SelectionBuilder distinct( boolean b )
-<span class="fc" id="L128">	{ m_bDistinct = b ; return this ; }</span>
+<span class="fc" id="L120">	{ m_bDistinct = b ; return this ; }</span>
 
 	/**
 	 * Specifies that selection results should be distinct.
 	 * @return (fluid)
 	 */
 	public SelectionBuilder distinct()
-<span class="fc" id="L135">	{ return this.distinct(true) ; }</span>
+<span class="fc" id="L127">	{ return this.distinct(true) ; }</span>
 
 	/**
 	 * Specifies that all columns should be selected (default).
 	 * @return (fluid)
 	 */
 	public SelectionBuilder allColumns()
-<span class="fc" id="L142">	{ m_vColumns = null ; return this ; }</span>
+<span class="fc" id="L134">	{ m_vColumns = null ; return this ; }</span>
 
 	/**
 	 * Sets the columns that should be returned in the selection set.
@@ -152,12 +144,12 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 */
 	public SelectionBuilder columns( String... asColumns )
 	{
-<span class="pc bpc" id="L155" title="1 of 2 branches missed.">		if( asColumns == null ) // or SELECT_ALL_COLUMNS</span>
-<span class="nc" id="L156">		{ m_vColumns = null ; return this ; }</span>
-<span class="fc" id="L157">		this.initColumns() ;</span>
-<span class="fc bfc" id="L158" title="All 2 branches covered.">		for( String sColumn : asColumns )</span>
-<span class="pc bpc" id="L159" title="1 of 2 branches missed.">			if( ! m_vColumns.contains( sColumn ) ) m_vColumns.add( sColumn ) ;</span>
-<span class="fc" id="L160">		return this ;</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">		if( asColumns == null ) // or SQLiteSyntax.SELECT_ALL_COLUMNS</span>
+<span class="nc" id="L148">		{ m_vColumns = null ; return this ; }</span>
+<span class="fc" id="L149">		this.initColumns() ;</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">		for( String sColumn : asColumns )</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">			if( ! m_vColumns.contains( sColumn ) ) m_vColumns.add( sColumn ) ;</span>
+<span class="fc" id="L152">		return this ;</span>
 	}
 
 	/**
@@ -171,12 +163,12 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 */
 	public SelectionBuilder columns( Collection&lt;String&gt; asColumns )
 	{
-<span class="pc bpc" id="L174" title="1 of 2 branches missed.">		if( asColumns == null ) // or SELECT_ALL_COLUMNS</span>
-<span class="nc" id="L175">		{ m_vColumns = null ; return this ; }</span>
-<span class="fc" id="L176">		this.initColumns() ;</span>
-<span class="fc bfc" id="L177" title="All 2 branches covered.">		for( String sColumn : asColumns )</span>
-<span class="pc bpc" id="L178" title="1 of 2 branches missed.">			if( ! m_vColumns.contains( sColumn ) ) m_vColumns.add( sColumn ) ;</span>
-<span class="fc" id="L179">		return this ;</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">		if( asColumns == null ) // or SQLiteSyntax.SELECT_ALL_COLUMNS</span>
+<span class="nc" id="L167">		{ m_vColumns = null ; return this ; }</span>
+<span class="fc" id="L168">		this.initColumns() ;</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">		for( String sColumn : asColumns )</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">			if( ! m_vColumns.contains( sColumn ) ) m_vColumns.add( sColumn ) ;</span>
+<span class="fc" id="L171">		return this ;</span>
 	}
 
 	/**
@@ -185,10 +177,10 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 */
 	protected String[] getColumnList()
 	{
-<span class="fc bfc" id="L188" title="All 4 branches covered.">		if( m_vColumns == null || m_vColumns.isEmpty() )</span>
-<span class="fc" id="L189">			return null ;</span>
+<span class="fc bfc" id="L180" title="All 4 branches covered.">		if( m_vColumns == null || m_vColumns.isEmpty() )</span>
+<span class="fc" id="L181">			return null ;</span>
 		else
-<span class="fc" id="L191">			return m_vColumns.toArray( new String[m_vColumns.size()] ) ;</span>
+<span class="fc" id="L183">			return m_vColumns.toArray( new String[m_vColumns.size()] ) ;</span>
 	}
 
 	/**
@@ -198,7 +190,7 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 * @return (fluid)
 	 */
 	public SelectionBuilder groupBy( String sGroupByClause )
-<span class="fc" id="L201">	{ m_sGroupBy = sGroupByClause ; return this ; }</span>
+<span class="fc" id="L193">	{ m_sGroupBy = sGroupByClause ; return this ; }</span>
 
 	/**
 	 * Specifies the SQLite {@code HAVING} clause for the selection.
@@ -206,8 +198,9 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 * @param sHavingClause the SQLite {@code HAVING} clause
 	 * @return (fluid)
 	 */
+	@SuppressWarnings(&quot;unused&quot;) // TODO Unit test this.
 	public SelectionBuilder having( String sHavingClause )
-<span class="nc" id="L210">	{ m_sHaving = sHavingClause ; return this ; }</span>
+<span class="nc" id="L203">	{ m_sHaving = sHavingClause ; return this ; }</span>
 
 	/**
 	 * Adds an SQLite {@code ORDER BY} clause to the selection.
@@ -221,9 +214,9 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 */
 	public SelectionBuilder orderBy( String sColumnName, String sDirection )
 	{
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">		if( ! m_mapOrderBy.containsKey( sColumnName ) )</span>
-<span class="fc" id="L225">			m_mapOrderBy.put( sColumnName, sDirection ) ;</span>
-<span class="fc" id="L226">		return this ;</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">		if( ! m_mapOrderBy.containsKey( sColumnName ) )</span>
+<span class="fc" id="L218">			m_mapOrderBy.put( sColumnName, sDirection ) ;</span>
+<span class="fc" id="L219">		return this ;</span>
 	}
 
 	/**
@@ -236,12 +229,12 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 */
 	public SelectionBuilder orderBy( String sColumnName )
 	{
-<span class="fc bfc" id="L239" title="All 2 branches covered.">		if( sColumnName == null )</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">		if( sColumnName == null )</span>
 		{
-<span class="fc" id="L241">			m_mapOrderBy.clear() ;</span>
-<span class="fc" id="L242">			return this ;</span>
+<span class="fc" id="L234">			m_mapOrderBy.clear() ;</span>
+<span class="fc" id="L235">			return this ;</span>
 		}
-<span class="fc" id="L244">		else return this.orderBy( sColumnName, ORDER_ASC ) ;</span>
+<span class="fc" id="L237">		else return this.orderBy( sColumnName, SQLiteSyntax.SQL_ORDER_ASC ) ;</span>
 	}
 
 	/**
@@ -250,18 +243,18 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 */
 	protected String getOrderByClause()
 	{
-<span class="pc bpc" id="L253" title="1 of 4 branches missed.">		if( m_mapOrderBy == null || m_mapOrderBy.isEmpty() )</span>
-<span class="fc" id="L254">			return null ;</span>
-<span class="fc" id="L255">		StringBuilder sb = new StringBuilder() ;</span>
-<span class="fc bfc" id="L256" title="All 2 branches covered.">		for( Map.Entry&lt;String,String&gt; o : m_mapOrderBy.entrySet() )</span>
+<span class="pc bpc" id="L246" title="1 of 4 branches missed.">		if( m_mapOrderBy == null || m_mapOrderBy.isEmpty() )</span>
+<span class="fc" id="L247">			return null ;</span>
+<span class="fc" id="L248">		StringBuilder sb = new StringBuilder() ;</span>
+<span class="fc bfc" id="L249" title="All 2 branches covered.">		for( Map.Entry&lt;String,String&gt; o : m_mapOrderBy.entrySet() )</span>
 		{
-<span class="pc bpc" id="L258" title="1 of 2 branches missed.">			if( sb.length() &gt; 0 ) sb.append( &quot;, &quot; ) ;</span>
-<span class="fc" id="L259">			sb.append( o.getKey() )</span>
-<span class="fc" id="L260">			  .append( &quot; &quot; )</span>
-<span class="fc" id="L261">			  .append( o.getValue() )</span>
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">			if( sb.length() &gt; 0 ) sb.append( &quot;, &quot; ) ;</span>
+<span class="fc" id="L252">			sb.append( o.getKey() )</span>
+<span class="fc" id="L253">			  .append( &quot; &quot; )</span>
+<span class="fc" id="L254">			  .append( o.getValue() )</span>
 			  ;
-<span class="fc" id="L263">		}</span>
-<span class="fc" id="L264">		return sb.toString() ;</span>
+<span class="fc" id="L256">		}</span>
+<span class="fc" id="L257">		return sb.toString() ;</span>
 	}
 
 	/**
@@ -271,7 +264,7 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	 * @return (fluid)
 	 */
 	public SelectionBuilder limit( int nLimit )
-<span class="fc" id="L274">	{ m_nLimit = nLimit ; return this ; }</span>
+<span class="fc" id="L267">	{ m_nLimit = nLimit ; return this ; }</span>
 
 	/**
 	 * Executes the selection query.
@@ -282,16 +275,16 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	@Override
 	public Cursor executeOn( SQLiteDatabase db )
 	{
-<span class="fc" id="L285">		return db.query(</span>
+<span class="fc" id="L278">		return db.query(</span>
 				m_bDistinct,
 				m_sTableName,
-<span class="fc" id="L288">				this.getColumnList(),</span>
-<span class="fc" id="L289">				this.getWhereFormat(),</span>
-<span class="fc" id="L290">				this.getWhereParams(),</span>
+<span class="fc" id="L281">				this.getColumnList(),</span>
+<span class="fc" id="L282">				this.getWhereFormat(),</span>
+<span class="fc" id="L283">				this.getWhereParams(),</span>
 				m_sGroupBy,
 				m_sHaving,
-<span class="fc bfc" id="L293" title="All 2 branches covered.">				this.getOrderByClause(),</span>
-<span class="fc" id="L294">				( m_nLimit == NO_LIMIT ? null : Integer.toString(m_nLimit) )</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">				this.getOrderByClause(),</span>
+<span class="fc" id="L287">				( m_nLimit == NO_LIMIT ? null : Integer.toString(m_nLimit) )</span>
 			);
 	}
 
@@ -303,27 +296,27 @@ extends QueryBuilder&lt;SelectionBuilder,Cursor&gt;
 	@Override
 	public String toString()
 	{
-<span class="fc" id="L306">		StringBuilder sb = new StringBuilder() ;</span>
-<span class="fc" id="L307">		sb.append( SQL_SELECT ) ;</span>
-<span class="fc" id="L308">		final String[] asColumns = this.getColumnList() ;</span>
-<span class="fc bfc" id="L309" title="All 2 branches covered.">		sb.append(( asColumns == null ? SQL_ALL_COLUMNS :</span>
-<span class="fc" id="L310">			TextUtils.join( &quot;, &quot;, asColumns )) )</span>
+<span class="fc" id="L299">		StringBuilder sb = new StringBuilder() ;</span>
+<span class="fc" id="L300">		sb.append( SQLiteSyntax.SQL_SELECT ) ;</span>
+<span class="fc" id="L301">		final String[] asColumns = this.getColumnList() ;</span>
+<span class="fc bfc" id="L302" title="All 2 branches covered.">		sb.append(( asColumns == null ? SQLiteSyntax.SQL_SELECT_ALL_COLUMNS :</span>
+<span class="fc" id="L303">			TextUtils.join( &quot;, &quot;, asColumns )) )</span>
 		  ;
-<span class="fc" id="L312">		sb.append( SQL_FROM ).append( m_sTableName ) ;</span>
-<span class="fc" id="L313">		final String sWhere = this.getWhereClause() ;</span>
-<span class="pc bpc" id="L314" title="1 of 2 branches missed.">		if( sWhere != null )</span>
-<span class="fc" id="L315">			sb.append( SQL_WHERE ).append( sWhere ) ;</span>
-<span class="fc bfc" id="L316" title="All 2 branches covered.">		if( m_sGroupBy != null )</span>
-<span class="fc" id="L317">			sb.append( SQL_GROUP_BY ).append( m_sGroupBy ) ;</span>
-<span class="pc bpc" id="L318" title="1 of 2 branches missed.">		if( m_sHaving != null )</span>
-<span class="nc" id="L319">			sb.append( SQL_HAVING ).append( m_sHaving ) ;</span>
-<span class="fc" id="L320">		final String sOrderBy = this.getOrderByClause() ;</span>
-<span class="fc bfc" id="L321" title="All 2 branches covered.">		if( sOrderBy != null )</span>
-<span class="fc" id="L322">			sb.append( SQL_ORDER_BY ).append( sOrderBy ) ;</span>
-<span class="fc bfc" id="L323" title="All 2 branches covered.">		if( m_nLimit != NO_LIMIT )</span>
-<span class="fc" id="L324">			sb.append( SQL_LIMIT ).append( m_nLimit ) ;</span>
-<span class="fc" id="L325">		sb.append( &quot; ;&quot; ) ;</span>
-<span class="fc" id="L326">		return sb.toString() ;</span>
+<span class="fc" id="L305">		sb.append( SQLiteSyntax.SQL_FROM ).append( m_sTableName ) ;</span>
+<span class="fc" id="L306">		final String sWhere = this.getWhereClause() ;</span>
+<span class="fc bfc" id="L307" title="All 2 branches covered.">		if( sWhere != null )</span>
+<span class="fc" id="L308">			sb.append( SQL_WHERE ).append( sWhere ) ;</span>
+<span class="fc bfc" id="L309" title="All 2 branches covered.">		if( m_sGroupBy != null )</span>
+<span class="fc" id="L310">			sb.append( SQL_GROUP_BY ).append( m_sGroupBy ) ;</span>
+<span class="pc bpc" id="L311" title="1 of 2 branches missed.">		if( m_sHaving != null )</span>
+<span class="nc" id="L312">			sb.append( SQL_HAVING ).append( m_sHaving ) ;</span>
+<span class="fc" id="L313">		final String sOrderBy = this.getOrderByClause() ;</span>
+<span class="fc bfc" id="L314" title="All 2 branches covered.">		if( sOrderBy != null )</span>
+<span class="fc" id="L315">			sb.append( SQL_ORDER_BY ).append( sOrderBy ) ;</span>
+<span class="fc bfc" id="L316" title="All 2 branches covered.">		if( m_nLimit != NO_LIMIT )</span>
+<span class="fc" id="L317">			sb.append( SQL_LIMIT ).append( m_nLimit ) ;</span>
+<span class="fc" id="L318">		sb.append( &quot; ;&quot; ) ;</span>
+<span class="fc" id="L319">		return sb.toString() ;</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

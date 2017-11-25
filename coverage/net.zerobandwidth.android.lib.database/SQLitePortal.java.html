@@ -6,6 +6,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import net.zerobandwidth.android.lib.util.TimeUtils;
+
 import java.io.File;
 import java.util.Date;
 import java.util.List;
@@ -31,21 +33,10 @@ import java.util.Map;
  *
  * &lt;h3&gt;Static Constants and Utility Methods&lt;/h3&gt;
  *
- * &lt;p&gt;The class provides several static constants and methods that are generally
- * useful when dealing with SQLite databases. In particular:&lt;/p&gt;
+ * &lt;p&gt;The class provides several static methods that are generally useful when
+ * dealing with SQLite databases. In particular:&lt;/p&gt;
  *
  * &lt;dl&gt;
- *     &lt;dt&gt;{@link #COLUMN_NOT_FOUND}&lt;/dt&gt;
- *     &lt;dd&gt;
- *         Compare this value to the return value of
- *         {@link Cursor#getColumnIndex} to determine whether a column exists.
- *     &lt;/dd&gt;
- *     &lt;dt&gt;{@link #CURSOR_NOT_STARTED}&lt;/dt&gt;
- *     &lt;dd&gt;
- *         Compare this value to the return value of
- *         {@link Cursor#getPosition} to determine whether the cursor has
- *         started traversing its contents.
- *     &lt;/dd&gt;
  *     &lt;dt&gt;{@link #closeCursor(Cursor)}&lt;/dt&gt;
  *     &lt;dd&gt;
  *         Safely closes a cursor, checking first whether the object is null or
@@ -56,18 +47,14 @@ import java.util.Map;
  *         Converts between Boolean values and the integer values typically used
  *         to represent them in SQLite.
  *     &lt;/dd&gt;
- *     &lt;dt&gt;{@link #now()}&lt;/dt&gt;
- *     &lt;dd&gt;
- *         Returns a UTC epoch timestamp as a long integer. Implementation
- *         classes are encouraged to store dates as long integer timestamps
- *         for easier comparison and storage, and convert them to displayable
- *         dates and times only when they need to be displayed.
- *     &lt;/dd&gt;
  * &lt;/dl&gt;
  *
  * &lt;p&gt;Since 0.1.1 (#20), some of these items also form the basis of
  * {@link net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder QueryBuilder}
  * and its descendants.&lt;/p&gt;
+ *
+ * &lt;p&gt;Note that most of the static &lt;i&gt;constants&lt;/i&gt; provided by this class were
+ * moved to {@link SQLiteSyntax} in 0.1.7 (#48).&lt;/p&gt;
  *
  * @since zerobandwidth-net/android 0.0.2 (#8)
  */
@@ -75,78 +62,67 @@ import java.util.Map;
 public abstract class SQLitePortal
 extends SQLiteOpenHelper
 {
-/// Statics ////////////////////////////////////////////////////////////////////
+/// Static Constants (general) /////////////////////////////////////////////////
 
-<span class="fc" id="L80">    public static final String LOG_TAG = SQLitePortal.class.getSimpleName() ;</span>
+<span class="fc" id="L67">    public static final String LOG_TAG = SQLitePortal.class.getSimpleName() ;</span>
 
 	/**
-	 * Magic value returned by {@link Cursor#getColumnIndex} when a column
-	 * doesn't exist. (A column index of {@code -1} indicates an invalid state.)
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#COLUMN_NOT_FOUND}
 	 */
-    public static final int COLUMN_NOT_FOUND = -1 ;
+	public static final int COLUMN_NOT_FOUND = SQLiteSyntax.COLUMN_NOT_FOUND ;
 
 	/**
-	 * Magic value returned by {@link Cursor#getPosition} when the cursor has
-	 * not yet started traversing the result set. (A cursor position of
-	 * {@code -1} indicates an uninitialized state.)
-	 *
-	 * Note, however, that the test
-	 * {@code crs.getPosition() == SQLitePortal.CURSOR_NOT_STARTED} is logically
-	 * equivalent to the result of the existing method
-	 * {@link Cursor#isBeforeFirst()}.
-	 *
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link Cursor#isBeforeFirst()} instead of comparing indices to this
 	 */
 	public static final int CURSOR_NOT_STARTED = -1 ;
 
 	/**
-	 * Magic value to be passed to {@link SQLiteDatabase#delete} when we want
-	 * the method to return a count of the number of rows deleted. (A literal
-	 * value of {@code 1} always matches as {@code true} in a {@code WHERE}
-	 * clause.) The Android documentation implies that passing {@code null} as
-	 * the {@code WHERE} clause will not return a count.
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#DELETE_ALL}
 	 */
-	public static final String DELETE_ALL = &quot;1&quot; ;
+	public static final String DELETE_ALL = SQLiteSyntax.DELETE_ALL ;
 
 	/**
-	 * Magic value returned by {@link SQLiteDatabase#insert} and related methods
-	 * when a row insertion fails. (A value of {@code -1} as the row ID
-	 * indicates an error state.)
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#INSERT_FAILED}
 	 */
-	public static final long INSERT_FAILED = -1 ;
+	public static final long INSERT_FAILED = SQLiteSyntax.INSERT_FAILED ;
 
 	/**
-	 * Magic value returned by {@link SQLiteDatabase#replace} and related
-	 * methods when a row replacement fails. (A value of {@code -1} as the row
-	 * ID indicates an error state.)
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#REPLACE_FAILED}
 	 */
-	public static final long REPLACE_FAILED = -1 ;
+	public static final long REPLACE_FAILED = SQLiteSyntax.REPLACE_FAILED ;
 
 	/**
-	 * Magic value to be passed to {@link SQLiteDatabase#query} and related
-	 * methods when we want to select all rows.
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SELECT_ALL}
 	 */
-<span class="fc" id="L134">	public static final String SELECT_ALL = null ;</span>
+<span class="fc" id="L109">	public static final String SELECT_ALL = SQLiteSyntax.SELECT_ALL ;</span>
 
 	/**
-	 * Magic value to be passed to {@link SQLiteDatabase#update} and related
-	 * methods when we want to indiscriminately update all rows, and get a count
-	 * of the number of rows that were updated. (A literal value of {@code 1}
-	 * always matches as {@code true} in a {@code WHERE} clause.)
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#UPDATE_ALL}
 	 */
-	public static final String UPDATE_ALL = &quot;1&quot; ;
+	public static final String UPDATE_ALL = SQLiteSyntax.UPDATE_ALL ;
 
 	/**
-	 * The string to be used in an SQLite statement to represent a null value.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SQLITE_NULL}
 	 */
-	public static final String SQLITE_NULL = &quot;NULL&quot; ;
+	public static final String SQLITE_NULL = SQLiteSyntax.SQLITE_NULL ;
+
+/// Static Constants: SQLite Boolean Type Conversions //////////////////////////
 
 	/**
 	 * Integer representation of &quot;true&quot;.
@@ -200,6 +176,8 @@ extends SQLiteOpenHelper
 	 */
 	public static final String WHERE_FALSE = &quot;0&quot; ;
 
+/// Static Methods /////////////////////////////////////////////////////////////
+
     /**
      * Safely closes a database cursor. If the reference is {@code null}, or the
      * cursor is already closed, then the method returns trivially.
@@ -207,9 +185,9 @@ extends SQLiteOpenHelper
      */
     public static void closeCursor( Cursor crs )
     {
-<span class="pc bpc" id="L210" title="1 of 4 branches missed.">        if( crs != null &amp;&amp; ! crs.isClosed() )</span>
-<span class="fc" id="L211">            crs.close() ;</span>
-<span class="fc" id="L212">    }</span>
+<span class="pc bpc" id="L188" title="1 of 4 branches missed.">        if( crs != null &amp;&amp; ! crs.isClosed() )</span>
+<span class="fc" id="L189">            crs.close() ;</span>
+<span class="fc" id="L190">    }</span>
 
     /**
      * Simplistic transformation of a Boolean value to an integer, for storage
@@ -218,7 +196,7 @@ extends SQLiteOpenHelper
      * @return {@code 1} for true or {@code 0} for false
      */
     public static int boolToInt( boolean b )
-<span class="fc bfc" id="L221" title="All 2 branches covered.">    { return( b ? SQLITE_TRUE_INT : SQLITE_FALSE_INT ) ; }</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">    { return( b ? SQLITE_TRUE_INT : SQLITE_FALSE_INT ) ; }</span>
 
 	/**
 	 * Transforms a Boolean value into the string representation of a
@@ -228,7 +206,7 @@ extends SQLiteOpenHelper
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
 	public static String boolToIntString( boolean b )
-<span class="nc" id="L231">	{ return Integer.toString( boolToInt(b) ) ; }</span>
+<span class="nc" id="L209">	{ return Integer.toString( boolToInt(b) ) ; }</span>
 
     /**
      * Simplistic transformation of an integer to a Boolean value, for retrieval
@@ -237,7 +215,7 @@ extends SQLiteOpenHelper
      * @return {@code true} iff the integer is non-zero
      */
     public static boolean intToBool( int z )
-<span class="fc bfc" id="L240" title="All 2 branches covered.">    { return( z != SQLITE_FALSE_INT ) ; }</span>
+<span class="fc bfc" id="L218" title="All 2 branches covered.">    { return( z != SQLITE_FALSE_INT ) ; }</span>
 
 	/**
 	 * Shorthand to fetch the Boolean value from a column that stores Boolean
@@ -248,16 +226,18 @@ extends SQLiteOpenHelper
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
 	public static boolean getBooleanColumn( Cursor crs, String sColName )
-<span class="fc" id="L251">	{ return intToBool( crs.getInt( crs.getColumnIndex( sColName ) ) ) ; }</span>
+<span class="fc" id="L229">	{ return intToBool( crs.getInt( crs.getColumnIndex( sColName ) ) ) ; }</span>
 
 	/**
 	 * Returns the number of milliseconds since epoch UTC. Use this value when
 	 * comparing to timestamps stored in the database as {@code long} integers.
 	 * @return milliseconds since epoch UTC
 	 * @since zerobandwidth-net/android 0.1.1 (#20)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#39) - refactored as
+	 *     {@link net.zerobandwidth.android.lib.util.TimeUtils#now}
 	 */
 	public static long now()
-<span class="nc" id="L260">	{ return (new Date()).getTime() ; }</span>
+<span class="nc" id="L240">	{ return TimeUtils.now() ; }</span>
 
 /// Inner Classes //////////////////////////////////////////////////////////////
 
@@ -291,19 +271,19 @@ extends SQLiteOpenHelper
          * A reference back to the {@link SQLitePortal} that needs the
          * connection.
          */
-<span class="fc" id="L294">        protected SQLitePortal m_dbh = SQLitePortal.this ;</span>
+<span class="fc" id="L274">        protected SQLitePortal m_dbh = SQLitePortal.this ;</span>
 
 	    /**
 	     * A listener to handle the connection callback, if any.
 	     * @since zerobandwidth-net/android 0.1.2 (#24)
 	     */
-<span class="fc" id="L300">	    protected ConnectionListener m_listener = null ;</span>
+<span class="fc" id="L280">	    protected ConnectionListener m_listener = null ;</span>
 
 	    /**
 		 * The default constructor.
 		 */
 	    protected ConnectionTask()
-<span class="fc" id="L306">	    { m_listener = null ; }</span>
+<span class="fc" id="L286">	    { m_listener = null ; }</span>
 
 	    /**
 	     * A constructor which specifies a listener to receive the &quot;on
@@ -312,7 +292,7 @@ extends SQLiteOpenHelper
 	     * @since zerobandwidth-net/android 0.1.2 (#24)
 	     */
 	    protected ConnectionTask( ConnectionListener l )
-<span class="fc" id="L315">	    { m_listener = l ; }</span>
+<span class="fc" id="L295">	    { m_listener = l ; }</span>
 
         /**
          * Executes the task in the background. {@link SQLitePortal}
@@ -320,24 +300,24 @@ extends SQLiteOpenHelper
          * {@link #run}.
          */
         public void runInBackground()
-<span class="fc" id="L323">        { (new Thread(this)).start() ; }</span>
+<span class="fc" id="L303">        { (new Thread(this)).start() ; }</span>
 
         @Override
         public void run()
         {
-<span class="fc" id="L328">            m_dbh.m_db = null ;</span>
-<span class="fc" id="L329">            m_dbh.m_bIsConnected = false ;</span>
+<span class="fc" id="L308">            m_dbh.m_db = null ;</span>
+<span class="fc" id="L309">            m_dbh.m_bIsConnected = false ;</span>
             try
 			{
-<span class="pc bpc" id="L332" title="1 of 2 branches missed.">				m_dbh.m_db = ( m_dbh.m_bReadOnly ?</span>
-<span class="pc" id="L333">					m_dbh.getReadableDatabase() : m_dbh.getWritableDatabase() );</span>
+<span class="pc bpc" id="L312" title="1 of 2 branches missed.">				m_dbh.m_db = ( m_dbh.m_bReadOnly ?</span>
+<span class="pc" id="L313">					m_dbh.getReadableDatabase() : m_dbh.getWritableDatabase() );</span>
 			}
-<span class="nc" id="L335">            catch( Exception x )</span>
-<span class="pc" id="L336">            { Log.e( LOG_TAG, &quot;Could not connect to database.&quot;, x ) ; }</span>
-<span class="pc bpc" id="L337" title="1 of 2 branches missed.">            m_dbh.m_bIsConnected = ( m_dbh.m_db != null ) ;</span>
-<span class="pc bpc" id="L338" title="1 of 4 branches missed.">	        if( m_dbh.m_bIsConnected &amp;&amp; m_listener != null )</span>
-<span class="fc" id="L339">		        m_listener.onDatabaseConnected( m_dbh ) ;</span>
-<span class="fc" id="L340">        }</span>
+<span class="nc" id="L315">            catch( Exception x )</span>
+<span class="pc" id="L316">            { Log.e( LOG_TAG, &quot;Could not connect to database.&quot;, x ) ; }</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">            m_dbh.m_bIsConnected = ( m_dbh.m_db != null ) ;</span>
+<span class="pc bpc" id="L318" title="1 of 4 branches missed.">	        if( m_dbh.m_bIsConnected &amp;&amp; m_listener != null )</span>
+<span class="fc" id="L319">		        m_listener.onDatabaseConnected( m_dbh ) ;</span>
+<span class="fc" id="L320">        }</span>
     }
 
 /// Instance Members ///////////////////////////////////////////////////////////
@@ -346,10 +326,10 @@ extends SQLiteOpenHelper
 	 * The context in which the portal is created.
 	 * @since zerobandwidth-net/android 0.1.4 (#34)
 	 */
-<span class="fc" id="L349">	protected Context m_ctx = null ;</span>
+<span class="fc" id="L329">	protected Context m_ctx = null ;</span>
 
 	/** A persistent reference to the underlying database. */
-<span class="fc" id="L352">	protected SQLiteDatabase m_db = null ;</span>
+<span class="fc" id="L332">	protected SQLiteDatabase m_db = null ;</span>
 
 	/**
 	 * Remembers the version number with which the instance was constructed.
@@ -357,16 +337,16 @@ extends SQLiteOpenHelper
 	 * in {@code SQLitePortal} and its descendants, we have to copy it here.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
-<span class="fc" id="L360">	protected int m_nLatestVersion = -1 ;</span>
+<span class="fc" id="L340">	protected int m_nLatestVersion = -1 ;</span>
 
 	/** Indicates whether a connection to the database has been established. */
-<span class="fc" id="L363">	protected boolean m_bIsConnected = false ;</span>
+<span class="fc" id="L343">	protected boolean m_bIsConnected = false ;</span>
 
 	/**
 	 * Indicates whether connections should be read-only.
 	 * @since zerobandwidth-net/android 0.1.4 (#34)
 	 */
-<span class="fc" id="L369">	protected boolean m_bReadOnly = false ;</span>
+<span class="fc" id="L349">	protected boolean m_bReadOnly = false ;</span>
 
 /// Inherited Constructors (must duplicate here for descendants) ///////////////
 
@@ -374,10 +354,10 @@ extends SQLiteOpenHelper
     public SQLitePortal( Context ctx, String sDatabaseName,
                          SQLiteDatabase.CursorFactory cf, int nVersion )
     {
-<span class="fc" id="L377">		super( ctx, sDatabaseName, cf, nVersion ) ;</span>
-<span class="fc" id="L378">		m_ctx = ctx ;</span>
-<span class="fc" id="L379">	    m_nLatestVersion = nVersion ;</span>
-<span class="fc" id="L380">    }</span>
+<span class="fc" id="L357">		super( ctx, sDatabaseName, cf, nVersion ) ;</span>
+<span class="fc" id="L358">		m_ctx = ctx ;</span>
+<span class="fc" id="L359">	    m_nLatestVersion = nVersion ;</span>
+<span class="fc" id="L360">    }</span>
 
 /// Database Connection Management Methods /////////////////////////////////////
 
@@ -386,7 +366,7 @@ extends SQLiteOpenHelper
      * @return {@code true} if the instance thinks that it is connected.
      */
     public boolean isConnected()
-<span class="fc" id="L389">    { return m_bIsConnected ; }</span>
+<span class="fc" id="L369">    { return m_bIsConnected ; }</span>
 
     /**
      * Kicks off a {@link ConnectionTask} to establish the connection to the
@@ -394,7 +374,7 @@ extends SQLiteOpenHelper
      * @return (fluid)
      */
     public synchronized SQLitePortal openDB()
-<span class="fc" id="L397">    { return this.openDB( false, null ) ; }</span>
+<span class="fc" id="L377">    { return this.openDB( false, null ) ; }</span>
 
 	/**
 	 * Kicks off a {@link ConnectionTask} which will inform the specified
@@ -405,7 +385,7 @@ extends SQLiteOpenHelper
 	 * @since zerobandwidth-net/android 0.1.2 (#24)
 	 */
 	public synchronized SQLitePortal openDB( ConnectionListener l )
-<span class="fc" id="L408">	{ return this.openDB( false, l ) ; }</span>
+<span class="fc" id="L388">	{ return this.openDB( false, l ) ; }</span>
 
 	/**
 	 * Kicks off a {@link ConnectionTask} which will optionally connect in
@@ -415,7 +395,7 @@ extends SQLiteOpenHelper
 	 * @since zerobandwidth-net/android 0.1.4 (#34)
 	 */
 	public synchronized SQLitePortal openDB( boolean bReadOnly )
-<span class="nc" id="L418">	{ return this.openDB( bReadOnly, null ) ; }</span>
+<span class="nc" id="L398">	{ return this.openDB( bReadOnly, null ) ; }</span>
 
 	/**
 	 * Kicks off a {@link ConnectionTask} which will optionally connect in
@@ -428,9 +408,9 @@ extends SQLiteOpenHelper
 	 */
 	public synchronized SQLitePortal openDB( boolean bReadOnly, ConnectionListener l )
 	{
-<span class="fc" id="L431">		m_bReadOnly = bReadOnly ;</span>
-<span class="fc" id="L432">		(new ConnectionTask(l)).runInBackground() ;</span>
-<span class="fc" id="L433">		return this ;</span>
+<span class="fc" id="L411">		m_bReadOnly = bReadOnly ;</span>
+<span class="fc" id="L412">		(new ConnectionTask(l)).runInBackground() ;</span>
+<span class="fc" id="L413">		return this ;</span>
 	}
 
     /**
@@ -444,10 +424,10 @@ extends SQLiteOpenHelper
      */
     public synchronized SQLitePortal closeDB()
     {
-<span class="fc bfc" id="L447" title="All 2 branches covered.">        if( m_db != null ) m_db.close() ;</span>
-<span class="fc" id="L448">        m_db = null ;</span>
-<span class="fc" id="L449">        m_bIsConnected = false ;</span>
-<span class="fc" id="L450">        return this ;</span>
+<span class="fc bfc" id="L427" title="All 2 branches covered.">        if( m_db != null ) m_db.close() ;</span>
+<span class="fc" id="L428">        m_db = null ;</span>
+<span class="fc" id="L429">        m_bIsConnected = false ;</span>
+<span class="fc" id="L430">        return this ;</span>
     }
 
 	/**
@@ -457,7 +437,7 @@ extends SQLiteOpenHelper
 	 */
 	@Override
 	public void close()
-<span class="fc" id="L460">	{ this.closeDB() ; super.close() ; }</span>
+<span class="fc" id="L440">	{ this.closeDB() ; super.close() ; }</span>
 
 /// Other Database Utility Methods /////////////////////////////////////////////
 
@@ -469,13 +449,13 @@ extends SQLiteOpenHelper
 	 */
 	protected String getPathToDatabaseFile()
 	{
-<span class="fc" id="L472">		return (new StringBuilder())</span>
-<span class="fc" id="L473">			.append( m_ctx.getApplicationInfo().dataDir )</span>
-<span class="fc" id="L474">			.append( File.separatorChar )</span>
-<span class="fc" id="L475">			.append( &quot;databases&quot; )</span>
-<span class="fc" id="L476">			.append( File.separatorChar )</span>
-<span class="fc" id="L477">			.append( this.getDatabaseName() )</span>
-<span class="fc" id="L478">			.toString()</span>
+<span class="fc" id="L452">		return (new StringBuilder())</span>
+<span class="fc" id="L453">			.append( m_ctx.getApplicationInfo().dataDir )</span>
+<span class="fc" id="L454">			.append( File.separatorChar )</span>
+<span class="fc" id="L455">			.append( &quot;databases&quot; )</span>
+<span class="fc" id="L456">			.append( File.separatorChar )</span>
+<span class="fc" id="L457">			.append( this.getDatabaseName() )</span>
+<span class="fc" id="L458">			.toString()</span>
 			;
 	}
 
@@ -487,18 +467,18 @@ extends SQLiteOpenHelper
 	 */
 	protected boolean databaseExists()
 	{
-<span class="fc" id="L490">		final String sPath = this.getPathToDatabaseFile() ;</span>
-<span class="fc" id="L491">		boolean bExists = false ;</span>
-<span class="fc" id="L492">		try { bExists = (new File(sPath)).exists() ; }</span>
-<span class="nc" id="L493">		catch( SecurityException x )</span>
+<span class="fc" id="L470">		final String sPath = this.getPathToDatabaseFile() ;</span>
+<span class="fc" id="L471">		boolean bExists = false ;</span>
+<span class="fc" id="L472">		try { bExists = (new File(sPath)).exists() ; }</span>
+<span class="nc" id="L473">		catch( SecurityException x )</span>
 		{
-<span class="nc" id="L495">			Log.w( LOG_TAG, (new StringBuilder())</span>
-<span class="nc" id="L496">					.append( &quot;Denied read access when checking for file [&quot; )</span>
-<span class="nc" id="L497">					.append( sPath ).append( &quot;].&quot; )</span>
-<span class="nc" id="L498">					.toString()</span>
+<span class="nc" id="L475">			Log.w( LOG_TAG, (new StringBuilder())</span>
+<span class="nc" id="L476">					.append( &quot;Denied read access when checking for file [&quot; )</span>
+<span class="nc" id="L477">					.append( sPath ).append( &quot;].&quot; )</span>
+<span class="nc" id="L478">					.toString()</span>
 				);
-<span class="fc" id="L500">		}</span>
-<span class="fc" id="L501">		return bExists ;</span>
+<span class="fc" id="L480">		}</span>
+<span class="fc" id="L481">		return bExists ;</span>
 	}
 
 	/**
@@ -510,7 +490,7 @@ extends SQLiteOpenHelper
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
 	public List&lt;SQLiteColumnInfo&gt; getColumnListForTable( String sTableName )
-<span class="fc" id="L513">	{ return SQLiteColumnInfo.gatherColumnList( m_db, sTableName ) ; }</span>
+<span class="fc" id="L493">	{ return SQLiteColumnInfo.gatherColumnList( m_db, sTableName ) ; }</span>
 
 	/**
 	 * Uses SQLite pragmas to discover the structure of an existing table, and
@@ -521,7 +501,7 @@ extends SQLiteOpenHelper
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
 	public Map&lt;String,SQLiteColumnInfo&gt; getColumnMapForTable( String sTableName )
-<span class="fc" id="L524">	{ return SQLiteColumnInfo.gatherColumnMap( m_db, sTableName ) ; }</span>
+<span class="fc" id="L504">	{ return SQLiteColumnInfo.gatherColumnMap( m_db, sTableName ) ; }</span>
 
 	/**
 	 * Discovers the size of the database file in storage.
@@ -530,16 +510,16 @@ extends SQLiteOpenHelper
 	 */
 	protected long getDatabaseFileSize()
 	{
-<span class="nc" id="L533">		final String sPath = this.getPathToDatabaseFile() ;</span>
-<span class="nc" id="L534">		try { return (new File(sPath)).length() ; }</span>
-<span class="nc" id="L535">		catch( SecurityException x )</span>
+<span class="nc" id="L513">		final String sPath = this.getPathToDatabaseFile() ;</span>
+<span class="nc" id="L514">		try { return (new File(sPath)).length() ; }</span>
+<span class="nc" id="L515">		catch( SecurityException x )</span>
 		{
-<span class="nc" id="L537">			Log.w( LOG_TAG, (new StringBuilder())</span>
-<span class="nc" id="L538">					.append( &quot;Access denied for file [&quot; )</span>
-<span class="nc" id="L539">					.append( sPath ).append( &quot;]; returning size -1.&quot; )</span>
-<span class="nc" id="L540">					.toString()</span>
+<span class="nc" id="L517">			Log.w( LOG_TAG, (new StringBuilder())</span>
+<span class="nc" id="L518">					.append( &quot;Access denied for file [&quot; )</span>
+<span class="nc" id="L519">					.append( sPath ).append( &quot;]; returning size -1.&quot; )</span>
+<span class="nc" id="L520">					.toString()</span>
 				);
-<span class="nc" id="L542">			return -1 ;</span>
+<span class="nc" id="L522">			return -1 ;</span>
 		}
 	}
 
@@ -549,6 +529,16 @@ extends SQLiteOpenHelper
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
 	public int getLatestSchemaVersion()
-<span class="fc" id="L552">	{ return m_nLatestVersion ; }</span>
+<span class="fc" id="L532">	{ return m_nLatestVersion ; }</span>
+
+/// Other Instance Methods /////////////////////////////////////////////////////
+
+	/**
+	 * Accessor for the context in which the instance was created.
+	 * @return the context in which the instance was created
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public Context getContext()
+<span class="fc" id="L542">	{ return m_ctx ; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

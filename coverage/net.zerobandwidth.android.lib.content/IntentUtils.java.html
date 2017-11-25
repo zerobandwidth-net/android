@@ -2,16 +2,44 @@
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
+
+import java.util.Collection;
 
 /**
  * Provides utilities for dealing with intents.
  * @since zerobandwidth-net/android 0.0.1 (#5), moved in 0.0.4 (#13)
  */
-@SuppressWarnings(&quot;unused&quot;)                                // This is a library.
-<span class="nc" id="L12">public class IntentUtils</span>
+<span class="nc" id="L14">public class IntentUtils</span>
 {
-<span class="fc" id="L14">    public static final String TAG = IntentUtils.class.getSimpleName() ;</span>
+<span class="fc" id="L16">    public static final String TAG = IntentUtils.class.getSimpleName() ;</span>
+
+	/**
+	 * Exception thrown when a call to one of the intent filter creation methods
+	 * encounters a problem with one or more arguments.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static class FilterFormatException
+	extends IllegalArgumentException
+	{
+		/** Message when a domain specification is left empty. */
+		protected static final String EMPTY_DOMAIN =
+				&quot;Intent action names must be linked to a domain.&quot; ;
+
+		/** Message when an action list is left empty. */
+		protected static final String EMPTY_ACTION_LIST =
+				&quot;Intent action list cannot be empty.&quot; ;
+
+		public static FilterFormatException forEmptyDomain()
+<span class="fc" id="L35">		{ return new FilterFormatException(EMPTY_DOMAIN) ; }</span>
+
+		public static FilterFormatException forEmptyActionList()
+<span class="fc" id="L38">		{ return new FilterFormatException(EMPTY_ACTION_LIST) ; }</span>
+
+		protected FilterFormatException( String sMessage )
+<span class="fc" id="L41">		{ super(sMessage) ; }</span>
+	}
 
     /**
      * Discovers the action inscribed into the intent, if any, and logs the
@@ -21,22 +49,22 @@ import android.util.Log;
      */
     public static String discoverAction( Intent sig )
     {
-<span class="fc" id="L24">        String sAction = null ;</span>
+<span class="fc" id="L52">        String sAction = null ;</span>
 
-<span class="pc bpc" id="L26" title="1 of 2 branches missed.">        if( sig == null )</span>
-<span class="nc" id="L27">            Log.d( TAG, &quot;Can't discover action in a null intent.&quot; ) ;</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if( sig == null )</span>
+<span class="nc" id="L55">            Log.d( TAG, &quot;Can't discover action in a null intent.&quot; ) ;</span>
         else
         {
-<span class="fc" id="L30">            sAction = sig.getAction() ;</span>
-<span class="fc" id="L31">            Log.d( TAG, (new StringBuilder())</span>
-<span class="pc bpc" id="L32" title="1 of 2 branches missed.">                    .append( &quot;Discovered action [&quot; )</span>
-<span class="fc" id="L33">                    .append(( sAction == null ? &quot;(null)&quot; : sAction ))</span>
-<span class="fc" id="L34">                    .append( &quot;].&quot;)</span>
-<span class="fc" id="L35">                    .toString()</span>
+<span class="fc" id="L58">            sAction = sig.getAction() ;</span>
+<span class="fc" id="L59">            Log.d( TAG, (new StringBuilder())</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">                    .append( &quot;Discovered action [&quot; )</span>
+<span class="fc" id="L61">                    .append(( sAction == null ? &quot;(null)&quot; : sAction ))</span>
+<span class="fc" id="L62">                    .append( &quot;].&quot;)</span>
+<span class="fc" id="L63">                    .toString()</span>
                 );
         }
 
-<span class="fc" id="L39">        return sAction ;</span>
+<span class="fc" id="L67">        return sAction ;</span>
     }
 
     /**
@@ -51,8 +79,8 @@ import android.util.Log;
      */
     public static Intent getBoundIntent( Context ctx, Class&lt;?&gt; cls )
     {
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if( ctx != null ) return new Intent( ctx, cls ) ;</span>
-<span class="nc" id="L55">        else return new Intent() ;</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">        if( ctx != null ) return new Intent( ctx, cls ) ;</span>
+<span class="nc" id="L83">        else return new Intent() ;</span>
     }
 
     /**
@@ -67,6 +95,118 @@ import android.util.Log;
      * @since zerobandwidth-net/android 0.0.2 (#8)
      */
     public static Intent getBoundIntent( Context ctx, Class&lt;?&gt; cls, String sAction )
-<span class="fc" id="L70">    { return getBoundIntent(ctx,cls).setAction(sAction) ; }</span>
+<span class="fc" id="L98">    { return getBoundIntent(ctx,cls).setAction(sAction) ; }</span>
+
+    /**
+     * The default action name format to be used with
+     * {@link #getActionListIntentFilter}. It has two placeholders; one for the
+	 * intent filter's &quot;domain&quot; and the other for each action token.
+     * @since zerobandwidth-net/android 0.1.7 (#50)
+     */
+    public static final String DEFAULT_ACTION_FORMAT = &quot;%s.action.%s&quot; ;
+
+    /**
+     * Constructs an {@link IntentFilter} for all actions that would be
+     * assembled from the specified format string, domain, and action list.
+     * @param sCustomFormat a format string to be applied to the intent
+     *                      domain and action names
+     * @param sDomain the domain under which the intents will be
+     *                recognized; this is typically a package or class name
+     * @param asActions the list of actions to be written to the filter
+     * @return an intent filter for the specified actions
+     * @throws FilterFormatException if the domain string or action list
+	 *  is not usable
+     * @since zerobandwidth-net/android 0.1.7 (#50)
+     */
+    public static IntentFilter getActionListIntentFilter(
+            String sCustomFormat, String sDomain, String... asActions )
+    throws FilterFormatException
+    {
+<span class="fc" id="L125">        IntentFilter filter = new IntentFilter() ;</span>
+
+<span class="fc" id="L127">        String sFormat = sCustomFormat ;</span>
+<span class="pc bpc" id="L128" title="2 of 4 branches missed.">        if( sFormat == null || sFormat.length() == 0 )</span>
+<span class="nc" id="L129">            sFormat = DEFAULT_ACTION_FORMAT ;</span>
+
+<span class="fc bfc" id="L131" title="All 4 branches covered.">        if( sDomain == null || sDomain.length() == 0 )</span>
+<span class="fc" id="L132">        	throw FilterFormatException.forEmptyDomain() ;</span>
+
+<span class="fc bfc" id="L134" title="All 4 branches covered.">        if( asActions == null || asActions.length == 0 )</span>
+<span class="fc" id="L135">        	throw FilterFormatException.forEmptyActionList() ;</span>
+
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        for( String sAction : asActions )</span>
+<span class="fc" id="L138">            filter.addAction( String.format( sFormat, sDomain, sAction ) ) ;</span>
+
+<span class="fc" id="L140">        return filter ;</span>
+    }
+
+    /**
+     * Constructs an {@link IntentFilter} for all actions that would be
+     * assembled from the specified format string, domain, and action list.
+     * @param sFormat a format string to be applied to the intent domain
+     *                and action names
+     * @param sDomain the domain under which the intents will be
+     *                recognized; this is typically a package or class name
+     * @param asActions the list of actions to be written to the filter
+     * @return an intent filter for the specified actions
+     * @throws FilterFormatException if the domain string or action list
+     *  is not usable
+     * @since zerobandwidth-net/android 0.1.7 (#50)
+     */
+    public static IntentFilter getActionListIntentFilter(
+            String sFormat, String sDomain, Collection&lt;String&gt; asActions )
+    throws FilterFormatException
+    {
+<span class="fc bfc" id="L160" title="All 4 branches covered.">        if( asActions == null || asActions.size() == 0 )</span>
+<span class="fc" id="L161">        	throw FilterFormatException.forEmptyActionList() ;</span>
+<span class="fc" id="L162">        return getActionListIntentFilter( sFormat, sDomain,</span>
+<span class="fc" id="L163">                asActions.toArray( new String[ asActions.size() ] ) ) ;</span>
+    }
+
+    /**
+     * Constructs an {@link IntentFilter} for all actions that would be
+     * assembled from the specified domain and action list.
+     *
+     * Each action token is inserted along with the domain string into the
+     * {@link #DEFAULT_ACTION_FORMAT} specification.
+     *
+     * @param sDomain the domain under which the intents will be recognized;
+     *                recognized; this is typically a package or class name
+     * @param asActions the list of actions to be written to the filter
+     * @return an intent filter for the specified actions
+     * @throws FilterFormatException if the domain string or action list
+     *  is unusable
+     * @since zerobandwidth-net/android 0.1.7 (#50)
+     */
+    public static IntentFilter getActionListIntentFilter(
+            String sDomain, String... asActions )
+    throws FilterFormatException
+    {
+<span class="fc" id="L185">        return getActionListIntentFilter( DEFAULT_ACTION_FORMAT,</span>
+                sDomain, asActions ) ;
+    }
+
+    /**
+     * Constructs an {@link IntentFilter} for all actions that would be
+     * assembled from the specified domain and action list.
+     *
+     * Each action token is inserted along with the domain string into the
+     * {@link #DEFAULT_ACTION_FORMAT} specification.
+     *
+     * @param sDomain the domain under which the intents will be
+     *                recognized; this is typically a package or class name
+     * @param asActions the list of actions to be written to the filter
+     * @return an intent filter for the specified actions
+     * @throws FilterFormatException if the domain string or action list
+     *  is unusable
+     * @since zerobandwidth-net/android 0.1.7 (#50)
+     */
+    public static IntentFilter getActionListIntentFilter(
+            String sDomain, Collection&lt;String&gt; asActions )
+    throws FilterFormatException
+    {
+<span class="fc" id="L208">        return getActionListIntentFilter( DEFAULT_ACTION_FORMAT,</span>
+                sDomain, asActions ) ;
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

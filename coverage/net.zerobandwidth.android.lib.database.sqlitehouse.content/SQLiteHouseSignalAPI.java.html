@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SQLiteHouseSignalAPI.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.database.sqlitehouse.content</a> &gt; <span class="el_source">SQLiteHouseSignalAPI.java</span></div><h1>SQLiteHouseSignalAPI.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.database.sqlitehouse.content;
+
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+
+import net.zerobandwidth.android.lib.content.IntentUtils;
+import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
+import net.zerobandwidth.android.lib.database.sqlitehouse.content.exceptions.SQLiteContentException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
+import net.zerobandwidth.android.lib.util.CollectionsZ;
+
+/**
+ * Defines the contract of signals between implementations of
+ * {@link SQLiteHouseKeeper} and {@link SQLiteHouseRelay}.
+ * @since zerobandwidth-net/android 0.1.7 (#50)
+ */
+<span class="fc" id="L19">public abstract class SQLiteHouseSignalAPI</span>
+{
+<span class="fc" id="L21">	public static final String LOG_TAG =</span>
+<span class="fc" id="L22">			SQLiteHouseSignalAPI.class.getSimpleName() ;</span>
+
+	/** Name suffix for the extra that contains the schematic class name. */
+	public static final String EXTRA_SCHEMA_CLASS_NAME = &quot;CLASS&quot; ;
+	/** Name suffix for the extra that contains the schematic class data. */
+	public static final String EXTRA_SCHEMA_CLASS_DATA = &quot;DATA&quot; ;
+	/** Name suffix for the extra that contains the inserted row ID. */
+	public static final String EXTRA_INSERT_ROW_ID = &quot;ROW_ID&quot; ;
+	/**
+	 * Name suffix for the extra that contains the number of rows selected,
+	 * updated, or deleted.
+	 */
+	public static final String EXTRA_RESULT_ROW_COUNT = &quot;ROW_COUNT&quot; ;
+	/**
+	 * Name suffix for the extra that contains the bundle that defines a set of
+	 * selection parameters.
+	 */
+	public static final String EXTRA_SELECTION_QUERY_SPEC = &quot;SELECTION_SPEC&quot; ;
+
+	/** The default format string for constructing intent extra tags. */
+	public static final String DEFAULT_EXTRA_TAG_FORMAT = &quot;%s.extra.%s&quot; ;
+
+	/** Action suffix for inserting an object. */
+	public static final String KEEPER_INSERT = &quot;INSERT&quot; ;
+	/** Action suffix for selecting objects. */
+	public static final String KEEPER_SELECT = &quot;SELECT&quot; ;
+	/** Action suffix for updating objects. */
+	public static final String KEEPER_UPDATE = &quot;UPDATE&quot; ;
+	/** Action suffix for deleting objects. */
+	public static final String KEEPER_DELETE = &quot;DELETE&quot; ;
+
+	/** The set of actions which are supported by the keeper implementation. */
+<span class="fc" id="L54">	public static final String[] KEEPER_ACTIONS =</span>
+	{ KEEPER_INSERT, KEEPER_SELECT, KEEPER_UPDATE, KEEPER_DELETE } ;
+
+	/** The default format string for constructing keeper actions. */
+	public static final String DEFAULT_KEEPER_ACTION_FORMAT =
+			&quot;%s.keeper.action.%s&quot; ;
+
+	/** Action suffix for notifying a relay that a record was inserted. */
+	public static final String RELAY_NOTIFY_INSERT = &quot;NOTIFY_INSERT&quot; ;
+	/** Action suffix for notifying a relay that an insertion failed. */
+	public static final String RELAY_NOTIFY_INSERT_FAILED =
+			&quot;NOTIFY_INSERT_FAILED&quot; ;
+	/** Action suffix when sending a result set to a relay. */
+	public static final String RELAY_RECEIVE_SELECTION = &quot;RECEIVE_SELECTION&quot; ;
+	/** Action suffix when notifying a relay that a selection failed. */
+	public static final String RELAY_NOTIFY_SELECT_FAILED =
+			&quot;NOTIFY_SELECT_FAILED&quot; ;
+	/** Action suffix for notifying a relay that a record was updated. */
+	public static final String RELAY_NOTIFY_UPDATE = &quot;NOTIFY_UPDATE&quot; ;
+	/** Action suffix for notifying a relay that an update failed. */
+	public static final String RELAY_NOTIFY_UPDATE_FAILED =
+			&quot;NOTIFY_UPDATE_FAILED&quot; ;
+	/** Action suffix for notifying a relay that a record was deleted. */
+	public static final String RELAY_NOTIFY_DELETE = &quot;NOTIFY_DELETE&quot; ;
+	/** Action suffix for notifying a relay that a deletion failed. */
+	public static final String RELAY_NOTIFY_DELETE_FAILED =
+			&quot;NOTIFY_DELETE_FAILED&quot; ;
+
+	/** The set of actions which are supported by the relay implementation. */
+<span class="fc" id="L83">	public static final String[] RELAY_ACTIONS =</span>
+	{
+		RELAY_NOTIFY_INSERT, RELAY_NOTIFY_INSERT_FAILED,
+		RELAY_RECEIVE_SELECTION, RELAY_NOTIFY_SELECT_FAILED,
+		RELAY_NOTIFY_UPDATE, RELAY_NOTIFY_UPDATE_FAILED,
+		RELAY_NOTIFY_DELETE, RELAY_NOTIFY_DELETE_FAILED
+	};
+
+	/** The default format string for constructing relay actions. */
+	public static final String DEFAULT_RELAY_ACTION_FORMAT =
+			&quot;%s.relay.action.%s&quot; ;
+
+	/**
+	 * Cache of reflections that have been pushed through the relay.
+	 * Populated by
+	 */
+<span class="fc" id="L99">	protected SQLightable.ReflectionMap m_mapReflections =</span>
+			new SQLightable.ReflectionMap() ;
+
+	/**
+	 * A set of custom actions expected to be supported by a
+	 * {@link SQLiteHouseKeeper} implementation.
+	 */
+<span class="fc" id="L106">	protected String[] m_asCustomKeeperActions = null ;</span>
+
+	/**
+	 * The format string to be used when creating keeper action tags.
+	 * Defaults to {@link #DEFAULT_KEEPER_ACTION_FORMAT}.
+	 */
+<span class="fc" id="L112">	protected String m_sKeeperActionFormat = DEFAULT_KEEPER_ACTION_FORMAT ;</span>
+
+	/**
+	 * A set of custom actions expected to be supported by a
+	 * {@link SQLiteHouseRelay} implementation.
+	 */
+<span class="fc" id="L118">	protected String[] m_asCustomRelayActions = null ;</span>
+
+	/**
+	 * The format string to be used when creating relay action tags.
+	 * Defaults to {@link #DEFAULT_RELAY_ACTION_FORMAT}.
+	 */
+<span class="fc" id="L124">	protected String m_sRelayActionFormat = DEFAULT_RELAY_ACTION_FORMAT ;</span>
+
+	/**
+	 * The format string to be used when creating intent extra tags. This is a
+	 * consistent format across both sides of the API.
+	 */
+<span class="fc" id="L130">	protected String m_sExtraTagFormat = DEFAULT_EXTRA_TAG_FORMAT ;</span>
+
+	/**
+	 * Reveals the &quot;domain&quot; under which the keeper and relay will operate.
+	 * This string forms the root segments of the {@code Intent} action tokens.
+	 * @return the domain linking a keeper and relay
+	 */
+	protected abstract String getIntentDomain() ;
+
+	/**
+	 * Accesses the set of keeper actions which will be registered.
+	 *
+	 * By default, this is the value of {@link #KEEPER_ACTIONS}. If the
+	 * {@link SQLiteHouseKeeper} implementation also supports custom actions,
+	 * then they should be registered with {@link #setKeeperActions}, which will
+	 * &lt;i&gt;append&lt;/i&gt; the custom list to the default.
+	 *
+	 * @return the list of actions supported by the keeper implementation
+	 */
+	public final String[] getKeeperActions()
+	{
+<span class="fc bfc" id="L151" title="All 2 branches covered.">		if( m_asCustomKeeperActions == null ) return KEEPER_ACTIONS ;</span>
+<span class="fc" id="L152">		else return CollectionsZ.of( String.class )</span>
+<span class="fc" id="L153">				.arrayConcat( KEEPER_ACTIONS, m_asCustomKeeperActions ) ;</span>
+	}
+
+	/**
+	 * Adds a list of custom actions which are expected from a
+	 * {@link SQLiteHouseKeeper} implementation.
+	 * @param asCustomActions the list of custom actions
+	 * @return (fluid)
+	 */
+	public final SQLiteHouseSignalAPI setKeeperActions( String[] asCustomActions )
+<span class="fc" id="L163">	{ m_asCustomKeeperActions = asCustomActions ; return this ; }</span>
+
+	/**
+	 * Accesses the format string used to construct keeper actions.
+	 * @return the format for keeper actions
+	 */
+	public final String getKeeperActionFormat()
+<span class="fc" id="L170">	{ return m_sKeeperActionFormat ; }</span>
+
+	/**
+	 * Sets the format string used to construct actions for {@link Intent}s that
+	 * are dispatched to {@link SQLiteHouseKeeper}s. This format string
+	 * &lt;i&gt;must&lt;/i&gt; have two string variables.
+	 *
+	 * Defaults to {@link #DEFAULT_KEEPER_ACTION_FORMAT} if a null or empty
+	 * value is supplied.
+	 *
+	 * @param sFormat the format string
+	 * @return (fluid)
+	 */
+	public final SQLiteHouseSignalAPI setKeeperActionFormat( String sFormat )
+	{
+<span class="fc bfc" id="L185" title="All 4 branches covered.">		if( sFormat == null || sFormat.isEmpty() )</span>
+<span class="fc" id="L186">			m_sKeeperActionFormat = DEFAULT_KEEPER_ACTION_FORMAT ;</span>
+		else
+<span class="fc" id="L188">			m_sKeeperActionFormat = sFormat ;</span>
+<span class="fc" id="L189">		return this ;</span>
+	}
+
+	/**
+	 * Creates a fully-formed action name for the keeper.
+	 * @param sToken the action token (suffix) to be appended
+	 * @return an action token to be broadcast to a keeper
+	 */
+	public final String getFormattedKeeperAction( String sToken )
+	{
+<span class="fc" id="L199">		return String.format( this.getKeeperActionFormat(),</span>
+<span class="fc" id="L200">				this.getIntentDomain(), sToken ) ;</span>
+	}
+
+	/**
+	 * Extracts the action token from a fully-formatted keeper action string.
+	 * The default implementation takes the substring after the last period.
+	 * @param sAction the fully-formatted keeper action
+	 * @return the action token
+	 */
+	public String getTokenFromKeeperAction( String sAction )
+<span class="fc" id="L210">	{ return sAction.substring( sAction.lastIndexOf(&quot;.&quot;) + 1 ) ; }</span>
+
+	/**
+	 * Constructs the {@link IntentFilter} for the {@link SQLiteHouseKeeper}
+	 * implementation.
+	 * @return an intent filter for the keeper
+	 */
+	public final IntentFilter getKeeperIntentFilter()
+	{
+<span class="fc" id="L219">		return IntentUtils.getActionListIntentFilter(</span>
+<span class="fc" id="L220">				this.getKeeperActionFormat(),</span>
+<span class="fc" id="L221">				this.getIntentDomain(),</span>
+<span class="fc" id="L222">				this.getKeeperActions()</span>
+			);
+	}
+
+	/**
+	 * Accesses the set of relay actions which will be registered.
+	 *
+	 * By default, this is the value of {@link #RELAY_ACTIONS}. If the
+	 * {@link SQLiteHouseRelay} implementation also supports custom actions,
+	 * then they should be registered with {@link #setRelayActions}, which will
+	 * &lt;i&gt;append&lt;/i&gt; the custom list to the default.
+	 *
+	 * @return the list of actions supported by the relay implementation
+	 */
+	public final String[] getRelayActions()
+	{
+<span class="fc bfc" id="L238" title="All 2 branches covered.">		if( m_asCustomRelayActions == null ) return RELAY_ACTIONS ;</span>
+<span class="fc" id="L239">		else return CollectionsZ.of( String.class )</span>
+<span class="fc" id="L240">				.arrayConcat( RELAY_ACTIONS, m_asCustomRelayActions ) ;</span>
+	}
+
+	/**
+	 * Adds a list of custom actions which are expected from a
+	 * {@link SQLiteHouseRelay} implementation.
+	 * @param asCustomActions the list of custom actions
+	 * @return (fluid)
+	 */
+	public final SQLiteHouseSignalAPI setRelayActions( String[] asCustomActions )
+<span class="fc" id="L250">	{ m_asCustomRelayActions = asCustomActions ; return this ; }</span>
+
+	/**
+	 * Accesses the format string used to construct relay actions.
+	 * @return the format for relay actions
+	 */
+	public final String getRelayActionFormat()
+<span class="fc" id="L257">	{ return m_sRelayActionFormat ; }</span>
+
+	/**
+	 * Sets the format string used to construct actions for {@link Intent}s that
+	 * are dispatched to {@link SQLiteHouseRelay}s. This format string
+	 * &lt;i&gt;must&lt;/i&gt; have two string variables.
+	 *
+	 * Defaults to {@link #DEFAULT_RELAY_ACTION_FORMAT} if a null or empty
+	 * value is supplied.
+	 *
+	 * @param sFormat the format string
+	 * @return (fluid)
+	 */
+	public final SQLiteHouseSignalAPI setRelayActionFormat( String sFormat )
+	{
+<span class="fc bfc" id="L272" title="All 4 branches covered.">		if( sFormat == null || sFormat.isEmpty() )</span>
+<span class="fc" id="L273">			m_sRelayActionFormat = DEFAULT_RELAY_ACTION_FORMAT ;</span>
+		else
+<span class="fc" id="L275">			m_sRelayActionFormat = sFormat ;</span>
+<span class="fc" id="L276">		return this ;</span>
+	}
+
+	/**
+	 * Creates a fully-formed action name for the relay.
+	 * @param sToken the action token (suffix) to be appended
+	 * @return an action token to be broadcast to a relay
+	 */
+	public final String getFormattedRelayAction( String sToken )
+	{
+<span class="fc" id="L286">		return String.format( this.getRelayActionFormat(),</span>
+<span class="fc" id="L287">				this.getIntentDomain(), sToken ) ;</span>
+	}
+
+	/**
+	 * Extracts the action token from a fully-formatted relay action string.
+	 * The default implementation takes the substring after the last period.
+	 * @param sAction the fully-formatted relay action
+	 * @return the action token
+	 */
+	public String getTokenFromRelayAction( String sAction )
+<span class="fc" id="L297">	{ return sAction.substring( sAction.lastIndexOf(&quot;.&quot;) + 1 ) ; }</span>
+
+	/**
+	 * Constructs the {@link IntentFilter} for the {@link SQLiteHouseRelay}
+	 * implementation.
+	 * @return an intent filter for the relay
+	 */
+	public final IntentFilter getRelayIntentFilter()
+	{
+<span class="fc" id="L306">		return IntentUtils.getActionListIntentFilter(</span>
+<span class="fc" id="L307">				this.getRelayActionFormat(),</span>
+<span class="fc" id="L308">				this.getIntentDomain(),</span>
+<span class="fc" id="L309">				this.getRelayActions() ) ;</span>
+	}
+
+	/**
+	 * Accesses the format string used to construct name tags for {@link Intent}
+	 * extras.
+	 * @return the format for intent extra tags
+	 */
+	public final String getExtraTagFormat()
+<span class="fc" id="L318">	{ return m_sExtraTagFormat ; }</span>
+
+	/**
+	 * Sets the format string used to construct tags for {@link Intent} extras
+	 * that are exchanged between the keeper and the relay.
+	 *
+	 * Defaults to {@link #DEFAULT_EXTRA_TAG_FORMAT} if a null or empty value is
+	 * supplied.
+	 *
+	 * @param sFormat the format string
+	 * @return (fluid)
+	 */
+	public final SQLiteHouseSignalAPI setExtraTagFormat( String sFormat )
+	{
+<span class="fc bfc" id="L332" title="All 4 branches covered.">		if( sFormat == null || sFormat.isEmpty() )</span>
+<span class="fc" id="L333">			m_sExtraTagFormat = DEFAULT_EXTRA_TAG_FORMAT ;</span>
+		else
+<span class="fc" id="L335">			m_sExtraTagFormat = sFormat ;</span>
+<span class="fc" id="L336">		return this ;</span>
+	}
+
+	/**
+	 * Constructs the full name tag for an {@link Intent} extra to be exchanged
+	 * between a keeper and a relay.
+	 * @param sToken the significant part of the extra token which makes it
+	 *               unique among the extras in this API
+	 * @return the fully-formed extra tag
+	 */
+	public final String getFormattedExtraTag( String sToken )
+	{
+<span class="fc" id="L348">		return String.format( this.getExtraTagFormat(),</span>
+<span class="fc" id="L349">				this.getIntentDomain(), sToken ) ;</span>
+	}
+
+	/**
+	 * Shorthand to retrieve the schematic class name, which is used by almost
+	 * every keeper and relay function.
+	 * @param sig the intent
+	 * @return the schematic class name as given in the intent
+	 */
+	public String getExtraSchemaClassName( Intent sig )
+	{
+<span class="fc" id="L360">		return sig.getStringExtra( this.getFormattedExtraTag(</span>
+				EXTRA_SCHEMA_CLASS_NAME ) ) ;
+	}
+
+	/**
+	 * Discovers and returns the schematic class definition that is named in an
+	 * intent sent from a relay to a keeper.
+	 * @param sig the intent
+	 * @param &lt;SC&gt; the schematic class
+	 * @return the schematic class definition
+	 * @throws SQLiteContentException if the intent is malformed, in that the
+	 *  class name extra cannot be found or is empty
+	 * @throws IntrospectionException if something goes wrong while discovering
+	 *  the class definition
+	 * @throws SQLiteContentException if the extra that's supposed to have the
+	 *  class name in it can't be found
+	 */
+	public &lt;SC extends SQLightable&gt; Class&lt;SC&gt; getClassFromExtra( Intent sig )
+			throws IntrospectionException, SQLiteContentException
+	{
+<span class="fc" id="L380">		String sClass = this.getExtraSchemaClassName(sig) ;</span>
+<span class="fc bfc" id="L381" title="All 4 branches covered.">		if( sClass == null || sClass.isEmpty() )</span>
+<span class="fc" id="L382">			throw SQLiteContentException.noClassSpecified(null) ;</span>
+		try
+		{
+<span class="fc" id="L385">			Class&lt;?&gt; cls = Class.forName( sClass ) ;</span>
+<span class="fc bfc" id="L386" title="All 2 branches covered.">			if( SQLightable.class.isAssignableFrom(cls) )</span>
+			{
+				// noinspection unchecked - caught explicitly below
+<span class="fc" id="L389">				return ((Class&lt;SC&gt;)(cls)) ;</span>
+			}
+			else
+			{
+<span class="fc" id="L393">				throw IntrospectionException</span>
+<span class="fc" id="L394">						.illegalClassSpecification( cls, null ) ;</span>
+			}
+		}
+<span class="fc" id="L397">		catch( ClassNotFoundException | ClassCastException x )</span>
+<span class="fc" id="L398">		{ throw IntrospectionException.illegalClassSpecification( sClass, x ); }</span>
+	}
+
+	/**
+	 * Discovers and extracts an instance of a schematic class from an extra
+	 * provided in an intent from a relay to a keeper.
+	 * @param sig the intent
+	 * @param cls the schematic class
+	 * @param &lt;SC&gt; the schematic class
+	 * @return an instance of the schematic class, with data from the intent
+	 * @throws SQLiteContentException if the intent is malformed, in that the
+	 *  data extra cannot be found or is empty
+	 * @throws IntrospectionException if an instance of the schematic class
+	 *  can't be constructed
+	 * @throws SchematicException if a problem occurs while processing the
+	 *  schematic class
+	 */
+	public &lt;SC extends SQLightable&gt; SC getDataFromBundle( Intent sig, Class&lt;SC&gt; cls )
+	throws SQLiteContentException, IntrospectionException, SchematicException
+	{
+<span class="fc bfc" id="L418" title="All 2 branches covered.">		if( cls == null )</span>
+<span class="fc" id="L419">			throw SQLiteContentException.noClassSpecified(null) ;</span>
+<span class="fc" id="L420">		String sExtra = this.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;</span>
+<span class="fc bfc" id="L421" title="All 2 branches covered.">		if( ! sig.hasExtra( sExtra ) )</span>
+<span class="fc" id="L422">			throw SQLiteContentException.expectedExtraNotFound( sExtra, null ) ;</span>
+<span class="fc" id="L423">		Bundle bndl = sig.getBundleExtra( sExtra ) ;</span>
+<span class="fc bfc" id="L424" title="All 2 branches covered.">		if( bndl == null )</span>
+<span class="fc" id="L425">			throw SQLiteContentException.expectedExtraNotFound( sExtra, null ) ;</span>
+<span class="fc" id="L426">		SQLightable.Reflection&lt;SC&gt; tbl = this.reflect(cls) ;</span>
+<span class="fc" id="L427">		return tbl.fromBundle(bndl) ;</span>
+	}
+
+	/**
+	 * Uses a cached {@link SQLightable.Reflection} if available; otherwise,
+	 * caches a new one, then returns it.
+	 * @param cls the schematic class
+	 * @param &lt;SC&gt; the schematic class
+	 * @return the class's reflection
+	 */
+	protected &lt;SC extends SQLightable&gt; SQLightable.Reflection&lt;SC&gt; reflect( Class&lt;SC&gt; cls )
+	{
+<span class="fc bfc" id="L439" title="All 2 branches covered.">		if( ! m_mapReflections.containsKey(cls) )</span>
+<span class="fc" id="L440">			m_mapReflections.put( cls ) ;</span>
+<span class="fc" id="L441">		return m_mapReflections.get(cls) ;</span>
+	}
+
+	/**
+	 * Uses a cached {@link SQLightable.Reflection} if available; otherwise,
+	 * caches a new one, then returns it.
+	 * @param o an instance of the schematic class
+	 * @param &lt;SC&gt; the schematic class
+	 * @return the class's reflection
+	 */
+	protected &lt;SC extends SQLightable&gt; SQLightable.Reflection&lt;SC&gt; reflect( SC o )
+	{
+		// noinspection unchecked - guaranteed by signature
+<span class="fc" id="L454">		return this.reflect( ((Class&lt;SC&gt;)( o.getClass() )) ) ;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

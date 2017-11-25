@@ -31,10 +31,10 @@ extends Service
 
 	public static void kickoff( Context ctx )
 	{
-<span class="fc" id="L34">		ctx.startService(</span>
-<span class="fc" id="L35">			IntentUtils.getBoundIntent( ctx, SingletonService.class )</span>
-<span class="fc" id="L36">				.setAction( ACTION_KICKOFF ) ) ;</span>
-<span class="fc" id="L37">	}</span>
+<span class="nc" id="L34">		ctx.startService(</span>
+<span class="nc" id="L35">			IntentUtils.getBoundIntent( ctx, SingletonService.class )</span>
+<span class="nc" id="L36">				.setAction( ACTION_KICKOFF ) ) ;</span>
+<span class="nc" id="L37">	}</span>
 
     /**
      * An implementation of the {@link android.os.Binder} class which simply
@@ -46,7 +46,7 @@ extends Service
     {
         @Override
         public SingletonService getServiceInstance()
-<span class="fc" id="L49">        { return SingletonService.this ; }</span>
+<span class="nc" id="L49">        { return SingletonService.this ; }</span>
     }
 
     /** The mapping of classes to singleton instances of those classes. */
@@ -65,14 +65,14 @@ extends Service
 
     @Override
     public SingletonService.Binder onBind( Intent sig )
-<span class="fc" id="L68">    { return m_bind ; }</span>
+<span class="nc" id="L68">    { return m_bind ; }</span>
 
 	@Override
 	public int onStartCommand( Intent sig, int zFlags, int nStartID )
 	{
-<span class="fc" id="L73">		super.onStartCommand( sig, zFlags, nStartID ) ;</span>
-<span class="fc" id="L74">		Log.i( LOG_TAG, &quot;Started service.&quot; ) ;</span>
-<span class="fc" id="L75">		return Service.START_STICKY ;</span>
+<span class="nc" id="L73">		super.onStartCommand( sig, zFlags, nStartID ) ;</span>
+<span class="nc" id="L74">		Log.i( LOG_TAG, &quot;Started service.&quot; ) ;</span>
+<span class="nc" id="L75">		return Service.START_STICKY ;</span>
 	}
 
 	/**

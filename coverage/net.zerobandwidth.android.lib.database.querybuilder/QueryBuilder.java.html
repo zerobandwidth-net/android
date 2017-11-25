@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
+import net.zerobandwidth.android.lib.util.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,13 +14,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_VAR;
+
 /**
  * Builds a SQLite query using methods, rather than the methods from the
  * {@link SQLiteDatabase} methods that use long lists of parameters.
  *
  * &lt;p&gt;This class is supposed to do very little; the consumer should use the
  * static methods {@link #insertInto}, {@link #update}, {@link #selectFrom}, and
- * {@link #deleteFrom}) to spawn instances of the various implementation classes
+ * {@link #deleteFrom} to spawn instances of the various implementation classes
  * corresponding to database actions ({@code INSERT}, {@code UPDATE},
  * {@code SELECT}, and {@code DELETE}).&lt;/p&gt;
  *
@@ -39,7 +43,8 @@ import java.util.Map;
  *           shared methods.
  * @param &lt;R&gt; The return type of the underlying {@code SQLiteDatabase} function.
  *           This is set explicitly in the declaration of the implementation
- *           class, and will be the return type of {@link #executeOn}.
+ *           class, and will be the return type of {@link #execute} and
+ *           {@link #executeOn}.
  *
  * @since zerobandwidth-net/android 0.1.1 (#20)
  */
@@ -64,54 +69,26 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 			&quot;Caller tried to execute a query without a database reference.&quot; ;
 
 		public UnboundException()
-<span class="fc" id="L67">		{ super(DEFAULT_MESSAGE) ; }</span>
+<span class="fc" id="L72">		{ super(DEFAULT_MESSAGE) ; }</span>
 
 		public UnboundException( String sMessage )
-<span class="nc" id="L70">		{ super(sMessage) ; }</span>
+<span class="nc" id="L75">		{ super(sMessage) ; }</span>
 
 		public UnboundException( Throwable xCause )
-<span class="nc" id="L73">		{ super( DEFAULT_MESSAGE, xCause ) ; }</span>
+<span class="nc" id="L78">		{ super( DEFAULT_MESSAGE, xCause ) ; }</span>
 
 		public UnboundException( String sMessage, Throwable xCause )
-<span class="nc" id="L76">		{ super( sMessage, xCause ) ; }</span>
+<span class="nc" id="L81">		{ super( sMessage, xCause ) ; }</span>
 	}
 
 /// Static constants ///////////////////////////////////////////////////////////
 
 	/**
-	 * The character that stands in for a variable value in the Android format
-	 * string that is passed to {@link SQLiteDatabase} query methods.
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SQLITE_VAR}
 	 */
-	protected static final String ANDROID_VARIABLE_MARKER = &quot;?&quot; ;
-
-	/**
-	 * SQL keyword marking the beginning of a {@code WHERE} clause.
-	 * @see InsertionBuilder#toString()
-	 * @see UpdateBuilder#toString()
-	 * @see SelectionBuilder#toString()
-	 * @see DeletionBuilder#toString()
-	 */
-	protected static final String SQL_WHERE = &quot; WHERE &quot; ;
-
-	/**
-	 * If using integer columns to store Boolean values, where {@code 1} is true
-	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
-	 * value substitutions for &quot;true&quot;.
-	 * @see SQLitePortal#boolToInt(boolean)
-	 * @see SQLitePortal#intToBool(int)
-	 * @see SQLitePortal#WHERE_TRUE
-	 */
-	public static final String WHERE_TRUE = SQLitePortal.WHERE_TRUE ;
-
-	/**
-	 * If using integer columns to store Boolean values, where {@code 1} is true
-	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
-	 * value substitutions for &quot;false&quot;.
-	 * @see SQLitePortal#boolToInt(boolean)
-	 * @see SQLitePortal#intToBool(int)
-	 * @see SQLitePortal#WHERE_FALSE
-	 */
-	public static final String WHERE_FALSE = SQLitePortal.WHERE_FALSE ;
+	protected static final String ANDROID_VARIABLE_MARKER =
+			SQLITE_VAR;
 
 /// Static kickoff methods (starts a query of a given type) ////////////////////
 
@@ -121,7 +98,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * @return an instance of a builder that can handle insertion queries
 	 */
 	public static InsertionBuilder insertInto( String sTableName )
-<span class="fc" id="L124">	{ return new InsertionBuilder( sTableName ) ; }</span>
+<span class="fc" id="L101">	{ return new InsertionBuilder( sTableName ) ; }</span>
 
 	/**
 	 * Kicks off construction of an {@code INSERT} query, bound to a specific
@@ -132,7 +109,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * @since zerobandwidth-net/android 0.1.4 (#37)
 	 */
 	public static InsertionBuilder insertInto( SQLiteDatabase db, String sTableName )
-<span class="fc" id="L135">	{ return insertInto(sTableName).onDatabase(db) ; }</span>
+<span class="fc" id="L112">	{ return insertInto(sTableName).onDatabase(db) ; }</span>
 
 	/**
 	 * Kicks off construction of an {@code UPDATE} query.
@@ -140,7 +117,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * @return an instance of a builder that can handle update queries
 	 */
 	public static UpdateBuilder update( String sTableName )
-<span class="fc" id="L143">	{ return new UpdateBuilder( sTableName ) ; }</span>
+<span class="fc" id="L120">	{ return new UpdateBuilder( sTableName ) ; }</span>
 
 	/**
 	 * Kicks off construction of an {@code UPDATE} query, bound to a specific
@@ -151,7 +128,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * @since zerobandwidth-net/android 0.1.4 (#37)
 	 */
 	public static UpdateBuilder update( SQLiteDatabase db, String sTableName )
-<span class="fc" id="L154">	{ return update(sTableName).onDatabase(db) ; }</span>
+<span class="fc" id="L131">	{ return update(sTableName).onDatabase(db) ; }</span>
 
 	/**
 	 * Kicks off construction of a {@code SELECT} query.
@@ -159,7 +136,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * @return an instance of a builder that can handle selection queries
 	 */
 	public static SelectionBuilder selectFrom( String sTableName )
-<span class="fc" id="L162">	{ return new SelectionBuilder( sTableName ) ; }</span>
+<span class="fc" id="L139">	{ return new SelectionBuilder( sTableName ) ; }</span>
 
 	/**
 	 * Kicks off construction of a {@code SELECT} query, bound to a specific
@@ -170,7 +147,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * @since zerobandwidth-net/android 0.1.4 (#37)
 	 */
 	public static SelectionBuilder selectFrom( SQLiteDatabase db, String sTableName )
-<span class="fc" id="L173">	{ return selectFrom(sTableName).onDatabase(db) ; }</span>
+<span class="fc" id="L150">	{ return selectFrom(sTableName).onDatabase(db) ; }</span>
 
 	/**
 	 * Kicks off construction of a {@code DELETE} query.
@@ -178,7 +155,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * @return an instance of a builder that can handle deletion queries
 	 */
 	public static DeletionBuilder deleteFrom( String sTableName )
-<span class="fc" id="L181">	{ return new DeletionBuilder( sTableName ) ; }</span>
+<span class="fc" id="L158">	{ return new DeletionBuilder( sTableName ) ; }</span>
 
 	/**
 	 * Kicks off construction of a {@code DELETE} query, bound to a specific
@@ -189,7 +166,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * @since zerobandwidth-net/android 0.1.4 (#37)
 	 */
 	public static DeletionBuilder deleteFrom( SQLiteDatabase db, String sTableName )
-<span class="fc" id="L192">	{ return deleteFrom(sTableName).onDatabase(db) ; }</span>
+<span class="fc" id="L169">	{ return deleteFrom(sTableName).onDatabase(db) ; }</span>
 
 /// Other static methods ///////////////////////////////////////////////////////
 
@@ -197,10 +174,11 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * Returns the number of milliseconds since epoch UTC. Use this value when
 	 * comparing to timestamps stored in the database as {@code long} integers.
 	 * @return milliseconds since epoch UTC
-	 * @see SQLitePortal#now()
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#39) - refactored as
+	 *     {@link net.zerobandwidth.android.lib.util.TimeUtils#now}
 	 */
 	public long now()
-<span class="nc" id="L203">	{ return SQLitePortal.now() ; }</span>
+<span class="nc" id="L181">	{ return TimeUtils.now() ; }</span>
 
 	/**
 	 * Renders the key/value pairs in a set of {@link ContentValues} as a list
@@ -216,55 +194,57 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 */
 	public static String toSQLInputParams( ContentValues vals )
 	{
-<span class="fc" id="L219">		StringBuilder sb = new StringBuilder() ;</span>
-<span class="fc" id="L220">		List&lt;Map.Entry&lt;String,Object&gt;&gt; aEntries =</span>
-<span class="fc" id="L221">				new ArrayList&lt;&gt;( vals.valueSet() ) ;</span>
-<span class="fc" id="L222">		Collections.sort( aEntries, new Comparator&lt;Map.Entry&lt;String,Object&gt;&gt;()</span>
-<span class="fc" id="L223">		{</span>
+<span class="pc bpc" id="L197" title="1 of 4 branches missed.">		if( vals == null || vals.size() == 0 ) return &quot;&quot; ; // trivially</span>
+
+<span class="fc" id="L199">		StringBuilder sb = new StringBuilder() ;</span>
+<span class="fc" id="L200">		List&lt;Map.Entry&lt;String,Object&gt;&gt; aEntries =</span>
+<span class="fc" id="L201">				new ArrayList&lt;&gt;( vals.valueSet() ) ;</span>
+<span class="fc" id="L202">		Collections.sort( aEntries, new Comparator&lt;Map.Entry&lt;String,Object&gt;&gt;()</span>
+<span class="fc" id="L203">		{</span>
 			@Override
 			public int compare( Map.Entry&lt;String,Object&gt; lhs, Map.Entry&lt;String,Object&gt; rhs )
-<span class="fc" id="L226">			{ return (lhs.getKey()).compareTo(rhs.getKey()) ; }</span>
+<span class="fc" id="L206">			{ return (lhs.getKey()).compareTo(rhs.getKey()) ; }</span>
 		});
-<span class="fc bfc" id="L228" title="All 2 branches covered.">		for( Map.Entry&lt;String,Object&gt; pair : aEntries )</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">		for( Map.Entry&lt;String,Object&gt; pair : aEntries )</span>
 		{
-<span class="fc bfc" id="L230" title="All 2 branches covered.">			if( sb.length() &gt; 0 ) sb.append( &quot;, &quot; ) ;</span>
-<span class="fc" id="L231">			sb.append( pair.getKey() ).append( &quot;=&quot; ) ;</span>
-<span class="fc bfc" id="L232" title="All 2 branches covered.">			if( pair.getValue() instanceof Number )</span>
-<span class="fc" id="L233">				sb.append( pair.getValue() ) ;</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">			if( sb.length() &gt; 0 ) sb.append( &quot;, &quot; ) ;</span>
+<span class="fc" id="L211">			sb.append( pair.getKey() ).append( &quot;=&quot; ) ;</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">			if( pair.getValue() instanceof Number )</span>
+<span class="fc" id="L213">				sb.append( pair.getValue() ) ;</span>
 			else
-<span class="fc" id="L235">				sb.append( &quot;'&quot; ).append( pair.getValue() ).append( &quot;'&quot; ) ;</span>
-<span class="fc" id="L236">		}</span>
-<span class="fc" id="L237">		return sb.toString() ;</span>
+<span class="fc" id="L215">				sb.append( &quot;'&quot; ).append( pair.getValue() ).append( &quot;'&quot; ) ;</span>
+<span class="fc" id="L216">		}</span>
+<span class="fc" id="L217">		return sb.toString() ;</span>
 	}
 
 /// Shared member fields ///////////////////////////////////////////////////////
 
 	/** The name of the table on which the query will operate. */
-<span class="fc" id="L243">	protected String m_sTableName = null ;</span>
+<span class="fc" id="L223">	protected String m_sTableName = null ;</span>
 
 	/**
 	 * For {@code INSERT} and {@code DELETE} operations, these are the values to
 	 * be written.
 	 */
-<span class="fc" id="L249">	protected ContentValues m_valsToWrite = null ;</span>
+<span class="fc" id="L229">	protected ContentValues m_valsToWrite = null ;</span>
 
 	/**
 	 * A substitute, explicit format string for a {@code WHERE} clause, for
 	 * which {@link #m_asExplicitWhereParams} provides the values.
 	 */
-<span class="fc" id="L255">	protected String m_sExplicitWhereFormat = null ;</span>
+<span class="fc" id="L235">	protected String m_sExplicitWhereFormat = null ;</span>
 
 	/**
 	 * A substitute, explicit list of parameters for the {@code WHERE} clause
 	 * format specified in {@link #m_sExplicitWhereFormat}.
 	 */
-<span class="fc" id="L261">	protected String[] m_asExplicitWhereParams = null ;</span>
+<span class="fc" id="L241">	protected String[] m_asExplicitWhereParams = null ;</span>
 
 	/**
 	 * A persistent binding to a specific database, used by {@link #execute}.
 	 * @since zerobandwidth-net/android 0.1.4 (#37)
 	 */
-<span class="fc" id="L267">	protected SQLiteDatabase m_dbTarget = null ;</span>
+<span class="fc" id="L247">	protected SQLiteDatabase m_dbTarget = null ;</span>
 
 /// Shared constructor /////////////////////////////////////////////////////////
 
@@ -274,9 +254,9 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 *                   performed
 	 */
 	public QueryBuilder( String sTableName )
-<span class="fc" id="L277">	{</span>
-<span class="fc" id="L278">		m_sTableName = sTableName ;</span>
-<span class="fc" id="L279">	}</span>
+<span class="fc" id="L257">	{</span>
+<span class="fc" id="L258">		m_sTableName = sTableName ;</span>
+<span class="fc" id="L259">	}</span>
 
 /// Shared methods /////////////////////////////////////////////////////////////
 
@@ -289,7 +269,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 */
 	@SuppressWarnings( &quot;unchecked&quot; )
 	public I onDatabase( SQLiteDatabase db )
-<span class="fc" id="L292">	{ m_dbTarget = db ; return (I)this ; }</span>
+<span class="fc" id="L272">	{ m_dbTarget = db ; return (I)this ; }</span>
 
 	/**
 	 * Sets the table name in which the query will be executed.
@@ -298,7 +278,7 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 */
 	@SuppressWarnings( &quot;unchecked&quot; )
 	protected I setTableName( String sTableName )
-<span class="nc" id="L301">	{ m_sTableName = sTableName ; return (I)this ; }</span>
+<span class="nc" id="L281">	{ m_sTableName = sTableName ; return (I)this ; }</span>
 
 	/**
 	 * Sets values to be written as part of an {@code INSERT} or {@code UPDATE}
@@ -309,8 +289,8 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	@SuppressWarnings( &quot;unchecked&quot; )
 	public I setValues( ContentValues vals )
 	{
-<span class="fc" id="L312">		m_valsToWrite = vals ;</span>
-<span class="fc" id="L313">		return (I)this ;</span>
+<span class="fc" id="L292">		m_valsToWrite = vals ;</span>
+<span class="fc" id="L293">		return (I)this ;</span>
 	}
 
 	/**
@@ -328,9 +308,9 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	@SuppressWarnings( &quot;unchecked&quot; )
 	public I where( String sWhereClause )
 	{
-<span class="fc" id="L331">		m_sExplicitWhereFormat = sWhereClause ;</span>
-<span class="fc" id="L332">		m_asExplicitWhereParams = null ;</span>
-<span class="fc" id="L333">		return (I)this ;</span>
+<span class="fc" id="L311">		m_sExplicitWhereFormat = sWhereClause ;</span>
+<span class="fc" id="L312">		m_asExplicitWhereParams = null ;</span>
+<span class="fc" id="L313">		return (I)this ;</span>
 	}
 
 	/**
@@ -343,9 +323,9 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	@SuppressWarnings( &quot;unchecked&quot; )
 	public I where( String sWhereFormat, String... asWhereParams )
 	{
-<span class="fc" id="L346">		m_sExplicitWhereFormat = sWhereFormat ;</span>
-<span class="fc" id="L347">		m_asExplicitWhereParams = asWhereParams ;</span>
-<span class="fc" id="L348">		return (I)this ;</span>
+<span class="fc" id="L326">		m_sExplicitWhereFormat = sWhereFormat ;</span>
+<span class="fc" id="L327">		m_asExplicitWhereParams = asWhereParams ;</span>
+<span class="fc" id="L328">		return (I)this ;</span>
 	}
 
 	/**
@@ -355,13 +335,15 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 * @param asWhereParams the parameters for the {@code WHERE} clause
 	 * @return (fluid)
 	 */
-	@SuppressWarnings( &quot;unchecked&quot; )
 	public I where( String sWhereFormat, Collection&lt;String&gt; asWhereParams )
 	{
-<span class="nc" id="L361">		m_sExplicitWhereFormat = sWhereFormat ;</span>
-<span class="nc" id="L362">		m_asExplicitWhereParams =</span>
-<span class="nc" id="L363">			asWhereParams.toArray( new String[asWhereParams.size()] ) ;</span>
-<span class="nc" id="L364">		return (I)this ;</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">		if( asWhereParams == null )</span>
+<span class="nc" id="L341">			return this.where( sWhereFormat ) ;</span>
+		else
+		{
+<span class="nc" id="L344">			return this.where( sWhereFormat,</span>
+<span class="nc" id="L345">				asWhereParams.toArray( new String[asWhereParams.size()] ) ) ;</span>
+		}
 	}
 
 	/**
@@ -371,10 +353,10 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 */
 	protected String getWhereFormat()
 	{
-<span class="fc bfc" id="L374" title="All 2 branches covered.">		if( m_sExplicitWhereFormat != null )</span>
-<span class="fc" id="L375">			return m_sExplicitWhereFormat ;</span>
+<span class="fc bfc" id="L356" title="All 2 branches covered.">		if( m_sExplicitWhereFormat != null )</span>
+<span class="fc" id="L357">			return m_sExplicitWhereFormat ;</span>
 
-<span class="fc" id="L377">		return null ;</span>
+<span class="fc" id="L359">		return null ;</span>
 	}
 
 	/**
@@ -384,10 +366,10 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 */
 	protected String[] getWhereParams()
 	{
-<span class="fc bfc" id="L387" title="All 2 branches covered.">		if( m_sExplicitWhereFormat != null )</span>
-<span class="fc" id="L388">			return m_asExplicitWhereParams ; // even if THEY are null</span>
+<span class="fc bfc" id="L369" title="All 2 branches covered.">		if( m_sExplicitWhereFormat != null )</span>
+<span class="fc" id="L370">			return m_asExplicitWhereParams ; // even if THEY are null</span>
 
-<span class="fc" id="L390">		return null ;</span>
+<span class="fc" id="L372">		return null ;</span>
 	}
 
 	/**
@@ -397,13 +379,16 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	 */
 	protected String getWhereClause()
 	{
-<span class="pc bpc" id="L400" title="1 of 2 branches missed.">		if( m_sExplicitWhereFormat == null ) return null ;</span>
-<span class="fc bfc" id="L401" title="All 2 branches covered.">		if( ! m_sExplicitWhereFormat.contains( &quot;?&quot; ) )</span>
-<span class="fc" id="L402">			return m_sExplicitWhereFormat ;        // Contains no substitutions.</span>
-<span class="pc bpc" id="L403" title="2 of 4 branches missed.">		if( m_asExplicitWhereParams == null || m_asExplicitWhereParams.length == 0 )</span>
-<span class="nc" id="L404">			throw new IllegalStateException( &quot;Need parameters but don't have them&quot; ) ;</span>
-<span class="fc" id="L405">		String sFormat = m_sExplicitWhereFormat.replace( &quot;?&quot;, &quot;%s&quot; ) ;</span>
-<span class="fc" id="L406">		return String.format( sFormat, ((Object[])(m_asExplicitWhereParams)) ) ;</span>
+<span class="fc bfc" id="L382" title="All 2 branches covered.">		if( m_sExplicitWhereFormat == null ) return null ;</span>
+<span class="fc bfc" id="L383" title="All 2 branches covered.">		if( ! m_sExplicitWhereFormat.contains( SQLITE_VAR ) )</span>
+<span class="fc" id="L384">			return m_sExplicitWhereFormat ;        // Contains no substitutions.</span>
+<span class="pc bpc" id="L385" title="2 of 4 branches missed.">		if( m_asExplicitWhereParams == null || m_asExplicitWhereParams.length == 0 )</span>
+		{
+<span class="nc" id="L387">			throw new IllegalStateException(</span>
+					&quot;Need parameters but don't have them.&quot; ) ;
+		}
+<span class="fc" id="L390">		String sFormat = m_sExplicitWhereFormat.replace( SQLITE_VAR, &quot;%s&quot; ) ;</span>
+<span class="fc" id="L391">		return String.format( sFormat, ((Object[])(m_asExplicitWhereParams)) ) ;</span>
 	}
 
 /// Abstract class specification ///////////////////////////////////////////////
@@ -427,10 +412,10 @@ public abstract class QueryBuilder&lt;I extends QueryBuilder, R&gt;
 	public final R execute()
 	throws QueryBuilder.UnboundException
 	{
-<span class="fc bfc" id="L430" title="All 2 branches covered.">		if( m_dbTarget == null )</span>
-<span class="fc" id="L431">			throw new QueryBuilder.UnboundException() ;</span>
+<span class="fc bfc" id="L415" title="All 2 branches covered.">		if( m_dbTarget == null )</span>
+<span class="fc" id="L416">			throw new QueryBuilder.UnboundException() ;</span>
 
-<span class="fc" id="L433">		return this.executeOn( m_dbTarget ) ;</span>
+<span class="fc" id="L418">		return this.executeOn( m_dbTarget ) ;</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

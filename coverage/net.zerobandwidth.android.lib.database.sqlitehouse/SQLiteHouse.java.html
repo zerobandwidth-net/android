@@ -15,7 +15,6 @@ import net.zerobandwidth.android.lib.database.querybuilder.SelectionBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.UpdateBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteDatabaseSpec;
-import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
@@ -27,11 +26,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Uses custom annotations to automatically construct and manage SQLite
@@ -224,7 +220,6 @@ import java.util.Map;
  *
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
-@SuppressWarnings(&quot;StringBufferReplaceableByString&quot;)
 public class SQLiteHouse&lt;DSC extends SQLiteHouse&gt;
 extends SQLitePortal
 {
@@ -251,7 +246,7 @@ extends SQLitePortal
 	 *
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
-<span class="fc" id="L254">	public static class Factory</span>
+<span class="fc" id="L249">	public static class Factory</span>
 	{
 		/**
 		 * Simply an alias for the default constructor, to allow for a cleaner
@@ -260,10 +255,10 @@ extends SQLitePortal
 		 * @return an instance of the factory
 		 */
 		public static SQLiteHouse.Factory init()
-<span class="fc" id="L263">		{ return new SQLiteHouse.Factory() ; }</span>
+<span class="fc" id="L258">		{ return new SQLiteHouse.Factory() ; }</span>
 
 		/** The context in which the {@code SQLiteHouse} will operate. */
-<span class="fc" id="L266">		protected Context m_ctx = null ;</span>
+<span class="fc" id="L261">		protected Context m_ctx = null ;</span>
 
 		/**
 		 * The name of the database to be created. The factory will glean this
@@ -274,7 +269,7 @@ extends SQLitePortal
 		 * this value from the factory to pass it to the parent class's
 		 * constructor, {@link SQLitePortal#SQLitePortal}.
 		 */
-<span class="fc" id="L277">		protected String m_sDatabaseName = null ;</span>
+<span class="fc" id="L272">		protected String m_sDatabaseName = null ;</span>
 
 		/**
 		 * The cursor factory to be used with the {@link SQLiteHouse} instance,
@@ -284,7 +279,7 @@ extends SQLitePortal
 		 * this value from the factory to pass it to the parent class's
 		 * constructor, {@link SQLitePortal#SQLitePortal}.
 		 */
-<span class="fc" id="L287">		protected SQLiteDatabase.CursorFactory m_cf = null ;</span>
+<span class="fc" id="L282">		protected SQLiteDatabase.CursorFactory m_cf = null ;</span>
 
 		/**
 		 * The current schema version of the database. The factory will glean
@@ -295,7 +290,7 @@ extends SQLitePortal
 		 * this value from the factory to pass it to the parent class's
 		 * constructor, {@link SQLitePortal#SQLitePortal}.
 		 */
-<span class="fc" id="L298">		protected int m_nSchemaVersion = SCHEMA_NOT_DEFINED ;</span>
+<span class="fc" id="L293">		protected int m_nSchemaVersion = SCHEMA_NOT_DEFINED ;</span>
 
 		/**
 		 * The array of classes which, in aggregate, define the schema for the
@@ -307,7 +302,33 @@ extends SQLitePortal
 		 * list to construct the schema; see
 		 * {@link SQLiteHouse#setSchemaClasses(List)}.
 		 */
-<span class="fc" id="L310">		protected ArrayList&lt;Class&lt;? extends SQLightable&gt;&gt; m_aclsSchema = null ;</span>
+<span class="fc" id="L305">		protected ArrayList&lt;Class&lt;? extends SQLightable&gt;&gt; m_aclsSchema = null ;</span>
+
+		/**
+		 * Uses annotations found in a {@link SQLiteHouse} descendant to
+		 * construct an instance of the database class.
+		 *
+		 * Since this method is templatized on the class that is being
+		 * instantiated, there is no need for the {@code SQLiteHouse} descendant
+		 * to provide its own extension of {@code SQLiteHouse.Factory}; this
+		 * method will return an instance of the descendant class.
+		 * @param cls the {@code SQLiteHouse} descendant class being created
+		 * @param ctx the context in which the object will operate
+		 * @param &lt;FDSC&gt; the {@code SQLiteHouse} descendant being created; this
+		 *  matches the class sent in the {@code cls} argument.
+		 * @return an instance of the {@code SQLiteHouse} descendant,
+		 *  initialized with the database attributes found in the class's
+		 *  {@link SQLiteDatabaseSpec} annotation
+		 * @throws IntrospectionException if something goes wrong while
+		 *  processing the descendant class. When invoking the descendant's
+		 *  constructor, there are several possible failure states; use
+		 *  {@code .getCause()} to determine which one applies.
+		 * @since zerobandwidth-net/android 0.1.7 (#50)
+		 */
+		public &lt;FDSC extends SQLiteHouse&gt; FDSC getInstance(
+				Class&lt;FDSC&gt; cls, Context ctx )
+		throws IntrospectionException
+<span class="fc" id="L331">		{ return this.getInstance( cls, ctx, null ) ; }</span>
 
 		/**
 		 * Uses annotations found in a {@link SQLiteHouse} descendant to
@@ -337,37 +358,37 @@ extends SQLitePortal
 				Context ctx, SQLiteDatabase.CursorFactory cf )
 		throws IntrospectionException
 		{
-<span class="fc" id="L340">			this.m_ctx = ctx ;</span>
-<span class="fc" id="L341">			this.m_cf = cf ;</span>
+<span class="fc" id="L361">			this.m_ctx = ctx ;</span>
+<span class="fc" id="L362">			this.m_cf = cf ;</span>
 
 			try
 			{
-<span class="fc" id="L345">				SQLiteDatabaseSpec spec =</span>
-<span class="fc" id="L346">						cls.getAnnotation( SQLiteDatabaseSpec.class ) ;</span>
-<span class="fc" id="L347">				m_sDatabaseName = spec.database_name() ;</span>
-<span class="fc" id="L348">				m_nSchemaVersion = spec.schema_version() ;</span>
-<span class="fc" id="L349">				this.m_aclsSchema = new ArrayList&lt;&gt;() ;</span>
-<span class="fc" id="L350">				this.m_aclsSchema.addAll( Arrays.asList( spec.classes() ) ) ;</span>
+<span class="fc" id="L366">				SQLiteDatabaseSpec spec =</span>
+<span class="fc" id="L367">						cls.getAnnotation( SQLiteDatabaseSpec.class ) ;</span>
+<span class="fc" id="L368">				m_sDatabaseName = spec.database_name() ;</span>
+<span class="fc" id="L369">				m_nSchemaVersion = spec.schema_version() ;</span>
+<span class="fc" id="L370">				this.m_aclsSchema = new ArrayList&lt;&gt;() ;</span>
+<span class="fc" id="L371">				this.m_aclsSchema.addAll( Arrays.asList( spec.classes() ) ) ;</span>
 			}
-<span class="fc" id="L352">			catch( NullPointerException x )</span>
+<span class="fc" id="L373">			catch( NullPointerException x )</span>
 			{
-<span class="fc" id="L354">				throw new IntrospectionException(</span>
+<span class="fc" id="L375">				throw new IntrospectionException(</span>
 						&quot;Could not initialize the database instance.&quot; ) ;
-<span class="fc" id="L356">			}</span>
+<span class="fc" id="L377">			}</span>
 
 			try
 			{
-<span class="fc" id="L360">				Constructor ctor = cls.getDeclaredConstructor(</span>
+<span class="fc" id="L381">				Constructor ctor = cls.getDeclaredConstructor(</span>
 						SQLiteHouse.Factory.class ) ;
-<span class="fc" id="L362">				ctor.setAccessible( true ) ;</span>
-<span class="fc" id="L363">				return ((FDSC)( ctor.newInstance( this ) )) ;</span>
+<span class="fc" id="L383">				ctor.setAccessible( true ) ;</span>
+<span class="fc" id="L384">				return ((FDSC)( ctor.newInstance( this ) )) ;</span>
 			}
-<span class="nc" id="L365">			catch( Exception x )</span>
+<span class="nc" id="L386">			catch( Exception x )</span>
 			{
 				// Might catch any of:
 				// IllegalAccessException, InstantiationException,
 				// InvocationTargetException, NoSuchMethodException
-<span class="nc" id="L370">				throw new IntrospectionException(</span>
+<span class="nc" id="L391">				throw new IntrospectionException(</span>
 						&quot;Could not find appropriate constructor in descendant.&quot;,
 						x ) ;
 			}
@@ -378,9 +399,9 @@ extends SQLitePortal
 	 * Used by {@link SQLiteHouse} to sort the indices and/or names of columns
 	 * within a table specification.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
-	 * @see SQLiteHouse#processFieldsOfClasses()
+	 * @see SQLightable.Reflection#initFieldMap()
 	 */
-<span class="fc" id="L383">	public static class ColumnIndexComparator</span>
+<span class="fc" id="L404">	public static class ColumnIndexComparator</span>
 	implements Comparator&lt;Field&gt;
 	{
 		/**
@@ -400,48 +421,48 @@ extends SQLitePortal
 		@Override
 		public int compare( Field fldFirst, Field fldSecond )
 		{
-<span class="fc" id="L403">			SQLiteColumn antFirst =</span>
-<span class="fc" id="L404">					fldFirst.getAnnotation( SQLiteColumn.class ) ;</span>
-<span class="fc" id="L405">			SQLiteColumn antSecond =</span>
-<span class="fc" id="L406">					fldSecond.getAnnotation( SQLiteColumn.class ) ;</span>
+<span class="fc" id="L424">			SQLiteColumn antFirst =</span>
+<span class="fc" id="L425">					fldFirst.getAnnotation( SQLiteColumn.class ) ;</span>
+<span class="fc" id="L426">			SQLiteColumn antSecond =</span>
+<span class="fc" id="L427">					fldSecond.getAnnotation( SQLiteColumn.class ) ;</span>
 
 			// Try comparing the &quot;index&quot; attribute first.
-<span class="fc bfc" id="L409" title="All 2 branches covered.">			if( antFirst.index() == SQLiteColumn.NO_INDEX_DEFINED )</span>
+<span class="fc bfc" id="L430" title="All 2 branches covered.">			if( antFirst.index() == SQLiteColumn.NO_INDEX_DEFINED )</span>
 			{
-<span class="fc bfc" id="L411" title="All 2 branches covered.">				if( antSecond.index() != SQLiteColumn.NO_INDEX_DEFINED )</span>
+<span class="fc bfc" id="L432" title="All 2 branches covered.">				if( antSecond.index() != SQLiteColumn.NO_INDEX_DEFINED )</span>
 				{ // Always sort cols without indices after cols with indices.
-<span class="fc" id="L413">					return 1 ;</span>
+<span class="fc" id="L434">					return 1 ;</span>
 				}
 			}
-<span class="fc bfc" id="L416" title="All 2 branches covered.">			else if( antSecond.index() == SQLiteColumn.NO_INDEX_DEFINED )</span>
+<span class="fc bfc" id="L437" title="All 2 branches covered.">			else if( antSecond.index() == SQLiteColumn.NO_INDEX_DEFINED )</span>
 			{ // Always sort cols without indices after cols with indices.
-<span class="fc" id="L418">				return -1 ;</span>
+<span class="fc" id="L439">				return -1 ;</span>
 			}
-<span class="pc bpc" id="L420" title="1 of 2 branches missed.">			else if( antFirst.index() &lt; antSecond.index() )</span>
-<span class="nc" id="L421">				return -1 ;</span>
-<span class="pc bpc" id="L422" title="1 of 2 branches missed.">			else if( antFirst.index() &gt; antSecond.index() )</span>
-<span class="fc" id="L423">				return 1 ;</span>
+<span class="pc bpc" id="L441" title="1 of 2 branches missed.">			else if( antFirst.index() &lt; antSecond.index() )</span>
+<span class="nc" id="L442">				return -1 ;</span>
+<span class="pc bpc" id="L443" title="1 of 2 branches missed.">			else if( antFirst.index() &gt; antSecond.index() )</span>
+<span class="fc" id="L444">				return 1 ;</span>
 
 			// If &quot;index&quot; is equal, the sort alphabetically.
-<span class="fc" id="L426">			String sFirst = antFirst.name() ;</span>
-<span class="fc" id="L427">			String sSecond = antSecond.name() ;</span>
+<span class="fc" id="L447">			String sFirst = antFirst.name() ;</span>
+<span class="fc" id="L448">			String sSecond = antSecond.name() ;</span>
 
-<span class="fc" id="L429">			int nCharIndex = 0 ;</span>
-<span class="pc bpc" id="L430" title="2 of 4 branches missed.">			while( nCharIndex &lt; sFirst.length() &amp;&amp; nCharIndex &lt; sSecond.length() )</span>
+<span class="fc" id="L450">			int nCharIndex = 0 ;</span>
+<span class="pc bpc" id="L451" title="2 of 4 branches missed.">			while( nCharIndex &lt; sFirst.length() &amp;&amp; nCharIndex &lt; sSecond.length() )</span>
 			{
-<span class="fc bfc" id="L432" title="All 2 branches covered.">				if( sFirst.charAt(nCharIndex) &lt; sSecond.charAt(nCharIndex) )</span>
-<span class="fc" id="L433">					return -1 ;</span>
-<span class="pc bpc" id="L434" title="1 of 2 branches missed.">				if( sFirst.charAt(nCharIndex) &gt; sSecond.charAt(nCharIndex) )</span>
-<span class="nc" id="L435">					return 1 ;</span>
-<span class="fc" id="L436">				++nCharIndex ;</span>
+<span class="fc bfc" id="L453" title="All 2 branches covered.">				if( sFirst.charAt(nCharIndex) &lt; sSecond.charAt(nCharIndex) )</span>
+<span class="fc" id="L454">					return -1 ;</span>
+<span class="fc bfc" id="L455" title="All 2 branches covered.">				if( sFirst.charAt(nCharIndex) &gt; sSecond.charAt(nCharIndex) )</span>
+<span class="fc" id="L456">					return 1 ;</span>
+<span class="fc" id="L457">				++nCharIndex ;</span>
 			}
 
-<span class="nc bnc" id="L439" title="All 2 branches missed.">			if( sFirst.length() &lt; sSecond.length() )</span>
-<span class="nc" id="L440">				return -1 ;</span>
-<span class="nc bnc" id="L441" title="All 2 branches missed.">			if( sFirst.length() &gt; sSecond.length() )</span>
-<span class="nc" id="L442">				return 1 ;</span>
+<span class="nc bnc" id="L460" title="All 2 branches missed.">			if( sFirst.length() &lt; sSecond.length() )</span>
+<span class="nc" id="L461">				return -1 ;</span>
+<span class="nc bnc" id="L462" title="All 2 branches missed.">			if( sFirst.length() &gt; sSecond.length() )</span>
+<span class="nc" id="L463">				return 1 ;</span>
 
-<span class="nc" id="L444">			return 0 ;</span>
+<span class="nc" id="L465">			return 0 ;</span>
 		}
 	}
 
@@ -451,30 +472,32 @@ extends SQLitePortal
 	 * must be reused multiple times within the body of certain larger
 	 * functions, or must be passed &lt;i&gt;between&lt;/i&gt; functions, it is useful to
 	 * have all of these fields gathered in a single contextual container.
+	 * Since 0.1.7 (#50), this class is not particularly different from
+	 * {@link SQLightable.Reflection}, but is still not deprecated&amp;hellip; yet.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
 	 */
 	public static class QueryContext&lt;DBH extends SQLiteHouse&gt;
 	{
 		/** A persistent reference back to a database portal. */
-<span class="fc" id="L459">		public DBH house = null ;</span>
+<span class="fc" id="L482">		public DBH house = null ;</span>
 		/** The schematic class providing this context. */
-<span class="fc" id="L461">		public Class&lt;? extends SQLightable&gt; clsTable = null ;</span>
+<span class="fc" id="L484">		public Class&lt;? extends SQLightable&gt; clsTable = null ;</span>
 		/** The schematic class's table-defining annotation. */
-<span class="fc" id="L463">		public SQLiteTable antTable = null ;</span>
+<span class="fc" id="L486">		public SQLiteTable antTable = null ;</span>
 		/** The name of the table. */
-<span class="fc" id="L465">		public String sTableName = null ;</span>
+<span class="fc" id="L488">		public String sTableName = null ;</span>
 		/** The field of the schematic class in this context, if any. */
-<span class="fc" id="L467">		public Field fldColumn = null ;</span>
+<span class="fc" id="L490">		public Field fldColumn = null ;</span>
 		/** The context field's column-defining annotation. */
-<span class="fc" id="L469">		public SQLiteColumn antColumn = null ;</span>
+<span class="fc" id="L492">		public SQLiteColumn antColumn = null ;</span>
 		/** The name of the column. */
-<span class="fc" id="L471">		public String sColumnName = null ;</span>
+<span class="fc" id="L494">		public String sColumnName = null ;</span>
 		/** Indicates whether the column is annotated as a key. */
-<span class="fc" id="L473">		public boolean bColumnIsKey = false ;</span>
+<span class="fc" id="L496">		public boolean bColumnIsKey = false ;</span>
 		/** The refractor appropriate for this column type. */
-<span class="fc" id="L475">		public Refractor lens = null ;</span>
+<span class="fc" id="L498">		public Refractor lens = null ;</span>
 		/** The value of this column in some instance, if set. */
-<span class="fc" id="L477">		public String sColumnSQLValue = null ;</span>
+<span class="fc" id="L500">		public String sColumnSQLValue = null ;</span>
 
 		/**
 		 * Constructs the instance and binds it back to a {@link SQLiteHouse}.
@@ -482,7 +505,7 @@ extends SQLitePortal
 		 * @see SQLiteHouse#getQueryContext()
 		 */
 		public QueryContext( DBH dbh )
-<span class="fc" id="L485">		{ this.house = dbh ; }</span>
+<span class="fc" id="L508">		{ this.house = dbh ; }</span>
 
 		/**
 		 * Loads contextual information pertaining to the table defined by the
@@ -490,16 +513,20 @@ extends SQLitePortal
 		 * previously-loaded table data, and any data that might have been
 		 * loaded for a column of that table.
 		 * @param cls the schematic class
-		 * @param &lt;TBL&gt; the schematic class
+		 * @param &lt;SC&gt; the schematic class
 		 * @return (fluid)
+		 * @throws SchematicException if the class isn't part of the schema
 		 */
-		public &lt;TBL extends SQLightable&gt; QueryContext&lt;DBH&gt; loadTableDef( Class&lt;TBL&gt; cls )
+		public &lt;SC extends SQLightable&gt; QueryContext&lt;DBH&gt; loadTableDef( Class&lt;SC&gt; cls )
+		throws SchematicException
 		{
-<span class="fc" id="L498">			this.clsTable = cls ;</span>
-<span class="fc" id="L499">			this.antTable = clsTable.getAnnotation( SQLiteTable.class ) ;</span>
-<span class="fc" id="L500">			this.sTableName = DBH.getTableName( clsTable, antTable ) ;</span>
-<span class="fc" id="L501">			this.clearColumnDef() ;</span>
-<span class="fc" id="L502">			return this ;</span>
+<span class="fc" id="L523">			this.clsTable = cls ;</span>
+			//noinspection unchecked - guaranteed logically
+<span class="fc" id="L525">			SQLightable.Reflection&lt;SC&gt; tbl = this.house.getReflection(cls) ;</span>
+<span class="fc" id="L526">			this.antTable = tbl.getTableAttrs() ;</span>
+<span class="fc" id="L527">			this.sTableName = tbl.getTableName() ;</span>
+<span class="fc" id="L528">			this.clearColumnDef() ;</span>
+<span class="fc" id="L529">			return this ;</span>
 		}
 
 		/**
@@ -511,18 +538,19 @@ extends SQLitePortal
 		 */
 		public QueryContext&lt;DBH&gt; loadColumnDef( Field fld )
 		{
-<span class="pc bpc" id="L514" title="1 of 2 branches missed.">			if( fld == null )</span>
-<span class="nc" id="L515">				return this.clearColumnDef() ;</span>
+<span class="fc bfc" id="L541" title="All 2 branches covered.">			if( fld == null )</span>
+<span class="fc" id="L542">				return this.clearColumnDef() ;</span>
 
-<span class="fc" id="L517">			this.fldColumn = fld ;</span>
-<span class="fc" id="L518">			this.antColumn = fld.getAnnotation( SQLiteColumn.class ) ;</span>
-<span class="fc" id="L519">			this.sColumnName = antColumn.name() ;</span>
-<span class="fc" id="L520">			this.bColumnIsKey =</span>
-<span class="fc" id="L521">					fld.isAnnotationPresent( SQLitePrimaryKey.class ) ;</span>
-<span class="fc" id="L522">			this.lens = this.house.getRefractorForField(fld) ;</span>
-<span class="fc" id="L523">			this.sColumnSQLValue = null ;</span>
+<span class="fc" id="L544">			this.fldColumn = fld ;</span>
+<span class="fc" id="L545">			SQLightable.Reflection.Column col = this.house</span>
+<span class="fc" id="L546">					.m_mapReflections.get(this.clsTable).getColumnDef(fld) ;</span>
+<span class="fc" id="L547">			this.antColumn = col.getColAttrs() ;</span>
+<span class="fc" id="L548">			this.sColumnName = this.antColumn.name() ;</span>
+<span class="fc" id="L549">			this.bColumnIsKey = col.isKey() ;</span>
+<span class="fc" id="L550">			this.lens = col.getRefractor() ;</span>
+<span class="fc" id="L551">			this.sColumnSQLValue = null ;</span>
 
-<span class="fc" id="L525">			return this ;</span>
+<span class="fc" id="L553">			return this ;</span>
 		}
 
 		/**
@@ -535,30 +563,25 @@ extends SQLitePortal
 		 */
 		public QueryContext&lt;DBH&gt; loadColumnDef( String sSoughtName )
 		{
-<span class="pc bpc" id="L538" title="1 of 2 branches missed.">			if( this.clsTable == null )</span>
-<span class="nc" id="L539">				throw new IllegalStateException( &quot;No table loaded.&quot; ) ;</span>
-<span class="pc bpc" id="L540" title="1 of 2 branches missed.">			if( TextUtils.isEmpty(sSoughtName) )</span>
-<span class="nc" id="L541">				return this.clearColumnDef() ;</span>
-			//noinspection unchecked -- Multiple layers of generics confuse Java
-<span class="fc" id="L543">			List&lt;Field&gt; afld = ((List&lt;Field&gt;)</span>
-<span class="fc" id="L544">					(this.house.m_mapFields.get( this.clsTable ))) ;</span>
-<span class="fc bfc" id="L545" title="All 2 branches covered.">			for( Field fld : afld )</span>
-			{
-<span class="fc" id="L547">				SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;</span>
-<span class="fc bfc" id="L548" title="All 2 branches covered.">				if( antCol.name().equals(sSoughtName) )</span>
-<span class="fc" id="L549">					return this.loadColumnDef(fld) ;</span>
-<span class="fc" id="L550">			}</span>
-<span class="fc" id="L551">			Log.w( LOG_TAG, (new StringBuilder())</span>
-<span class="fc" id="L552">					.append( &quot;No column found with name [&quot; )</span>
-<span class="fc" id="L553">					.append( sSoughtName )</span>
-<span class="fc" id="L554">					.append( &quot;] in table [&quot; )</span>
-<span class="fc" id="L555">					.append( this.sTableName )</span>
-<span class="fc" id="L556">					.append( &quot;] defined by class [&quot; )</span>
-<span class="fc" id="L557">					.append( this.clsTable.getCanonicalName() )</span>
-<span class="fc" id="L558">					.append( &quot;]; CLEARING loaded column data.&quot; )</span>
-<span class="fc" id="L559">					.toString()</span>
+<span class="fc bfc" id="L566" title="All 2 branches covered.">			if( this.clsTable == null )</span>
+<span class="fc" id="L567">				throw new IllegalStateException( &quot;No table loaded.&quot; ) ;</span>
+<span class="fc bfc" id="L568" title="All 2 branches covered.">			if( TextUtils.isEmpty(sSoughtName) )</span>
+<span class="fc" id="L569">				return this.clearColumnDef() ;</span>
+<span class="fc" id="L570">			SQLightable.Reflection tbl =</span>
+<span class="fc" id="L571">					this.house.getReflection( this.clsTable ) ;</span>
+<span class="fc" id="L572">			SQLightable.Reflection.Column col = tbl.getColumnDef( sSoughtName );</span>
+<span class="fc bfc" id="L573" title="All 2 branches covered.">			if( col != null ) return this.loadColumnDef( col.getField() ) ;</span>
+<span class="fc" id="L574">			Log.w( LOG_TAG, (new StringBuilder())</span>
+<span class="fc" id="L575">					.append( &quot;No column found with name [&quot; )</span>
+<span class="fc" id="L576">					.append( sSoughtName )</span>
+<span class="fc" id="L577">					.append( &quot;] in table [&quot; )</span>
+<span class="fc" id="L578">					.append( this.sTableName )</span>
+<span class="fc" id="L579">					.append( &quot;] defined by class [&quot; )</span>
+<span class="fc" id="L580">					.append( this.clsTable.getCanonicalName() )</span>
+<span class="fc" id="L581">					.append( &quot;]; CLEARING loaded column data.&quot; )</span>
+<span class="fc" id="L582">					.toString()</span>
 				);
-<span class="fc" id="L561">			return this.clearColumnDef() ;</span>
+<span class="fc" id="L584">			return this.clearColumnDef() ;</span>
 		}
 
 		/**
@@ -567,13 +590,13 @@ extends SQLitePortal
 		 */
 		protected QueryContext&lt;DBH&gt; clearColumnDef()
 		{
-<span class="fc" id="L570">			this.fldColumn = null ;</span>
-<span class="fc" id="L571">			this.antColumn = null ;</span>
-<span class="fc" id="L572">			this.sColumnName = null ;</span>
-<span class="fc" id="L573">			this.bColumnIsKey = false ;</span>
-<span class="fc" id="L574">			this.lens = null ;</span>
-<span class="fc" id="L575">			this.sColumnSQLValue = null ;</span>
-<span class="fc" id="L576">			return this ;</span>
+<span class="fc" id="L593">			this.fldColumn = null ;</span>
+<span class="fc" id="L594">			this.antColumn = null ;</span>
+<span class="fc" id="L595">			this.sColumnName = null ;</span>
+<span class="fc" id="L596">			this.bColumnIsKey = false ;</span>
+<span class="fc" id="L597">			this.lens = null ;</span>
+<span class="fc" id="L598">			this.sColumnSQLValue = null ;</span>
+<span class="fc" id="L599">			return this ;</span>
 		}
 
 		/**
@@ -581,37 +604,49 @@ extends SQLitePortal
 		 * try to discover the value of the field corresponding to that column
 		 * in the specified object instance.
 		 * @param o the schematic object that contains the column field
-		 * @param &lt;T&gt; the schematic class
+		 * @param &lt;SC&gt; the schematic class
 		 * @return (fluid)
 		 * @throws IllegalStateException if inadequate context has been loaded
+		 * @throws NullPointerException if the schematic object is null
 		 * @throws SchematicException if something goes wrong while setting the
 		 *  value
 		 */
-		public &lt;T extends SQLightable&gt; QueryContext&lt;DBH&gt; loadColumnValue( T o )
-		throws IllegalStateException, SchematicException
+		public &lt;SC extends SQLightable&gt; QueryContext&lt;DBH&gt; loadColumnValue( SC o )
+		throws IllegalStateException, NullPointerException, SchematicException
 		{
-<span class="fc" id="L593">			this.sColumnSQLValue = null ;</span>
-<span class="pc bpc" id="L594" title="3 of 6 branches missed.">			if( o == null || this.fldColumn == null || this.lens == null )</span>
+<span class="fc" id="L617">			this.sColumnSQLValue = null ;</span>
+
+<span class="fc bfc" id="L619" title="All 2 branches covered.">			if( o == null )</span>
 			{
-<span class="nc" id="L596">				throw new IllegalStateException(</span>
+<span class="fc" id="L621">				throw new NullPointerException(</span>
+						&quot;Cannot examine null instance.&quot; ) ;
+			}
+
+<span class="fc bfc" id="L625" title="All 2 branches covered.">			if( this.fldColumn == null )</span>
+			{
+<span class="fc" id="L627">				throw new IllegalStateException(</span>
 					&quot;Cannot discover value if no column has been chosen.&quot; ) ;
 			}
+
+<span class="fc bfc" id="L631" title="All 2 branches covered.">			if( this.lens == null )</span>
+<span class="fc" id="L632">			{ throw SchematicException.noLensForField( this.fldColumn, null ); }</span>
+
 			try
 			{
 				//noinspection unchecked
-<span class="fc" id="L602">				this.sColumnSQLValue = this.lens.toSQLiteString(</span>
-<span class="fc" id="L603">						this.lens.getValueFrom( o, this.fldColumn ) ) ;</span>
+<span class="fc" id="L637">				this.sColumnSQLValue = this.lens.toSQLiteString(</span>
+<span class="fc" id="L638">						this.lens.getValueFrom( o, this.fldColumn ) ) ;</span>
 			}
-<span class="nc" id="L605">			catch( IllegalAccessException xAccess )</span>
+<span class="nc" id="L640">			catch( IllegalAccessException xAccess )</span>
 			{
-<span class="nc" id="L607">				throw SchematicException.fieldWasInaccessible(</span>
-<span class="nc" id="L608">						this.clsTable.getSimpleName(),</span>
-<span class="nc" id="L609">						this.fldColumn.getName(),</span>
+<span class="nc" id="L642">				throw SchematicException.fieldWasInaccessible(</span>
+<span class="nc" id="L643">						this.clsTable.getSimpleName(),</span>
+<span class="nc" id="L644">						this.fldColumn.getName(),</span>
 						xAccess
 					);
-<span class="fc" id="L612">			}</span>
+<span class="fc" id="L647">			}</span>
 
-<span class="fc" id="L614">			return this ;</span>
+<span class="fc" id="L649">			return this ;</span>
 		}
 	}
 
@@ -621,30 +656,30 @@ extends SQLitePortal
 	 * Standardized way to choose the name of a SQLite table based on the class
 	 * definition and its annotations, if any.
 	 *
-	 * &lt;p&gt;Consumed by {@link #getTableCreationSQL} and
-	 * {@link #getAddColumnSQL}.&lt;/p&gt;
-	 *
 	 * @param clsTable the class which defines the SQLite table
 	 * @param antTableArg the annotation which relates the class to the schema,
 	 *  if any; if {@code null} is passed, this method will still try to
 	 *  discover one for itself
-	 * @param &lt;T&gt; ensures that the table class implements {@link SQLightable}
+	 * @param &lt;SC&gt; the schematic class
 	 * @return either the name specified in the annotation, or a lower-cased
 	 *  transformation of the class name itself if the annotation is not
 	 *  provided
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#50)
 	 */
-	protected static &lt;T extends SQLightable&gt; String getTableName( Class&lt;T&gt; clsTable, SQLiteTable antTableArg )
+	@SuppressWarnings( &quot;unused&quot; )
+	protected static &lt;SC extends SQLightable&gt; String getTableName(
+			Class&lt;SC&gt; clsTable, SQLiteTable antTableArg )
 	{
-<span class="fc bfc" id="L638" title="All 2 branches covered.">		SQLiteTable antTable = ( antTableArg == null ?</span>
-<span class="fc" id="L639">			clsTable.getAnnotation( SQLiteTable.class ) : antTableArg ) ;</span>
-<span class="fc bfc" id="L640" title="All 2 branches covered.">		return ( antTable == null ?</span>
-<span class="fc" id="L641">			clsTable.getSimpleName().toLowerCase() : antTable.value() ) ;</span>
+<span class="nc bnc" id="L673" title="All 2 branches missed.">		SQLiteTable antTable = ( antTableArg == null ?</span>
+<span class="nc" id="L674">			clsTable.getAnnotation( SQLiteTable.class ) : antTableArg ) ;</span>
+<span class="nc bnc" id="L675" title="All 2 branches missed.">		return ( antTable == null ?</span>
+<span class="nc" id="L676">			clsTable.getSimpleName().toLowerCase() : antTable.value() ) ;</span>
 	}
 
 /// Static Constants ///////////////////////////////////////////////////////////
 
 	/** The tag used by logging statements in this class. */
-<span class="fc" id="L647">	public static final String LOG_TAG = SQLiteHouse.class.getSimpleName() ;</span>
+<span class="fc" id="L682">	public static final String LOG_TAG = SQLiteHouse.class.getSimpleName() ;</span>
 
 	/**
 	 * Magic constant to indicate that the schema version has not yet been
@@ -666,26 +701,19 @@ extends SQLitePortal
 	 * A list of classes that, in aggregate, define the schema for the database.
 	 * @see #setSchemaClasses(List)
 	 */
-<span class="fc" id="L669">	protected List&lt;Class&lt;? extends SQLightable&gt;&gt; m_aclsSchema = null ;</span>
+<span class="fc" id="L704">	protected List&lt;Class&lt;? extends SQLightable&gt;&gt; m_aclsSchema = null ;</span>
 
 	/**
-	 * A map of schema classes to lists of their fields.
-	 * @see #processFieldsOfClasses()
+	 * A map of schematic classes to their reflections.
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
 	 */
-<span class="fc" id="L675">	protected Map&lt;Class&lt;? extends SQLightable&gt;,List&lt;Field&gt;&gt; m_mapFields = null ;</span>
-
-	/**
-	 * A map of schema classes to the columns that are annotated as primary
-	 * keys, using the {@link SQLitePrimaryKey} annotation.
-	 * @see #processFieldsOfClasses()
-	 */
-<span class="fc" id="L682">	protected Map&lt;Class&lt;? extends SQLightable&gt;,Field&gt; m_mapKeys = null ;</span>
+<span class="fc" id="L710">	protected SQLightable.ReflectionMap m_mapReflections = null ;</span>
 
 	/**
 	 * A persistent instance of a refractor map. Descendant classes may be
 	 * registered for certain data classes if desired.
 	 */
-<span class="fc" id="L688">	protected RefractorMap m_mapRefractor = null ;</span>
+<span class="fc" id="L716">	protected RefractorMap m_mapRefractor = null ;</span>
 
 /// Constructors and Initializers //////////////////////////////////////////////
 
@@ -709,72 +737,60 @@ extends SQLitePortal
 	 */
 	protected SQLiteHouse( SQLiteHouse.Factory factory )
 	{
-<span class="fc" id="L712">		super( factory.m_ctx, factory.m_sDatabaseName,</span>
+<span class="fc" id="L740">		super( factory.m_ctx, factory.m_sDatabaseName,</span>
 				factory.m_cf, factory.m_nSchemaVersion ) ;
-<span class="fc" id="L714">		this.setSchemaClasses( factory.m_aclsSchema )</span>
-<span class="fc" id="L715">			.processFieldsOfClasses()</span>
+<span class="fc" id="L742">		this.setSchemaClasses( factory.m_aclsSchema )</span>
+<span class="fc" id="L743">		    .processReflections()</span>
 			;
-<span class="fc" id="L717">		m_mapRefractor = (new RefractorMap()).init() ;</span>
-<span class="fc" id="L718">		this.registerCustomRefractors() ;</span>
-<span class="fc" id="L719">	}</span>
+<span class="fc" id="L745">		m_mapRefractor = (new RefractorMap()).init() ;</span>
+<span class="fc" id="L746">		this.registerCustomRefractors() ;</span>
+<span class="fc" id="L747">	}</span>
 
 	/**
 	 * Caches a list of classes that define the database schema.
 	 *
-	 * Consumed by {@link #SQLiteHouse(Factory)}; must precede
-	 * {@link #processFieldsOfClasses()}.
+	 * Consumed by {@link #SQLiteHouse(Factory)}.
 	 *
 	 * @param aclsSchema the list of classes
 	 * @return (fluid)
 	 */
 	protected DSC setSchemaClasses( List&lt;Class&lt;? extends SQLightable&gt;&gt; aclsSchema )
 	{
-<span class="pc bpc" id="L732" title="1 of 2 branches missed.">		if( this.m_aclsSchema == null )</span>
-<span class="fc" id="L733">			this.m_aclsSchema = new ArrayList&lt;&gt;() ;</span>
+<span class="fc bfc" id="L759" title="All 2 branches covered.">		if( this.m_aclsSchema == null )</span>
+<span class="fc" id="L760">			this.m_aclsSchema = new ArrayList&lt;&gt;() ;</span>
 		else
-<span class="nc" id="L735">			this.m_aclsSchema.clear() ;</span>
-<span class="fc" id="L736">		this.m_aclsSchema.addAll( aclsSchema ) ;</span>
+<span class="fc" id="L762">			this.m_aclsSchema.clear() ;</span>
+<span class="fc" id="L763">		this.m_aclsSchema.addAll( aclsSchema ) ;</span>
 
 		//noinspection unchecked
-<span class="fc" id="L739">		return (DSC)this ;</span>
+<span class="fc" id="L766">		return (DSC)this ;</span>
 	}
 
 	/**
-	 * Given that the list of schema classes has been populated, discover and
+	 * Given that the list of schematic classes has been populated, discover and
 	 * cache their characteristics for future reference.
 	 *
 	 * Consumed by {@link #SQLiteHouse(Factory)}; must follow
-	 * {@link #setSchemaClasses(List)}.
+	 * {@link #setSchemaClasses}.
 	 *
 	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
 	 */
-	protected DSC processFieldsOfClasses()
+	protected DSC processReflections()
 	{
-<span class="pc bpc" id="L753" title="1 of 2 branches missed.">		if( m_mapFields == null )</span>
-<span class="fc" id="L754">			m_mapFields = new HashMap&lt;&gt;() ;</span>
-<span class="pc bpc" id="L755" title="1 of 2 branches missed.">		if( m_mapKeys == null )</span>
-<span class="fc" id="L756">			m_mapKeys = new HashMap&lt;&gt;() ;</span>
-<span class="fc bfc" id="L757" title="All 2 branches covered.">		for( Class&lt;? extends SQLightable&gt; cls : m_aclsSchema )</span>
+<span class="fc bfc" id="L781" title="All 2 branches covered.">		if( m_mapReflections == null )</span>
+<span class="fc" id="L782">			m_mapReflections = new SQLightable.ReflectionMap() ;</span>
+<span class="fc" id="L783">		else m_mapReflections.clear() ;</span>
+
+<span class="fc bfc" id="L785" title="All 2 branches covered.">		for( Class&lt;? extends SQLightable&gt; cls : m_aclsSchema )</span>
 		{
-<span class="fc" id="L759">			List&lt;Field&gt; afldAll = Arrays.asList( cls.getDeclaredFields() ) ;</span>
-<span class="fc" id="L760">			List&lt;Field&gt; afldAnnotated = new ArrayList&lt;&gt;() ;</span>
-<span class="fc bfc" id="L761" title="All 2 branches covered.">			for( Field fld : afldAll )</span>
-			{ // Find only the fields that are annotated as columns.
-<span class="fc bfc" id="L763" title="All 2 branches covered.">				if( fld.isAnnotationPresent( SQLiteColumn.class ) )</span>
-				{
-<span class="fc" id="L765">					fld.setAccessible(true) ;</span>
-<span class="fc" id="L766">					afldAnnotated.add(fld) ;</span>
-				}
-<span class="fc bfc" id="L768" title="All 2 branches covered.">				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )</span>
-<span class="fc" id="L769">					m_mapKeys.put( cls, fld ) ;</span>
-<span class="fc" id="L770">			}</span>
-<span class="fc bfc" id="L771" title="All 2 branches covered.">			if( afldAnnotated.size() &gt; 1 )</span>
-<span class="fc" id="L772">				Collections.sort( afldAnnotated, new ColumnIndexComparator() ) ;</span>
-<span class="fc" id="L773">			m_mapFields.put( cls, afldAnnotated ) ;</span>
-<span class="fc" id="L774">		}</span>
+<span class="fc" id="L787">			SQLightable.Reflection&lt;? extends SQLightable&gt; tbl =</span>
+<span class="fc" id="L788">					SQLightable.Reflection.reflect(cls) ;</span>
+<span class="fc" id="L789">			m_mapReflections.put( cls, tbl ) ;</span>
+<span class="fc" id="L790">		}</span>
 
 		//noinspection unchecked
-<span class="fc" id="L777">		return (DSC)this ;</span>
+<span class="fc" id="L793">		return (DSC)this ;</span>
 	}
 
 	/**
@@ -789,7 +805,7 @@ extends SQLitePortal
 	 */
 	@SuppressWarnings(&quot;unchecked&quot;)
 	protected DSC registerCustomRefractors()
-<span class="fc" id="L792">	{ return (DSC)this ; } // trivially</span>
+<span class="fc" id="L808">	{ return (DSC)this ; } // trivially</span>
 
 /// net.zerobandwidth.android.lib.database.SQLitePortal ////////////////////////
 
@@ -802,22 +818,32 @@ extends SQLitePortal
 	 * left extensible for descendant classes, just in case they might need to
 	 * perform any custom post-processing.&lt;/p&gt;
 	 *
-	 * &lt;p&gt;Consumes {@link #getTableCreationSQL}.&lt;/p&gt;
-	 *
 	 * @param db a direct handle to the SQLite database (provided by the Android
 	 *  OS)
+	 * @throws SchematicException &lt;i&gt;(since 0.1.7 #50)&lt;/i&gt; if something goes
+	 *  wrong while processing the schema definition
 	 */
 	@Override
 	public void onCreate( SQLiteDatabase db )
+	throws SchematicException
 	{
-<span class="fc" id="L813">		Log.i( LOG_TAG, &quot;Executing onCreate()&quot; ) ;</span>
-<span class="fc bfc" id="L814" title="All 2 branches covered.">		for( Class&lt;? extends SQLightable&gt; clsTable : m_aclsSchema )</span>
+<span class="fc" id="L830">		Log.i( LOG_TAG, &quot;Executing onCreate()&quot; ) ;</span>
+<span class="fc bfc" id="L831" title="All 2 branches covered.">		for( Class&lt;? extends SQLightable&gt; clsTable : m_aclsSchema )</span>
 		{
-<span class="fc" id="L816">			QueryContext&lt;DSC&gt; qctx = this.getQueryContext() ;</span>
-<span class="fc" id="L817">			qctx.loadTableDef(clsTable) ;</span>
-<span class="fc" id="L818">			db.execSQL( this.getTableCreationSQL(qctx) ) ;</span>
-<span class="fc" id="L819">		}</span>
-<span class="fc" id="L820">	}</span>
+<span class="fc" id="L833">			SQLightable.Reflection tbl = this.getReflection(clsTable) ;</span>
+<span class="fc" id="L834">			String sSQL = null ;</span>
+			try
+			{
+<span class="fc" id="L837">				sSQL = tbl.getTableCreationSQL() ;</span>
+<span class="fc" id="L838">				db.execSQL( sSQL ) ;</span>
+			}
+<span class="nc" id="L840">			catch( Exception x )</span>
+			{
+<span class="nc" id="L842">				throw SchematicException</span>
+<span class="nc" id="L843">						.tableCreationOrUpdateFailed( tbl, sSQL, x ) ;</span>
+<span class="fc" id="L844">			}</span>
+<span class="fc" id="L845">		}</span>
+<span class="fc" id="L846">	}</span>
 
 	/**
 	 * Called by Android when the consumer tries to connect to the database, and
@@ -832,9 +858,6 @@ extends SQLitePortal
 	 * left extensible for descendant classes, just in case they might need to
 	 * perform any custom post-processing.&lt;/p&gt;
 	 *
-	 * &lt;p&gt;Consumes {@link #getTableCreationSQL} and
-	 * {@link #getAddColumnSQL}.&lt;/p&gt;
-	 *
 	 * @param db a direct handle to the SQLite database (provided by the Android
 	 *  OS)
 	 * @param nOld the version of the schema that is installed
@@ -843,157 +866,70 @@ extends SQLitePortal
 	@Override
 	public void onUpgrade( SQLiteDatabase db, int nOld, int nNew )
 	{
-<span class="fc" id="L846">		Log.i( LOG_TAG, (new StringBuilder())</span>
-<span class="fc" id="L847">				.append( &quot;Executing onUpgrade() from old version [&quot; )</span>
-<span class="fc" id="L848">				.append( nOld ).append( &quot;] to new version [&quot; )</span>
-<span class="fc" id="L849">				.append( nNew ).append( &quot;]...&quot; )</span>
-<span class="fc" id="L850">				.toString()</span>
+<span class="fc" id="L869">		Log.i( LOG_TAG, (new StringBuilder())</span>
+<span class="fc" id="L870">				.append( &quot;Executing onUpgrade() from old version [&quot; )</span>
+<span class="fc" id="L871">				.append( nOld ).append( &quot;] to new version [&quot; )</span>
+<span class="fc" id="L872">				.append( nNew ).append( &quot;]...&quot; )</span>
+<span class="fc" id="L873">				.toString()</span>
 			);
-<span class="fc bfc" id="L852" title="All 2 branches covered.">		for( Class&lt;? extends SQLightable&gt; clsTable : m_aclsSchema )</span>
-		{ // Determine what's new in each table.
-<span class="fc" id="L854">			QueryContext&lt;DSC&gt; qctx = this.getQueryContext() ;</span>
-<span class="fc" id="L855">			qctx.loadTableDef(clsTable) ;</span>
-<span class="fc bfc" id="L856" title="All 2 branches covered.">			int nTableSince = ( qctx.antTable == null ?</span>
-<span class="fc" id="L857">						1 : qctx.antTable.since() ) ;</span>
-<span class="fc bfc" id="L858" title="All 2 branches covered.">			if( nTableSince &gt; nOld )</span>
-			{ // Whole table is new; create it and move on.
-<span class="fc" id="L860">				db.execSQL( this.getTableCreationSQL(qctx) ) ;</span>
-<span class="fc" id="L861">				Log.d( LOG_TAG, (new StringBuilder())</span>
-<span class="fc" id="L862">						.append( &quot;Created table [&quot; )</span>
-<span class="fc" id="L863">						.append( qctx.sTableName ).append( &quot;].&quot; )</span>
-<span class="fc" id="L864">						.toString()</span>
-					);
-<span class="fc" id="L866">				continue ;</span>
-			}
-<span class="fc bfc" id="L868" title="All 2 branches covered.">			for( Field fld : m_mapFields.get(clsTable) )</span>
-			{ // Determine which columns are new.
-<span class="fc" id="L870">				qctx.loadColumnDef(fld) ;</span>
-<span class="fc" id="L871">				int nColSince = qctx.antColumn.since() ;</span>
-<span class="fc bfc" id="L872" title="All 2 branches covered.">				if( nColSince &gt; nOld )</span>
+<span class="fc bfc" id="L875" title="All 2 branches covered.">		for( Class&lt;? extends SQLightable&gt; clsTable : m_aclsSchema )</span>
+<span class="fc" id="L876">			this.upgradeTable( db, clsTable, nOld ) ;</span>
+<span class="fc" id="L877">	}</span>
+
+	/**
+	 * Called by {@link #onUpgrade} to upgrade a single SQLite database table
+	 * based on the information reflected by a specific schematic class.
+	 * @param db a direct handle to the SQLite database (provided to
+	 *           {@link #onUpgrade} by the Android OS)
+	 * @param clsTable the schematic class that defines the table
+	 * @param nOld the version of the schema that is installed
+	 * @param &lt;SC&gt; the schematic class
+	 * @return (fluid)
+	 * @throws SchematicException if the class is not part of the schema
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	protected &lt;SC extends SQLightable&gt; SQLiteHouse&lt;DSC&gt; upgradeTable(
+			SQLiteDatabase db, Class&lt;SC&gt; clsTable, int nOld )
+	throws SchematicException
+	{
+<span class="fc" id="L895">		SQLightable.Reflection&lt;SC&gt; tbl = this.getReflection(clsTable) ;</span>
+<span class="fc" id="L896">		int nTableSince = tbl.getFirstSchemaVersion() ;</span>
+<span class="fc bfc" id="L897" title="All 2 branches covered.">		if( nTableSince &gt; nOld )</span>
+		{ // The whole table is new; create it.
+<span class="fc" id="L899">			db.execSQL( tbl.getTableCreationSQL() ) ;</span>
+<span class="fc" id="L900">			Log.i( LOG_TAG, (new StringBuilder())</span>
+<span class="fc" id="L901">					.append( &quot;Created table [&quot; ).append( tbl.getTableName() )</span>
+<span class="fc" id="L902">					.append( &quot;] from class [&quot; )</span>
+<span class="fc" id="L903">					.append( clsTable.getCanonicalName() )</span>
+<span class="fc" id="L904">					.append( &quot;].&quot; )</span>
+<span class="fc" id="L905">					.toString()</span>
+				);
+		}
+		else
+		{ // Examine the table's columns, creating new ones where needed.
+<span class="fc" id="L910">			SQLightable.Reflection.ColumnMap&lt;SC&gt; mapColumns =</span>
+<span class="fc" id="L911">					tbl.getColumnMap() ;</span>
+<span class="fc bfc" id="L912" title="All 2 branches covered.">			for( SQLightable.Reflection&lt;SC&gt;.Column col : mapColumns.values() )</span>
+			{
+<span class="fc" id="L914">				int nColSince = col.getColAttrs().since() ;</span>
+<span class="fc bfc" id="L915" title="All 2 branches covered.">				if( nColSince &gt; nOld )</span>
 				{
-<span class="fc" id="L874">					db.execSQL( this.getAddColumnSQL(qctx) ) ;</span>
-<span class="fc" id="L875">					Log.d( LOG_TAG, (new StringBuilder())</span>
-<span class="fc" id="L876">							.append( &quot;Added column [&quot; )</span>
-<span class="fc" id="L877">							.append( qctx.sColumnName )</span>
-<span class="fc" id="L878">							.append( &quot;] to table [&quot; )</span>
-<span class="fc" id="L879">							.append( qctx.sTableName )</span>
-<span class="fc" id="L880">							.toString()</span>
+<span class="fc" id="L917">					db.execSQL( tbl.getAddColumnSQL(col) ) ;</span>
+<span class="fc" id="L918">					Log.i( LOG_TAG, (new StringBuilder())</span>
+<span class="fc" id="L919">							.append( &quot;Added column [&quot; )</span>
+<span class="fc" id="L920">							.append( col.getName() )</span>
+<span class="fc" id="L921">							.append( &quot;] to table [&quot; )</span>
+<span class="fc" id="L922">							.append( tbl.getTableName() )</span>
+<span class="fc" id="L923">							.append( &quot;] from class [&quot; )</span>
+<span class="fc" id="L924">							.append( clsTable.getCanonicalName() )</span>
+<span class="fc" id="L925">							.append( &quot;].&quot; )</span>
+<span class="fc" id="L926">							.toString()</span>
 						);
 				}
-<span class="fc" id="L883">			}</span>
-<span class="fc" id="L884">		}</span>
-<span class="fc" id="L885">	}</span>
-
-/// Schema Processor Methods ///////////////////////////////////////////////////
-
-	/**
-	 * Generates the SQL statement which will create one of the tables, based on
-	 * the table class itself, and its {@link SQLiteTable} annotation (if any).
-	 *
-	 * &lt;p&gt;Consumed by {@link #onCreate} and {@link #onUpgrade}. Consumes
-	 * {@link #getColumnDefinitionClause}.&lt;/p&gt;
-	 *
-	 * @param qctx the context of the creation query
-	 * @return an SQL statement which will create the SQLite table based on the
-	 *  information discovered within the class definition.
-	 */
-	protected String getTableCreationSQL( QueryContext&lt;?&gt; qctx )
-	{
-<span class="fc" id="L902">		StringBuilder sb = new StringBuilder() ;</span>
-<span class="fc" id="L903">		sb.append( &quot;CREATE TABLE IF NOT EXISTS &quot; )</span>
-<span class="fc" id="L904">		  .append( qctx.sTableName )</span>
-<span class="fc" id="L905">		  .append( &quot; ( &quot; ).append( MAGIC_ID_COLUMN_NAME )</span>
-<span class="fc" id="L906">		  .append( &quot; &quot; ).append( Refractor.SQLITE_TYPE_INT )</span>
-<span class="fc" id="L907">		  .append( &quot; PRIMARY KEY AUTOINCREMENT&quot; )</span>
-		  ;
-
-<span class="fc bfc" id="L910" title="All 2 branches covered.">		for( Field fld : m_mapFields.get( qctx.clsTable ) )</span>
-		{
-<span class="fc" id="L912">			qctx.loadColumnDef(fld) ;</span>
-<span class="fc bfc" id="L913" title="All 2 branches covered.">			if( MAGIC_ID_COLUMN_NAME.equals(qctx.sColumnName) )</span>
-<span class="fc" id="L914">				continue ;     // Allows the data class to contain the magic ID.</span>
-<span class="fc" id="L915">			sb.append( &quot;, &quot; )</span>
-<span class="fc" id="L916">			  .append( this.getColumnDefinitionClause(qctx) )</span>
-			  ;
-<span class="fc" id="L918">		}</span>
-
-<span class="fc" id="L920">		sb.append( &quot; )&quot; ) ;</span>
-
-<span class="fc" id="L922">		Log.d( LOG_TAG, sb.toString() ) ;</span>
-
-<span class="fc" id="L924">		return sb.toString() ;</span>
-	}
-
-	/**
-	 * Generates the SQL statement which will add a column to a table, based on
-	 * the table class itself, its annotation, a field within that table, and
-	 * its column annotation.
-	 *
-	 * &lt;p&gt;Consumed by {@link #onUpgrade}. Consumes
-	 * {@link #getColumnDefinitionClause}.&lt;/p&gt;
-	 *
-	 * @param qctx the context of the alteration query
-	 * @return an SQL statement which adds a column to an existing table
-	 */
-	protected String getAddColumnSQL( QueryContext&lt;?&gt; qctx )
-	{
-<span class="fc" id="L940">		StringBuilder sb = new StringBuilder() ;</span>
-<span class="fc" id="L941">		sb.append( &quot;ALTER TABLE &quot; ).append( qctx.sTableName )</span>
-<span class="fc" id="L942">		  .append( &quot; ADD COLUMN &quot; )</span>
-<span class="fc" id="L943">		  .append( this.getColumnDefinitionClause(qctx) )</span>
-		  ;
-
-<span class="fc" id="L946">		return sb.toString() ;</span>
-	}
-
-	/**
-	 * Generates an SQLite column definition clause for the specified field in
-	 * an {@link SQLightable} class. This can be used as part of a
-	 * {@code CREATE TABLE} or {@code ALTER TABLE} statement.
-	 *
-	 * &lt;p&gt;Consumed by {@link #getTableCreationSQL} and
-	 * {@link #getAddColumnSQL}.&lt;/p&gt;
-	 *
-	 * @param qctx the context of the table creation/alteration query
-	 * @return a SQLite column definition clause for the specified field
-	 */
-	protected String getColumnDefinitionClause( QueryContext&lt;?&gt; qctx )
-	{
-<span class="fc" id="L962">		StringBuilder sb = new StringBuilder() ;</span>
-
-<span class="pc bpc" id="L964" title="1 of 2 branches missed.">		if( qctx.lens == null )</span>
-<span class="nc" id="L965">			return null ;                 // Can't continue without a refractor.</span>
-
-<span class="fc" id="L967">		sb.append( qctx.sColumnName ).append( &quot; &quot; )</span>
-<span class="fc" id="L968">		  .append( qctx.lens.getSQLiteDataType() )</span>
-		  ;
-
-<span class="fc bfc" id="L971" title="All 2 branches covered.">		if( qctx.bColumnIsKey )        // Override the annotation's nullability.</span>
-<span class="fc" id="L972">			sb.append( &quot; UNIQUE NOT NULL&quot; ) ; // but we'll use it as a key</span>
-		else
-<span class="pc bpc" id="L974" title="1 of 2 branches missed.">			sb.append(( qctx.antColumn.is_nullable() ?</span>
-						&quot; NULL&quot; : &quot; NOT NULL&quot; )) ;
-
-<span class="fc bfc" id="L977" title="All 2 branches covered.">		if( SQLitePortal.SQLITE_NULL.equals( qctx.antColumn.sql_default() ) )</span>
-		{ // Write &quot;DEFAULT NULL&quot; only if the column is actually nullable.
-<span class="pc bpc" id="L979" title="1 of 4 branches missed.">			if( ! qctx.bColumnIsKey &amp;&amp; qctx.antColumn.is_nullable() )</span>
-<span class="fc" id="L980">				sb.append( &quot; DEFAULT NULL&quot; ) ;</span>
-		}
-		else
-		{ // Write whatever the default is.
-<span class="fc" id="L984">			sb.append( &quot; DEFAULT &quot; ) ;</span>
-<span class="fc bfc" id="L985" title="All 2 branches covered.">			if( Refractor.SQLITE_TYPE_TEXT.equals( qctx.lens.getSQLiteDataType() ) )</span>
-			{
-<span class="fc" id="L987">				sb.append(&quot;'&quot;)</span>
-<span class="fc" id="L988">				  .append( qctx.antColumn.sql_default() )</span>
-<span class="fc" id="L989">				  .append(&quot;'&quot;)</span>
-				  ;
-			}
-			else
-<span class="fc" id="L993">				sb.append( qctx.antColumn.sql_default() ) ;</span>
+<span class="fc" id="L929">			}</span>
 		}
 
-<span class="fc" id="L996">		return sb.toString() ;</span>
+<span class="fc" id="L932">		return this ;</span>
 	}
 
 /// Query Commands /////////////////////////////////////////////////////////////
@@ -1008,55 +944,58 @@ extends SQLitePortal
 	 * @param o the object to be inserted
 	 * @return the row ID of the inserted record
 	 */
-	public long insert( SQLightable o )
+	public &lt;ROW extends SQLightable&gt; long insert( ROW o )
+	throws SchematicException
 	{
-<span class="fc" id="L1013">		QueryContext&lt;DSC&gt; qctx = this.getQueryContext( o.getClass() ) ;</span>
-<span class="fc" id="L1014">		qctx.loadColumnDef( MAGIC_ID_COLUMN_NAME ) ;</span>
-<span class="fc" id="L1015">		ContentValues vals = this.toContentValues(o) ;</span>
+		//noinspection unchecked
+<span class="fc" id="L951">		Class&lt;ROW&gt; cls = ((Class&lt;ROW&gt;)( o.getClass() ));</span>
+<span class="fc" id="L952">		SQLightable.Reflection&lt;ROW&gt; tbl = this.getReflection(cls) ;</span>
+<span class="fc" id="L953">		SQLightable.Reflection&lt;ROW&gt;.Column col = tbl.getMagicIDColumn() ;</span>
+<span class="fc" id="L954">		ContentValues vals = tbl.toContentValues(o) ;</span>
 		// Don't allow the passed object to dictate the auto-inc ID.
-<span class="fc bfc" id="L1017" title="All 2 branches covered.">		if( qctx.fldColumn != null )</span>
-<span class="fc" id="L1018">			vals.remove(MAGIC_ID_COLUMN_NAME) ;</span>
+<span class="fc bfc" id="L956" title="All 2 branches covered.">		if( col != null ) vals.remove( MAGIC_ID_COLUMN_NAME ) ;</span>
 
-<span class="fc" id="L1020">		long nID = QueryBuilder</span>
-<span class="fc" id="L1021">				.insertInto( m_db, getTableName( o.getClass(), null ) )</span>
-<span class="fc" id="L1022">				.setValues( vals )</span>
-<span class="fc" id="L1023">				.execute()</span>
+<span class="fc" id="L958">		long nID = QueryBuilder</span>
+<span class="fc" id="L959">				.insertInto( m_db, tbl.getTableName() )</span>
+<span class="fc" id="L960">				.setValues( vals )</span>
+<span class="fc" id="L961">				.execute()</span>
 				;
 
-<span class="fc bfc" id="L1026" title="All 2 branches covered.">		if( qctx.fldColumn != null )</span>
+<span class="fc bfc" id="L964" title="All 2 branches covered.">		if( col != null )</span>
 		{ // Try to write the ID back into the instance.
-<span class="fc" id="L1028">			try { qctx.fldColumn.setLong( o, nID ) ; }</span>
-<span class="nc" id="L1029">			catch( IllegalAccessException xAccess )</span>
-<span class="pc" id="L1030">			{ Log.w( LOG_TAG, &quot;Couldn't rewrite row ID into object.&quot; ) ; }</span>
+<span class="fc" id="L966">			try { col.getField().setLong( o, nID ) ; }</span>
+<span class="nc" id="L967">			catch( IllegalAccessException xAccess )</span>
+<span class="pc" id="L968">			{ Log.w( LOG_TAG, &quot;Couldn't rewrite row ID into object.&quot; ) ; }</span>
 		}
 
-<span class="fc" id="L1033">		return nID ;</span>
+<span class="fc" id="L971">		return nID ;</span>
 	}
 
 	/**
 	 * Updates the values of an object from a known schematic class.
 	 * @param o the object to be updated
 	 * @return the number of rows updated (generally 1)
-	 * @throws SchematicException if the table definition for this class didn't
-	 *  specify its own primary key
+	 * @throws SchematicException if the data object's class isn't part of the
+	 *  schema, or if the table definition for this class didn't specify its own
+	 *  primary key
 	 */
-	public int update( SQLightable o )
+	public &lt;ROW extends SQLightable&gt; int update( ROW o )
 	throws SchematicException
 	{
-<span class="fc" id="L1046">		QueryContext&lt;DSC&gt; qctx = this.getQueryContext() ;</span>
-<span class="fc" id="L1047">		qctx.loadTableDef( o.getClass() ) ;</span>
-<span class="fc" id="L1048">		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;</span>
-<span class="pc bpc" id="L1049" title="1 of 2 branches missed.">		if( qctx.fldColumn == null )</span>
+		//noinspection unchecked
+<span class="fc" id="L986">		SQLightable.Reflection&lt;ROW&gt; tbl = ((SQLightable.Reflection&lt;ROW&gt;)</span>
+<span class="fc" id="L987">				( this.getReflection( o.getClass() ) )) ;</span>
+<span class="fc" id="L988">		SQLightable.Reflection&lt;ROW&gt;.Column col = tbl.getKeyOrMagicIDColumn() ;</span>
+<span class="pc bpc" id="L989" title="1 of 2 branches missed.">		if( col == null )</span>
 		{
-<span class="nc" id="L1051">			throw new SchematicException(</span>
+<span class="nc" id="L991">			throw new SchematicException(</span>
 					&quot;Can't use update(SQLightable) without a key column.&quot; ) ;
 		}
-<span class="fc" id="L1054">		qctx.loadColumnValue(o) ; // throws SchematicException</span>
-<span class="fc" id="L1055">		return QueryBuilder.update( m_db, qctx.sTableName )</span>
-<span class="fc" id="L1056">				.setValues( this.toContentValues(o) )</span>
-<span class="fc" id="L1057">				.where( String.format( &quot;%s=%s&quot;,</span>
-						qctx.sColumnName, qctx.sColumnSQLValue ) )
-<span class="fc" id="L1059">				.execute()</span>
+<span class="fc" id="L994">		return QueryBuilder.update( m_db, tbl.getTableName() )</span>
+<span class="fc" id="L995">				.setValues( tbl.toContentValues(o) )</span>
+<span class="fc" id="L996">				.where( String.format( &quot;%s=%s&quot;,</span>
+<span class="fc" id="L997">						col.getName(), col.getSQLColumnValueFrom(o) ) )</span>
+<span class="fc" id="L998">				.execute()</span>
 				;
 	}
 
@@ -1065,9 +1004,14 @@ extends SQLitePortal
 	 * targeting the table corresponding to the specified schematic class.
 	 * @param cls the class that defines part of the schema
 	 * @return an {@code UPDATE} query builder prepared for that table
+	 * @throws SchematicException if the class is not part of the schema
 	 */
-	public UpdateBuilder update( Class&lt;? extends SQLightable&gt; cls )
-<span class="fc" id="L1070">	{ return QueryBuilder.update( m_db, getTableName( cls, null ) ) ; }</span>
+	public &lt;SC extends SQLightable&gt; UpdateBuilder update( Class&lt;SC&gt; cls )
+	throws SchematicException
+	{
+<span class="fc" id="L1012">		return QueryBuilder.update( m_db,</span>
+<span class="fc" id="L1013">						this.getReflection(cls).getTableName() ) ;</span>
+	}
 
 	/**
 	 * Searches the database for a row of the table represented by the supplied
@@ -1084,28 +1028,28 @@ extends SQLitePortal
 	public &lt;ROW extends SQLightable&gt; ROW search( ROW oCriteria )
 	throws SchematicException
 	{
-<span class="fc" id="L1087">		QueryContext&lt;DSC&gt; qctx = this.getQueryContext() ;</span>
-<span class="fc" id="L1088">		qctx.loadTableDef( oCriteria.getClass() ) ;</span>
-<span class="fc" id="L1089">		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;</span>
-<span class="pc bpc" id="L1090" title="1 of 2 branches missed.">		if( qctx.fldColumn == null )</span>
+		//noinspection unchecked
+<span class="fc" id="L1032">		SQLightable.Reflection&lt;ROW&gt; tbl = ((SQLightable.Reflection&lt;ROW&gt;)</span>
+<span class="fc" id="L1033">						( this.getReflection( oCriteria.getClass() ) )) ;</span>
+<span class="fc" id="L1034">		SQLightable.Reflection&lt;ROW&gt;.Column col = tbl.getKeyOrMagicIDColumn() ;</span>
+<span class="fc bfc" id="L1035" title="All 2 branches covered.">		if( col == null )</span>
 		{
-<span class="nc" id="L1092">			throw new SchematicException(</span>
+<span class="fc" id="L1037">			throw new SchematicException(</span>
 					&quot;Can't use search(SQLightable) without a key column.&quot; ) ;
 		}
-<span class="fc" id="L1095">		qctx.loadColumnValue(oCriteria) ;</span>
-<span class="fc" id="L1096">		Cursor crs = null ;</span>
+<span class="fc" id="L1040">		Cursor crs = null ;</span>
 		try
 		{
-<span class="fc" id="L1099">			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )</span>
-<span class="fc" id="L1100">					.where( String.format( &quot;%s=%s&quot;,</span>
-							qctx.sColumnName, qctx.sColumnSQLValue ) )
-<span class="fc" id="L1102">					.execute()</span>
-			;
-<span class="pc bpc" id="L1104" title="1 of 2 branches missed.">			if( ! crs.moveToFirst() ) return null ; // No such object found.</span>
-<span class="fc" id="L1105">			return this.fromCursor( qctx, crs ) ;</span>
+<span class="fc" id="L1043">			crs = QueryBuilder.selectFrom( m_db, tbl.getTableName() )</span>
+<span class="fc" id="L1044">					.where( String.format( &quot;%s=%s&quot;,</span>
+<span class="fc" id="L1045">			              col.getName(), col.getSQLColumnValueFrom(oCriteria) ))</span>
+<span class="fc" id="L1046">					.execute()</span>
+					;
+<span class="fc bfc" id="L1048" title="All 2 branches covered.">			if( ! crs.moveToFirst() ) return null ; // No such object found.</span>
+<span class="fc" id="L1049">			return tbl.fromCursor(crs) ;</span>
 		}
 		finally
-<span class="pc" id="L1108">		{ closeCursor(crs) ; }</span>
+<span class="pc" id="L1052">		{ closeCursor(crs) ; }</span>
 	}
 
 	/**
@@ -1124,26 +1068,26 @@ extends SQLitePortal
 	public &lt;ROW extends SQLightable&gt; ROW search( Class&lt;ROW&gt; cls, String sID )
 	throws SchematicException
 	{
-<span class="fc" id="L1127">		QueryContext&lt;DSC&gt; qctx = this.getQueryContext(cls) ;</span>
-<span class="fc" id="L1128">		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;</span>
-<span class="pc bpc" id="L1129" title="1 of 2 branches missed.">		if( qctx.fldColumn == null )</span>
+<span class="fc" id="L1071">		SQLightable.Reflection&lt;ROW&gt; tbl = this.getReflection(cls) ;</span>
+<span class="fc" id="L1072">		SQLightable.Reflection&lt;ROW&gt;.Column colKey = tbl.getKeyColumn() ;</span>
+<span class="fc bfc" id="L1073" title="All 2 branches covered.">		if( colKey == null )</span>
 		{
-<span class="nc" id="L1131">			throw new SchematicException(</span>
+<span class="fc" id="L1075">			throw new SchematicException(</span>
 					&quot;Can't use search(Class,String) without a key column.&quot; ) ;
 		}
-<span class="fc" id="L1134">		Cursor crs = null ;</span>
+<span class="fc" id="L1078">		Cursor crs = null ;</span>
 		try
 		{
-<span class="fc" id="L1137">			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )</span>
-<span class="fc" id="L1138">					.where( String.format( &quot;%s='%s'&quot;,</span>
-							qctx.sColumnName, sID ) )
-<span class="fc" id="L1140">					.execute()</span>
+<span class="fc" id="L1081">			crs = QueryBuilder.selectFrom( m_db, tbl.getTableName() )</span>
+<span class="fc" id="L1082">					.where( String.format( &quot;%s='%s'&quot;,</span>
+<span class="fc" id="L1083">			              colKey.getName(), sID ) )</span>
+<span class="fc" id="L1084">					.execute()</span>
 					;
-<span class="pc bpc" id="L1142" title="1 of 2 branches missed.">			if( ! crs.moveToFirst() ) return null ;     // No such object found.</span>
-<span class="fc" id="L1143">			return this.fromCursor( qctx, crs ) ;</span>
+<span class="fc bfc" id="L1086" title="All 2 branches covered.">			if( ! crs.moveToFirst() ) return null ;     // No such object found.</span>
+<span class="fc" id="L1087">			return tbl.fromCursor(crs) ;</span>
 		}
 		finally
-<span class="pc" id="L1146">		{ closeCursor(crs) ; }</span>
+<span class="pc" id="L1090">		{ closeCursor(crs) ; }</span>
 	}
 
 	/**
@@ -1154,35 +1098,42 @@ extends SQLitePortal
 	 * @param &lt;ROW&gt; the schematic class
 	 * @return a new instance of the schematic class, containing the row with
 	 *  the specified auto-ID
+	 * @throws SchematicException if the class is not part of the schema
 	 */
 	@SuppressLint(&quot;DefaultLocale&quot;)
 	public &lt;ROW extends SQLightable&gt; ROW select( Class&lt;ROW&gt; cls, long nID )
+	throws SchematicException
 	{
-<span class="fc" id="L1161">		QueryContext&lt;DSC&gt; qctx = this.getQueryContext() ;</span>
-<span class="fc" id="L1162">		qctx.loadTableDef(cls) ;</span>
-<span class="fc" id="L1163">		Cursor crs = null ;</span>
+<span class="fc" id="L1107">		SQLightable.Reflection&lt;ROW&gt; tbl = this.getReflection(cls) ;</span>
+<span class="fc" id="L1108">		Cursor crs = null ;</span>
 		try
 		{
-<span class="fc" id="L1166">			crs = QueryBuilder.selectFrom( m_db, qctx.sTableName )</span>
-<span class="fc" id="L1167">					.where( String.format( &quot;%s=%d&quot;,</span>
-<span class="fc" id="L1168">							MAGIC_ID_COLUMN_NAME, nID ) )</span>
-<span class="fc" id="L1169">					.execute()</span>
+<span class="fc" id="L1111">			crs = QueryBuilder.selectFrom( m_db, tbl.getTableName() )</span>
+<span class="fc" id="L1112">					.where( String.format( &quot;%s=%d&quot;,</span>
+<span class="fc" id="L1113">							MAGIC_ID_COLUMN_NAME, nID ) )</span>
+<span class="fc" id="L1114">					.execute()</span>
 					;
-<span class="pc bpc" id="L1171" title="1 of 2 branches missed.">			if( ! crs.moveToFirst() ) return null ; // No such object found.</span>
-<span class="fc" id="L1172">			return this.fromCursor( qctx, crs ) ;</span>
+<span class="fc bfc" id="L1116" title="All 2 branches covered.">			if( ! crs.moveToFirst() ) return null ; // No such object found.</span>
+<span class="fc" id="L1117">			return tbl.fromCursor(crs) ;</span>
 		}
 		finally
-<span class="pc" id="L1175">		{ closeCursor(crs) ; }</span>
+<span class="pc" id="L1120">		{ closeCursor(crs) ; }</span>
 	}
 
 	/**
 	 * Shorthand to obtain a {@link SelectionBuilder} bound to this database and
 	 * targeting the table corresponding to the specified schematic class.
-	 * @param cls the class that defines part of the schema
+	 * @param cls the schematic class
+	 * @param &lt;SC&gt; the schematic class
 	 * @return a {@code SELECT} query builder prepared for that table
+	 * @throws SchematicException if the class is not part of the schema
 	 */
-	public SelectionBuilder selectFrom( Class&lt;? extends SQLightable&gt; cls )
-<span class="fc" id="L1185">	{ return QueryBuilder.selectFrom( m_db, getTableName( cls, null ) ) ; }</span>
+	public &lt;SC extends SQLightable&gt; SelectionBuilder selectFrom( Class&lt;SC&gt; cls )
+	throws SchematicException
+	{
+<span class="fc" id="L1134">		return QueryBuilder.selectFrom( m_db,</span>
+<span class="fc" id="L1135">						this.getReflection(cls).getTableName() ) ;</span>
+	}
 
 	/**
 	 * Searches the database for a row of the table represented by the supplied
@@ -1190,25 +1141,26 @@ extends SQLitePortal
 	 * @param o the schematic class instance to be deleted if found
 	 * @param &lt;ROW&gt; the schematic class
 	 * @return the number of rows deleted
-	 * @throws SchematicException if the table doesn't specify a key column
+	 * @throws SchematicException if the table is not part of the schema, or
+	 *  doesn't specify a key column
 	 */
 	public &lt;ROW extends SQLightable&gt; int delete( ROW o )
 	throws SchematicException
 	{
-<span class="fc" id="L1198">		QueryContext&lt;DSC&gt; qctx = this.getQueryContext() ;</span>
-<span class="fc" id="L1199">		qctx.loadTableDef( o.getClass() ) ;</span>
-<span class="fc" id="L1200">		qctx.loadColumnDef( m_mapKeys.get( qctx.clsTable ) ) ;</span>
-<span class="pc bpc" id="L1201" title="1 of 2 branches missed.">		if( qctx.fldColumn == null )</span>
+		//noinspection unchecked
+<span class="fc" id="L1151">		SQLightable.Reflection&lt;ROW&gt; tbl = ((SQLightable.Reflection&lt;ROW&gt;)</span>
+<span class="fc" id="L1152">				( this.getReflection( o.getClass() ) )) ;</span>
+<span class="fc" id="L1153">		SQLightable.Reflection&lt;ROW&gt;.Column col = tbl.getKeyOrMagicIDColumn() ;</span>
+<span class="fc bfc" id="L1154" title="All 2 branches covered.">		if( col == null )</span>
 		{
-<span class="nc" id="L1203">			throw new SchematicException(</span>
+<span class="fc" id="L1156">			throw new SchematicException(</span>
 					&quot;Can't use delete(SQLightable) without a key column.&quot; ) ;
 		}
-<span class="fc" id="L1206">		qctx.loadColumnValue(o) ;</span>
-<span class="fc" id="L1207">		return QueryBuilder.deleteFrom( m_db, qctx.sTableName )</span>
-<span class="fc" id="L1208">				.where( String.format( &quot;%s=%s&quot;,</span>
-						qctx.sColumnName, qctx.sColumnSQLValue ) )
-<span class="fc" id="L1210">				.execute()</span>
-				;
+<span class="fc" id="L1159">		return QueryBuilder.deleteFrom( m_db, tbl.getTableName() )</span>
+<span class="fc" id="L1160">			.where( String.format( &quot;%s=%s&quot;,</span>
+<span class="fc" id="L1161">				col.getName(), col.getSQLColumnValueFrom(o) ) )</span>
+<span class="fc" id="L1162">			.execute()</span>
+			;
 	}
 
 	/**
@@ -1216,11 +1168,48 @@ extends SQLitePortal
 	 * targeting the table corresponding to the specified schematic class.
 	 * @param cls the class that defines part of the schema
 	 * @return a {@code DELETE} query builder prepared for that table
+	 * @throws SchematicException if the class is not part of the schema
 	 */
-	public DeletionBuilder deleteFrom( Class&lt;? extends SQLightable&gt; cls )
-<span class="fc" id="L1221">	{ return QueryBuilder.deleteFrom( m_db, getTableName( cls, null ) ) ; }</span>
+	public &lt;SC extends SQLightable&gt; DeletionBuilder deleteFrom( Class&lt;SC&gt; cls )
+	throws SchematicException
+	{
+<span class="fc" id="L1176">		return QueryBuilder.deleteFrom( m_db,</span>
+<span class="fc" id="L1177">				this.getReflection(cls).getTableName() ) ;</span>
+	}
 
 /// Other Instance Methods /////////////////////////////////////////////////////
+
+	/**
+	 * Accesses the reflection of a class that is marshalled by this instance.
+	 * If the class was not included in the list of classes that is part of the
+	 * instance's schema, then the method returns {@code null}, rather than
+	 * invoking {@link SQLightable.Reflection#reflect(Class)}.
+	 * @param cls the schematic class to be described
+	 * @param &lt;SC&gt; the schematic class to be described
+	 * @return the reflection of that class as stored in this instance
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public &lt;SC extends SQLightable&gt; SQLightable.Reflection&lt;SC&gt; describe( Class&lt;SC&gt; cls )
+<span class="fc" id="L1193">	{ return m_mapReflections.get(cls) ; }</span>
+
+	/**
+	 * Similar to {@link #describe}, but will throw a {@link SchematicException}
+	 * if the specified class is not found. This is more useful internally than
+	 * as a generaly utility, hence the {@code protected} access control.
+	 * @param cls the schematic class to be described
+	 * @param &lt;SC&gt; the schematic class to be described
+	 * @return the reflection of that class as stored in this instance
+	 * @throws SchematicException if the class is not found in this instance
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	protected &lt;SC extends SQLightable&gt; SQLightable.Reflection&lt;SC&gt; getReflection( Class&lt;SC&gt; cls )
+	throws SchematicException
+	{
+<span class="fc" id="L1208">		SQLightable.Reflection&lt;SC&gt; tbl = m_mapReflections.get(cls) ;</span>
+<span class="fc bfc" id="L1209" title="All 2 branches covered.">		if( tbl == null )</span>
+<span class="fc" id="L1210">			throw SchematicException.classNotInSchema( cls, m_aclsSchema ) ;</span>
+<span class="fc" id="L1211">		return tbl ;</span>
+	}
 
 	/**
 	 * Reads a row of data from a cursor, and marshals it into a schematic class
@@ -1232,93 +1221,56 @@ extends SQLitePortal
 	 *
 	 * @param qctx the context of the selection query
 	 * @param crs the cursor currently pointing to a data row
-	 * @param &lt;T&gt; the schematic class
+	 * @param &lt;SC&gt; the schematic class
 	 * @return an instance of the class, containing the cursor's current row
 	 * @throws SchematicException if the data class instance cannot be
 	 *  constructed for some reason
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#50) - use
+	 *  {@link #fromCursor(Cursor,Class)}
 	 */
-	public &lt;T extends SQLightable&gt; T fromCursor(
+	public &lt;SC extends SQLightable&gt; SC fromCursor(
 			QueryContext&lt;DSC&gt; qctx, Cursor crs )
 	throws SchematicException
 	{
-		T oResult ;
-		try
-		{
-<span class="fc" id="L1247">			Constructor ctor = qctx.clsTable.getDeclaredConstructor() ;</span>
-<span class="pc bpc" id="L1248" title="1 of 2 branches missed.">			if( ctor == null ) // try something different</span>
-<span class="nc" id="L1249">				ctor = qctx.clsTable.getConstructor() ;</span>
-<span class="fc" id="L1250">			ctor.setAccessible(true) ;</span>
-			//noinspection unchecked
-<span class="fc" id="L1252">			oResult = ((T)(ctor.newInstance())) ;</span>
-		}
-<span class="nc" id="L1254">		catch( Exception xConstruct )</span>
-		{
-<span class="nc" id="L1256">			throw new SchematicException(</span>
-					&quot;Couldn't construct a container object.&quot;, xConstruct ) ;
-<span class="fc" id="L1258">		}</span>
-
-<span class="fc" id="L1260">		List&lt;Field&gt; afldResult = m_mapFields.get( qctx.clsTable ) ;</span>
-
-<span class="fc bfc" id="L1262" title="All 2 branches covered.">		for( Field fld : afldResult )</span>
-		{
-<span class="fc" id="L1264">			qctx.loadColumnDef(fld) ;</span>
-<span class="pc bpc" id="L1265" title="1 of 2 branches missed.">			if( qctx.fldColumn == null )</span>
-			{ // The field/column mapping is broken.
-<span class="nc" id="L1267">				Log.e( LOG_TAG, (new StringBuilder())</span>
-<span class="nc" id="L1268">							.append( &quot;Skipping column [&quot; )</span>
-<span class="nc" id="L1269">							.append( fld.getName() )</span>
-<span class="nc" id="L1270">							.append( &quot;]:&quot; )</span>
-<span class="nc" id="L1271">							.toString()</span>
-<span class="nc" id="L1272">						, SchematicException.columnNotFound(</span>
-<span class="nc" id="L1273">							qctx.clsTable.getSimpleName(),</span>
-<span class="nc" id="L1274">							fld.getName(), qctx.sTableName, null )</span>
-					);
-<span class="nc" id="L1276">				continue ;</span>
-			}
-			try
-			{
-<span class="fc" id="L1280">				fld.set( oResult,</span>
-<span class="fc" id="L1281">						qctx.lens.fromCursor( crs, qctx.sColumnName ) ) ;</span>
-			}
-<span class="nc" id="L1283">			catch( IllegalAccessException xAccess )</span>
-			{
-<span class="nc" id="L1285">				throw SchematicException.fieldWasInaccessible(</span>
-<span class="nc" id="L1286">						qctx.clsTable.getSimpleName(),</span>
-<span class="nc" id="L1287">						qctx.fldColumn.getName(),</span>
-						xAccess
-					);
-			}
-<span class="nc" id="L1291">			catch( IllegalStateException xState )</span>
-			{
-<span class="nc" id="L1293">				throw SchematicException.columnNotFound(</span>
-<span class="nc" id="L1294">						qctx.clsTable.getSimpleName(),</span>
-<span class="nc" id="L1295">						fld.getName(), qctx.sTableName, xState ) ;</span>
-<span class="fc" id="L1296">			}</span>
-<span class="fc" id="L1297">		}</span>
-
-<span class="fc" id="L1299">		return oResult ;</span>
+		//noinspection unchecked - guaranteed
+<span class="nc" id="L1236">		SQLightable.Reflection&lt;SC&gt; tbl = ((SQLightable.Reflection&lt;SC&gt;)</span>
+<span class="nc" id="L1237">					( this.getReflection(qctx.clsTable) )) ;</span>
+<span class="nc" id="L1238">		return tbl.fromCursor( crs ) ;</span>
 	}
 
 	/**
-	 * As {@link #fromCursor(QueryContext,Cursor)}, but by explicitly specifying
-	 * the class of object expected from the cursor, the return value is usable
-	 * directly by functions that expect the specific schematic class type.
-	 * @param qctx the context of the selection query
+	 * Alias for {@link #fromCursor(Cursor,Class)} to support apps that consume
+	 * a version of the library between 0.1.5 and 0.1.7.
+	 * @param qctx the context of the selection query; ignored because we don't
+	 *             need it anymore
 	 * @param crs the cursor currently pointing at a data row
-	 * @param cls the schematic class, ignored because the subordinate method
-	 *            already accounts for it; this is purely to help the Java VM
-	 *            and compiler figure themselves out
-	 * @param &lt;T&gt; the schematic class
+	 * @param cls the schematic class
+	 * @param &lt;SC&gt; the schematic class
 	 * @return an instance of the class, containing the cursor's current row
 	 * @throws SchematicException if the data class instance cannot be
 	 *  constructed for some reason
 	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#50) -
+	 *  use {@link #fromCursor(Cursor,Class)}
 	 */
 	@SuppressWarnings( &quot;UnusedParameters&quot; ) // see note above
-	public &lt;T extends SQLightable&gt; T fromCursor(
-			QueryContext&lt;DSC&gt; qctx, Cursor crs, Class&lt;T&gt; cls )
+	public &lt;SC extends SQLightable&gt; SC fromCursor(
+			QueryContext&lt;DSC&gt; qctx, Cursor crs, Class&lt;SC&gt; cls )
 	throws SchematicException
-<span class="fc" id="L1321">	{ return this.fromCursor(qctx,crs) ; }</span>
+<span class="nc" id="L1260">	{ return this.fromCursor(crs,cls) ; }</span>
+
+	/**
+	 * Reads a row of data from a cursor, and marshals it into a schematic class
+	 * instance corresponding to the table from which the row was fetched.
+	 * @param crs the cursor from which data will be marshalled
+	 * @param cls the schematic class to which data will be marshalled
+	 * @param &lt;SC&gt; the schematic class to which data will be marshalled
+	 * @return an instance of the class, containing the cursor's current row
+	 * @throws SchematicException if the class is not part of the schema
+	 */
+	public &lt;SC extends SQLightable&gt; SC fromCursor( Cursor crs, Class&lt;SC&gt; cls )
+	throws SchematicException
+<span class="fc" id="L1273">	{ return this.getReflection(cls).fromCursor(crs) ; }</span>
 
 	/**
 	 * Given a result set loaded into a {@link Cursor}, iterate over that cursor
@@ -1327,24 +1279,19 @@ extends SQLitePortal
 	 * @param qctx the context of the selection query
 	 * @param crs the cursor containing a result set
 	 * @param cls the schematic class which could contain each row
-	 * @param &lt;T&gt; the schematic class which could contain each row
+	 * @param &lt;SC&gt; the schematic class which could contain each row
 	 * @return a list of schematic class instances, containing the rows of the
 	 *  result set
 	 * @throws SchematicException if any instance cannot be instantiated
 	 * @since zerobandwidth-net/android 0.1.5 (#43)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#50) - use
+	 *  {@link #processResultSet(Class, Cursor)}
 	 */
-	public &lt;T extends SQLightable&gt; List&lt;T&gt; processResultSet(
-			QueryContext&lt;DSC&gt; qctx, Cursor crs, Class&lt;T&gt; cls )
+	@SuppressWarnings( &quot;UnusedParameters&quot; )
+	public &lt;SC extends SQLightable&gt; List&lt;SC&gt; processResultSet(
+			QueryContext&lt;DSC&gt; qctx, Cursor crs, Class&lt;SC&gt; cls )
 	throws SchematicException
-	{
-<span class="fc" id="L1340">		List&lt;T&gt; aResults = new ArrayList&lt;&gt;() ;</span>
-<span class="pc bpc" id="L1341" title="1 of 2 branches missed.">		if( crs.moveToFirst() )</span>
-		{ // Process each element in turn, marshalling it into the list.
-<span class="fc" id="L1343">			do aResults.add( this.fromCursor( qctx, crs, cls ) ) ;</span>
-<span class="fc bfc" id="L1344" title="All 2 branches covered.">			while( crs.moveToNext() ) ;</span>
-		}
-<span class="fc" id="L1346">		return aResults ;</span>
-	}
+<span class="fc" id="L1294">	{ return this.processResultSet( cls, crs ) ; }</span>
 
 	/**
 	 * Given a result set loaded into a {@link Cursor}, iterate over that cursor
@@ -1352,18 +1299,23 @@ extends SQLitePortal
 	 * result set.
 	 * @param cls the schematic class which could contain each row
 	 * @param crs the cursor containing the result set
-	 * @param &lt;T&gt; the schematic class which could contain each row
+	 * @param &lt;SC&gt; the schematic class which could contain each row
 	 * @return a list of schematic class instances, containing the rows of the
 	 *  result set
 	 * @throws SchematicException if any instance cannot be instantiated
 	 * @since zerobandwidth-net/android 0.1.5 (#43)
 	 */
-	public &lt;T extends SQLightable&gt; List&lt;T&gt; processResultSet(
-			Class&lt;T&gt; cls, Cursor crs )
+	public &lt;SC extends SQLightable&gt; List&lt;SC&gt; processResultSet(
+			Class&lt;SC&gt; cls, Cursor crs )
 	throws SchematicException
 	{
-<span class="fc" id="L1365">		QueryContext&lt;DSC&gt; qctx = this.getQueryContext(cls) ;</span>
-<span class="fc" id="L1366">		return this.processResultSet( qctx, crs, cls ) ;</span>
+<span class="fc" id="L1312">		List&lt;SC&gt; aResults = new ArrayList&lt;&gt;() ;</span>
+<span class="fc bfc" id="L1313" title="All 2 branches covered.">		if( crs.moveToFirst() )</span>
+		{ // Process each element in turn, marshalling it into the list.
+<span class="fc" id="L1315">			do aResults.add( this.getReflection(cls).fromCursor(crs) ) ;</span>
+<span class="fc bfc" id="L1316" title="All 2 branches covered.">			while( crs.moveToNext() ) ;</span>
+		}
+<span class="fc" id="L1318">		return aResults ;</span>
 	}
 
 	/**
@@ -1372,7 +1324,7 @@ extends SQLitePortal
 	 */
 	@SuppressWarnings(&quot;unchecked&quot;)
 	public QueryContext&lt;DSC&gt; getQueryContext()
-<span class="fc" id="L1375">	{ return new QueryContext&lt;&gt;( (DSC)this ) ; }</span>
+<span class="fc" id="L1327">	{ return new QueryContext&lt;&gt;( (DSC)this ) ; }</span>
 
 	/**
 	 * Creates a query context bound to this database helper, and pre-loads the
@@ -1381,7 +1333,15 @@ extends SQLitePortal
 	 * @return a context object
 	 */
 	public QueryContext&lt;DSC&gt; getQueryContext( Class&lt;? extends SQLightable&gt; clsTable )
-<span class="fc" id="L1384">	{ return this.getQueryContext().loadTableDef(clsTable) ; }</span>
+<span class="fc" id="L1336">	{ return this.getQueryContext().loadTableDef(clsTable) ; }</span>
+
+	/**
+	 * Accesses the cache of schematic classes for the database.
+	 * @return the list of schematic classes loaded into this instance
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public List&lt;Class&lt;? extends SQLightable&gt;&gt; getSchemaClasses()
+<span class="fc" id="L1344">	{ return m_aclsSchema ; }</span>
 
 	/**
 	 * Discovers the type of refractor needed to marshal the specified field.
@@ -1397,30 +1357,30 @@ extends SQLitePortal
 	public Refractor&lt;?&gt; getRefractorForField( Field fld )
 	throws IntrospectionException
 	{
-<span class="fc" id="L1400">		SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;</span>
-<span class="fc" id="L1401">		Class&lt;? extends Refractor&gt; clsLens = antCol.refractor() ;</span>
-<span class="fc bfc" id="L1402" title="All 2 branches covered.">		if( clsLens != NullRefractor.class ) try</span>
+<span class="fc" id="L1360">		SQLiteColumn antCol = fld.getAnnotation( SQLiteColumn.class ) ;</span>
+<span class="fc" id="L1361">		Class&lt;? extends Refractor&gt; clsLens = antCol.refractor() ;</span>
+<span class="fc bfc" id="L1362" title="All 2 branches covered.">		if( clsLens != NullRefractor.class ) try</span>
 		{ // The field explicitly defines a custom refractor. Use it.
-<span class="fc" id="L1404">			return clsLens.newInstance() ;</span>
+<span class="fc" id="L1364">			return clsLens.newInstance() ;</span>
 		}
-<span class="nc" id="L1406">		catch( Exception x )</span>
+<span class="fc" id="L1366">		catch( Exception x )</span>
 		{
-<span class="nc" id="L1408">			Log.w( LOG_TAG, (new StringBuilder())</span>
-<span class="nc" id="L1409">					.append( &quot;Cannot instantiate custom refractor class [&quot; )</span>
-<span class="nc" id="L1410">					.append( clsLens.getCanonicalName() )</span>
-<span class="nc" id="L1411">					.append( &quot;].&quot; )</span>
-<span class="nc" id="L1412">					.toString(),</span>
+<span class="fc" id="L1368">			Log.w( LOG_TAG, (new StringBuilder())</span>
+<span class="fc" id="L1369">					.append( &quot;Cannot instantiate custom refractor class [&quot; )</span>
+<span class="fc" id="L1370">					.append( clsLens.getCanonicalName() )</span>
+<span class="fc" id="L1371">					.append( &quot;].&quot; )</span>
+<span class="fc" id="L1372">					.toString(),</span>
 				x ) ;
 		}
 
-<span class="fc" id="L1416">		try { return m_mapRefractor.get( fld.getType() ).newInstance() ; }</span>
-<span class="nc" id="L1417">		catch( Exception x )</span>
+<span class="fc" id="L1376">		try { return m_mapRefractor.get( fld.getType() ).newInstance() ; }</span>
+<span class="fc" id="L1377">		catch( Exception x )</span>
 		{
-<span class="nc" id="L1419">			throw new IntrospectionException( (new StringBuilder())</span>
-<span class="nc" id="L1420">					.append( &quot;Could not instantiate a refractor for field [&quot; )</span>
-<span class="nc" id="L1421">					.append( fld.getName() )</span>
-<span class="nc" id="L1422">					.append( &quot;]:&quot; )</span>
-<span class="nc" id="L1423">					.toString(),</span>
+<span class="fc" id="L1379">			throw new IntrospectionException( (new StringBuilder())</span>
+<span class="fc" id="L1380">					.append( &quot;Could not instantiate a refractor for field [&quot; )</span>
+<span class="fc" id="L1381">					.append( fld.getName() )</span>
+<span class="fc" id="L1382">					.append( &quot;]:&quot; )</span>
+<span class="fc" id="L1383">					.toString(),</span>
 				x ) ;
 		}
 	}
@@ -1434,42 +1394,13 @@ extends SQLitePortal
 	 *
 	 * @param o the object to be processed.
 	 * @return the values that would be stored in the database
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#50)
 	 */
-	@SuppressWarnings(&quot;unchecked&quot;)
+	@SuppressWarnings({ &quot;unchecked&quot;, &quot;unused&quot; })
 	public ContentValues toContentValues( SQLightable o )
 	{
-<span class="fc" id="L1441">		QueryContext&lt;DSC&gt; qctx = this.getQueryContext() ;</span>
-<span class="fc" id="L1442">		qctx.loadTableDef( o.getClass() ) ;</span>
-<span class="fc" id="L1443">		ContentValues vals = new ContentValues() ;</span>
-<span class="fc bfc" id="L1444" title="All 2 branches covered.">		for( Field fld : m_mapFields.get( o.getClass() ) )</span>
-		{
-<span class="fc" id="L1446">			qctx.loadColumnDef(fld) ;</span>
-<span class="pc bpc" id="L1447" title="1 of 2 branches missed.">			if( qctx.lens == null )</span>
-<span class="nc" id="L1448">				continue ;                  // Can't process this field further.</span>
-			try
-			{
-<span class="fc" id="L1451">				qctx.lens.addToContentValues( vals,</span>
-<span class="fc" id="L1452">						qctx.sColumnName, qctx.lens.getValueFrom( o, fld ) ) ;</span>
-			}
-<span class="nc" id="L1454">			catch( IllegalAccessException xAccess )</span>
-			{
-<span class="nc" id="L1456">				throw SchematicException.fieldWasInaccessible(</span>
-<span class="nc" id="L1457">						qctx.clsTable.getSimpleName(),</span>
-<span class="nc" id="L1458">						fld.getName(),</span>
-						xAccess
-					);
-			}
-<span class="nc" id="L1462">			catch( SchematicException xSchema )</span>
-			{
-<span class="nc" id="L1464">				Log.e( LOG_TAG, (new StringBuilder())</span>
-<span class="nc" id="L1465">						.append( &quot;Could not extract value for field [&quot; )</span>
-<span class="nc" id="L1466">						.append( fld.getName() )</span>
-<span class="nc" id="L1467">						.append( &quot;]:&quot; )</span>
-<span class="nc" id="L1468">						.toString(),</span>
-					xSchema ) ;
-<span class="fc" id="L1470">			} // and continue</span>
-<span class="fc" id="L1471">		}</span>
-<span class="fc" id="L1472">		return vals ;</span>
+<span class="nc" id="L1402">		SQLightable.Reflection tbl = m_mapReflections.get( o.getClass() ) ;</span>
+<span class="nc" id="L1403">		return tbl.toContentValues(o) ;</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

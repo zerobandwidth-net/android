@@ -3,7 +3,10 @@
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_ALL;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.DELETE_FAILED;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_DELETE_FROM;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_WHERE;
 
 /**
  * Builds a SQLite {@code DELETE} query.
@@ -24,7 +27,7 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * &lt;pre&gt;
  * int nDeleted = QueryBuilder.deleteFrom( sTableName )
  *     .where( &quot;active=? OR last_active_ts&lt;=?&quot;,
- *         QueryBuilder.WHERE_FALSE, SQLitePortal.now() - 86400 )
+ *         QueryBuilder.WHERE_FALSE, TimeUtils.now() - 86400 )
  *     .executeOn( db )
  *     ;
  * &lt;/pre&gt;
@@ -32,54 +35,44 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * @since zerobandwidth-net/android 0.1.1 (#20)
  * @see SQLiteDatabase#delete(String, String, String[])
  */
-@SuppressWarnings( &quot;unused&quot; )                              // This is a library.
 public class DeletionBuilder
 extends QueryBuilder&lt;DeletionBuilder,Integer&gt;
 {
-<span class="fc" id="L39">	protected static final String LOG_TAG =</span>
-<span class="fc" id="L40">			DeletionBuilder.class.getSimpleName() ;</span>
-
-	/**
-	 * Similar to the standard magic number returned when an insertion query
-	 * fails (see {@link SQLitePortal#INSERT_FAILED}, this return value from
-	 * {@link #executeOn(SQLiteDatabase)} indicates that the delete operation
-	 * could not be carried out because of an exception.
-	 */
-	public static final int DELETE_FAILED = -1 ;
-
-	protected static final String SQL_DELETE_FROM = &quot;DELETE FROM &quot; ;
+<span class="fc" id="L41">	protected static final String LOG_TAG =</span>
+<span class="fc" id="L42">			DeletionBuilder.class.getSimpleName() ;</span>
 
 	public DeletionBuilder( String sTableName )
-<span class="fc" id="L53">	{ super( sTableName ) ; }</span>
+<span class="fc" id="L45">	{ super( sTableName ) ; }</span>
 
 	/**
 	 * Convenience grammar specifying that all rows should be deleted.
 	 * @return (fluid)
 	 */
 	public DeletionBuilder deleteAll()
-<span class="fc" id="L60">	{ return this.where( SQLitePortal.DELETE_ALL ) ; }</span>
+<span class="fc" id="L52">	{ return this.where( DELETE_ALL ) ; }</span>
 
 	/**
 	 * Deletes rows based on the builder's {@code WHERE} clause.
 	 * @param db the database instance on which the query should be executed.
-	 * @return the number of rows deleted, or {@link #DELETE_FAILED} if the
-	 *  operation fails
+	 * @return the number of rows deleted, or
+	 *  {@link net.zerobandwidth.android.lib.database.SQLiteSyntax#DELETE_FAILED}
+	 *  if the operation fails
 	 */
 	@Override
 	public Integer executeOn( SQLiteDatabase db )
 	{
 		try
 		{
-<span class="fc" id="L73">			return db.delete(</span>
+<span class="fc" id="L66">			return db.delete(</span>
 					m_sTableName,
-<span class="fc" id="L75">					this.getWhereFormat(),</span>
-<span class="fc" id="L76">					this.getWhereParams()</span>
+<span class="fc" id="L68">					this.getWhereFormat(),</span>
+<span class="fc" id="L69">					this.getWhereParams()</span>
 				);
 		}
-<span class="nc" id="L79">		catch( Exception x )</span>
+<span class="nc" id="L72">		catch( Exception x )</span>
 		{
-<span class="nc" id="L81">			Log.e( LOG_TAG, &quot;Deletion query failed:&quot;, x ) ;</span>
-<span class="nc" id="L82">			return DELETE_FAILED ;</span>
+<span class="nc" id="L74">			Log.e( LOG_TAG, &quot;Deletion query failed:&quot;, x ) ;</span>
+<span class="nc" id="L75">			return DELETE_FAILED ;</span>
 		}
 	}
 
@@ -91,13 +84,13 @@ extends QueryBuilder&lt;DeletionBuilder,Integer&gt;
 	@Override
 	public String toString()
 	{
-<span class="fc" id="L94">		StringBuilder sb = new StringBuilder() ;</span>
-<span class="fc" id="L95">		sb.append( SQL_DELETE_FROM ).append( m_sTableName ) ;</span>
-<span class="fc" id="L96">		final String sWhere = this.getWhereClause() ;</span>
-<span class="pc bpc" id="L97" title="1 of 2 branches missed.">		if( sWhere != null )</span>
-<span class="fc" id="L98">			sb.append( SQL_WHERE ).append( sWhere ) ;</span>
-<span class="fc" id="L99">		sb.append( &quot; ;&quot; ) ;</span>
-<span class="fc" id="L100">		return sb.toString() ;</span>
+<span class="fc" id="L87">		StringBuilder sb = new StringBuilder() ;</span>
+<span class="fc" id="L88">		sb.append( SQL_DELETE_FROM ).append( m_sTableName ) ;</span>
+<span class="fc" id="L89">		final String sWhere = this.getWhereClause() ;</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">		if( sWhere != null )</span>
+<span class="fc" id="L91">			sb.append( SQL_WHERE ).append( sWhere ) ;</span>
+<span class="fc" id="L92">		sb.append( &quot; ;&quot; ) ;</span>
+<span class="fc" id="L93">		return sb.toString() ;</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

@@ -7,23 +7,108 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
  * of reflexively constructing a database fails.
  * @since zerobandwidth-net/android 0.1.4 (#26)
  */
-@SuppressWarnings( &quot;unused&quot; )
 public class IntrospectionException
 extends RuntimeException
 {
 	protected static final String DEFAULT_MESSAGE =
 			&quot;Failed to reflexively discover database information.&quot; ;
 
+	/**
+	 * Used when an attempt to use {@link Class#newInstance()} fails with an
+	 * {@link InstantiationException}.
+	 * @param cls the class being instantiated
+	 * @param xCause the cause of the failure
+	 * @return a new exception with the appropriate message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static IntrospectionException instanceFailed(
+			Class&lt;?&gt; cls, Throwable xCause )
+<span class="nc" id="L26">	{ return instanceFailed( cls.getCanonicalName(), xCause ) ; }</span>
+
+	/**
+	 * Used when an attempt to create an instance of a schematic class fails.
+	 * @param sClass the canonical name of the class being instantiated
+	 * @param xCause the cause of the failure
+	 * @return a new exception with the appropriate message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static IntrospectionException instanceFailed(
+			String sClass, Throwable xCause )
+	{
+<span class="nc" id="L38">		return new IntrospectionException( (new StringBuilder())</span>
+<span class="nc" id="L39">					.append( &quot;Could not create instance of class [&quot; )</span>
+<span class="nc" id="L40">					.append( sClass )</span>
+<span class="nc" id="L41">					.append( &quot;].&quot; )</span>
+<span class="nc" id="L42">					.toString()</span>
+				, xCause
+			);
+	}
+
+	/**
+	 * Used when an attempt to use {@link Class#newInstance()} fails with an
+	 * {@link IllegalAccessException}.
+	 * @param cls the class being instantiated
+	 * @param xCause the cause of the failure
+	 * @return a new exception with the appropriate message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static IntrospectionException instanceForbidden(
+			Class&lt;?&gt; cls, Throwable xCause )
+	{
+<span class="nc" id="L58">		return new IntrospectionException( (new StringBuilder())</span>
+<span class="nc" id="L59">					.append( &quot;Instance constructor inaccessible for class [&quot; )</span>
+<span class="nc" id="L60">					.append( cls.getCanonicalName() )</span>
+<span class="nc" id="L61">					.append( &quot;].&quot; )</span>
+<span class="nc" id="L62">					.toString()</span>
+				, xCause
+			);
+	}
+
+	/**
+	 * Used when something tries to process a class that does not implement the
+	 * {@link net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable}
+	 * interface.
+	 * @param cls the unusable class
+	 * @param xCause the root cause, if any
+	 * @return a new exception with the appropriate message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static IntrospectionException illegalClassSpecification(
+			Class&lt;?&gt; cls, Throwable xCause )
+<span class="fc" id="L78">	{ return illegalClassSpecification( cls.getCanonicalName(), xCause ) ; }</span>
+
+	/**
+	 * Used when something tries to process a class that does not implement the
+	 * {@link net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable}
+	 * interface.
+	 * @param sClass the canonical name of the unusable class
+	 * @param xCause the root cause, if any
+	 * @return a new exception with the appropriate message
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static IntrospectionException illegalClassSpecification(
+			String sClass, Throwable xCause )
+	{
+<span class="fc" id="L92">		return new IntrospectionException( (new StringBuilder())</span>
+<span class="fc" id="L93">					.append( &quot;Class [&quot; ).append( sClass )</span>
+<span class="fc" id="L94">					.append( &quot;] does not implement SQLightable.&quot; )</span>
+<span class="fc" id="L95">					.toString()</span>
+				, xCause
+			);
+	}
+
+	@SuppressWarnings(&quot;unused&quot;)
 	public IntrospectionException()
-<span class="nc" id="L18">	{ super( DEFAULT_MESSAGE ) ; }</span>
+<span class="nc" id="L102">	{ super( DEFAULT_MESSAGE ) ; }</span>
 
 	public IntrospectionException( String sMessage )
-<span class="fc" id="L21">	{ super( sMessage ) ; }</span>
+<span class="fc" id="L105">	{ super( sMessage ) ; }</span>
 
+	@SuppressWarnings(&quot;unused&quot;)
 	public IntrospectionException( Throwable xCause )
-<span class="nc" id="L24">	{ super( DEFAULT_MESSAGE, xCause ) ; }</span>
+<span class="nc" id="L109">	{ super( DEFAULT_MESSAGE, xCause ) ; }</span>
 
 	public IntrospectionException( String sMessage, Throwable xCause )
-<span class="nc" id="L27">	{ super( sMessage, xCause ) ; }</span>
+<span class="fc" id="L112">	{ super( sMessage, xCause ) ; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

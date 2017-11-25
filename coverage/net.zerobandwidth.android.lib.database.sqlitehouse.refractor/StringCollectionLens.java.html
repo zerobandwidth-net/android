@@ -2,19 +2,22 @@
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.text.TextUtils;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import java.util.Collection;
 import java.util.Collections;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Provides a canonical implementation of a {@link Lens} which can marshal a
  * collection of strings to/from a single column in a database row.
  * @since zerobandwidth-net/android 0.1.5 (#42)
  */
-<span class="fc" id="L17">public abstract class StringCollectionLens&lt;C extends Collection&lt;String&gt;&gt;</span>
+<span class="fc" id="L20">public abstract class StringCollectionLens&lt;C extends Collection&lt;String&gt;&gt;</span>
 extends Lens&lt;C&gt;
 implements Refractor&lt;C&gt;
 {
@@ -41,36 +44,73 @@ implements Refractor&lt;C&gt;
 	 */
 	public String toStringValue( C asValues )
 	{
-<span class="fc bfc" id="L44" title="All 2 branches covered.">		return ( asValues == null ? null :</span>
-<span class="fc" id="L45">				TextUtils.join( this.getDelimiter(), asValues ) ) ;</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">		return ( asValues == null ? null :</span>
+<span class="fc" id="L48">				TextUtils.join( this.getDelimiter(), asValues ) ) ;</span>
 	}
 
 	@Override
 	public String getSQLiteDataType()
-<span class="fc" id="L50">	{ return SQLITE_TYPE_TEXT ; }</span>
+<span class="fc" id="L53">	{ return SQLiteSyntax.SQLITE_TYPE_TEXT ; }</span>
 
 	@Override
 	public String toSQLiteString( C o )
 	{
-<span class="fc bfc" id="L55" title="All 2 branches covered.">		return ( o == null ? SQLitePortal.SQLITE_NULL :</span>
-<span class="fc" id="L56">			String.format( &quot;'%s'&quot;, this.toStringValue(o) ) ) ;</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">		return ( o == null ? SQLITE_NULL :</span>
+<span class="fc" id="L59">			String.format( &quot;'%s'&quot;, this.toStringValue(o) ) ) ;</span>
 	}
 
 	@Override
-	public Refractor&lt;C&gt; addToContentValues( ContentValues vals, String sKey, C val )
+	public StringCollectionLens&lt;C&gt; addToContentValues(
+			ContentValues vals, String sKey, C val )
 	{
-<span class="fc" id="L62">		vals.put( sKey, this.toStringValue(val) ) ;</span>
-<span class="fc" id="L63">		return this ;</span>
+<span class="fc" id="L66">		vals.put( sKey, this.toStringValue(val) ) ;</span>
+<span class="fc" id="L67">		return this ;</span>
+	}
+
+	/**
+	 * Adds the collection of strings to a {@link Bundle} as a string array.
+	 *
+	 * This will &lt;i&gt;always&lt;/i&gt; be rendered in the bundle as a string array,
+	 * regardless of the algorithm that would marshal the collection to/from a
+	 * database as a string serialization.
+	 *
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Override
+	public StringCollectionLens&lt;C&gt; addToBundle(
+			Bundle bndl, String sKey, C val )
+	{
+<span class="nc" id="L83">		bndl.putStringArray( sKey, val.toArray( new String[val.size()] ) ) ;</span>
+<span class="nc" id="L84">		return this ;</span>
 	}
 
 	@Override
 	public C fromCursor( Cursor crs, String sKey )
 	{
-<span class="fc" id="L69">		String sValues = crs.getString( crs.getColumnIndex( sKey ) ) ;</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">		if( sValues == null ) return null ;</span>
-<span class="fc" id="L71">		C asValues = this.getCollectionInstance() ;</span>
-<span class="fc" id="L72">		Collections.addAll( asValues, sValues.split( this.getDelimiter() ) ) ;</span>
-<span class="fc" id="L73">		return asValues ;</span>
+<span class="fc" id="L90">		String sValues = crs.getString( crs.getColumnIndex( sKey ) ) ;</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">		if( sValues == null ) return null ;</span>
+<span class="fc" id="L92">		C asValues = this.getCollectionInstance() ;</span>
+<span class="fc" id="L93">		Collections.addAll( asValues, sValues.split( this.getDelimiter() ) ) ;</span>
+<span class="fc" id="L94">		return asValues ;</span>
+	}
+
+	/**
+	 * Fetches a collection of strings from a {@link Bundle} as a string array.
+	 *
+	 * This will &lt;i&gt;always&lt;/i&gt; be rendered in the bundle as a string array,
+	 * regardless of the algorithm that would marshal the collection to/from a
+	 * database as a string serialization.
+	 *
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	@Override
+	public C fromBundle( Bundle bndl, String sKey )
+	{
+<span class="nc" id="L109">		String[] asBundled = bndl.getStringArray( sKey ) ;</span>
+<span class="nc bnc" id="L110" title="All 4 branches missed.">		if( asBundled == null || asBundled.length == 0 ) return null ;</span>
+<span class="nc" id="L111">		C asValues = this.getCollectionInstance() ;</span>
+<span class="nc" id="L112">		Collections.addAll( asValues, asBundled ) ;</span>
+<span class="nc" id="L113">		return asValues ;</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

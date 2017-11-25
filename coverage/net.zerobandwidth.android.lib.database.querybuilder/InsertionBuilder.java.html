@@ -6,6 +6,10 @@ import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_INSERT_INTO;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_SET;
+
 /**
  * Builds a SQLite {@code INSERT} query.
  *
@@ -37,7 +41,7 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
  * Vector&lt;Integer&gt; vnIDs = new Vector&lt;&gt;() ;
  * for( ContentValues vals : aSeveralValues )
  * {
- *     nID = QueryBuilder.insertInto( sTableName )
+ *     long nID = QueryBuilder.insertInto( sTableName )
  *         .setValues( vals )
  *         .executeOn( db )
  *         ;
@@ -53,25 +57,14 @@ import net.zerobandwidth.android.lib.database.SQLitePortal;
 public class InsertionBuilder
 extends QueryBuilder&lt;InsertionBuilder,Long&gt;
 {
-<span class="fc" id="L56">	protected static final String LOG_TAG =</span>
-<span class="fc" id="L57">			InsertionBuilder.class.getSimpleName() ;</span>
-
-	/**
-	 * Magic number returned by {@link SQLiteDatabase#insert} and similar
-	 * methods, when the insertion fails.
-	 * @see SQLitePortal#INSERT_FAILED ;
-	 */
-	public static final long INSERT_FAILED = SQLitePortal.INSERT_FAILED ;
-
-	protected static final String SQL_INSERT_INTO = &quot;INSERT INTO &quot; ;
-
-	protected static final String SQL_SET = &quot; SET &quot; ;
+<span class="fc" id="L60">	protected static final String LOG_TAG =</span>
+<span class="fc" id="L61">			InsertionBuilder.class.getSimpleName() ;</span>
 
 	/**
 	 * Specifies the column to use, if any, for the Android &quot;null column hack&quot;
 	 * during insertion.
 	 */
-<span class="fc" id="L74">	protected String m_sNullableColumn = null ;</span>
+<span class="fc" id="L67">	protected String m_sNullableColumn = null ;</span>
 
 	/**
 	 * The numeric ID of the conflict resolution algorithm provided by Android.
@@ -83,10 +76,10 @@ extends QueryBuilder&lt;InsertionBuilder,Long&gt;
 	 * @see SQLiteDatabase#CONFLICT_REPLACE
 	 * @see SQLiteDatabase#CONFLICT_ROLLBACK
 	 */
-<span class="fc" id="L86">	protected int m_zConflictAlgorithmID = SQLiteDatabase.CONFLICT_NONE ;</span>
+<span class="fc" id="L79">	protected int m_zConflictAlgorithmID = SQLiteDatabase.CONFLICT_NONE ;</span>
 
 	public InsertionBuilder( String sTableName )
-<span class="fc" id="L89">	{ super( sTableName ) ; }</span>
+<span class="fc" id="L82">	{ super( sTableName ) ; }</span>
 
 	/**
 	 * Sets the name of the nullable column to be used for the Android &quot;null
@@ -95,7 +88,7 @@ extends QueryBuilder&lt;InsertionBuilder,Long&gt;
 	 * @return (fluid)
 	 */
 	public InsertionBuilder withNullable( String sColumnName )
-<span class="fc" id="L98">	{ m_sNullableColumn = sColumnName ; return this ; }</span>
+<span class="fc" id="L91">	{ m_sNullableColumn = sColumnName ; return this ; }</span>
 
 	/**
 	 * Selects, by its numeric ID, the conflict resolution algorithm provided by
@@ -104,7 +97,7 @@ extends QueryBuilder&lt;InsertionBuilder,Long&gt;
 	 * @return (fluid)
 	 */
 	public InsertionBuilder onConflict( int zAlgorithmID )
-<span class="fc" id="L107">	{ m_zConflictAlgorithmID = zAlgorithmID ; return this ; }</span>
+<span class="fc" id="L100">	{ m_zConflictAlgorithmID = zAlgorithmID ; return this ; }</span>
 
 	/**
 	 * Executes an insertion query on the values that have been appended to the
@@ -117,26 +110,26 @@ extends QueryBuilder&lt;InsertionBuilder,Long&gt;
 	@Override
 	public Long executeOn( SQLiteDatabase db )
 	{
-<span class="pc bpc" id="L120" title="1 of 2 branches missed.">		if( m_valsToWrite == null ) return SQLitePortal.INSERT_FAILED ;</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">		if( m_valsToWrite == null ) return INSERT_FAILED ;</span>
 
 		try
 		{
-<span class="fc" id="L124">			return db.insertWithOnConflict(</span>
+<span class="fc" id="L117">			return db.insertWithOnConflict(</span>
 					m_sTableName,
 					m_sNullableColumn,
 					m_valsToWrite,
 					m_zConflictAlgorithmID
 				);
 		}
-<span class="nc" id="L131">		catch( Exception x )</span>
+<span class="nc" id="L124">		catch( Exception x )</span>
 		{
-<span class="nc" id="L133">			Log.e( LOG_TAG, (new StringBuilder())</span>
-<span class="nc" id="L134">					.append( &quot;Insertion of row with values [&quot; )</span>
-<span class="nc" id="L135">					.append( m_valsToWrite.toString() )</span>
-<span class="nc" id="L136">					.append( &quot;] failed:&quot; )</span>
-<span class="nc" id="L137">					.toString()</span>
+<span class="nc" id="L126">			Log.e( LOG_TAG, (new StringBuilder())</span>
+<span class="nc" id="L127">					.append( &quot;Insertion of row with values [&quot; )</span>
+<span class="nc" id="L128">					.append( m_valsToWrite.toString() )</span>
+<span class="nc" id="L129">					.append( &quot;] failed:&quot; )</span>
+<span class="nc" id="L130">					.toString()</span>
 				, x ) ;
-<span class="nc" id="L139">			return INSERT_FAILED ;</span>
+<span class="nc" id="L132">			return INSERT_FAILED ;</span>
 		}
 	}
 
@@ -148,13 +141,13 @@ extends QueryBuilder&lt;InsertionBuilder,Long&gt;
 	@Override
 	public String toString()
 	{
-<span class="fc" id="L151">		return (new StringBuilder())</span>
-<span class="fc" id="L152">			.append( SQL_INSERT_INTO )</span>
-<span class="fc" id="L153">			.append( m_sTableName )</span>
-<span class="fc" id="L154">			.append( SQL_SET )</span>
-<span class="fc" id="L155">			.append( toSQLInputParams( m_valsToWrite ) )</span>
-<span class="fc" id="L156">			.append( &quot; ;&quot; )</span>
-<span class="fc" id="L157">			.toString()</span>
+<span class="fc" id="L144">		return (new StringBuilder())</span>
+<span class="fc" id="L145">			.append( SQL_INSERT_INTO )</span>
+<span class="fc" id="L146">			.append( m_sTableName )</span>
+<span class="fc" id="L147">			.append( SQL_SET )</span>
+<span class="fc" id="L148">			.append( toSQLInputParams( m_valsToWrite ) )</span>
+<span class="fc" id="L149">			.append( &quot; ;&quot; )</span>
+<span class="fc" id="L150">			.toString()</span>
 			;
 	}
 }

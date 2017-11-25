@@ -1,10 +1,13 @@
 net.zerobandwidth.android.lib
 net.zerobandwidth.android.lib.app
 net.zerobandwidth.android.lib.content
+net.zerobandwidth.android.lib.content.querybuilder
 net.zerobandwidth.android.lib.database
 net.zerobandwidth.android.lib.database.querybuilder
 net.zerobandwidth.android.lib.database.sqlitehouse
 net.zerobandwidth.android.lib.database.sqlitehouse.annotations
+net.zerobandwidth.android.lib.database.sqlitehouse.content
+net.zerobandwidth.android.lib.database.sqlitehouse.content.exceptions
 net.zerobandwidth.android.lib.database.sqlitehouse.exceptions
 net.zerobandwidth.android.lib.database.sqlitehouse.refractor
 net.zerobandwidth.android.lib.database.sqlitehouse.testschema
@@ -15,4 +18,5 @@ net.zerobandwidth.android.lib.telephony
 net.zerobandwidth.android.lib.telephony.exceptions
 net.zerobandwidth.android.lib.text.format
 net.zerobandwidth.android.lib.ui
+net.zerobandwidth.android.lib.util
 net.zerobandwidth.android.lib.view.updaters

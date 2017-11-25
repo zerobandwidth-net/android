@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>CollectionsZ.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zerobandwidth.android.lib.util</a> &gt; <span class="el_source">CollectionsZ.java</span></div><h1>CollectionsZ.java</h1><pre class="source lang-java linenums">package net.zerobandwidth.android.lib.util;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+
+/**
+ * Provides additional utility methods for working with collections, beyond the
+ * stock {@link Arrays} and {@link java.util.Collections} classes.
+ *
+ * The class is meant to look like the {@link java.util.Collections} class in
+ * use. For methods that can be written statically, the class may be used as
+ * such. However, certain operations that need tighter links to particular class
+ * specifications require explicit type definition in the method prototypes.
+ * To support this, the class provides the {@link #of} method, which creates a
+ * type-bound instance of the utility class, whose instance methods may then
+ * operate under this more controlled context. {@link #arrayConcat} is an
+ * illustrative example of a method that needs this context:
+ *
+ * &lt;pre&gt;
+ *     String[] asFoo = { &quot;foo&quot;, &quot;Foo&quot;, &quot;FOO&quot; } ;
+ *     String[] asBar = { &quot;bar&quot;, &quot;Bar&quot;, &quot;BAR&quot; } ;
+ *     String[] asFoobar = CollectionsZ.of( String.class )
+ *             .arrayConcat( asFoo, asBar ) ;
+ *     assertEquals( 6, asFoobar.length ) ;
+ * &lt;/pre&gt;
+ *
+ * @param &lt;I&gt; the class of item contained in the collection, if any
+ * @since zerobandwidth-net/android 0.1.7 (#50)
+ */
+public final class CollectionsZ&lt;I&gt;
+{
+	/**
+	 * This method provides a static way to obtain a parameterized instance of
+	 * the {@code CollectionsZ} class so that its other nifty methods may be
+	 * invoked under these conditions.
+	 * @param cls the class of item contained in the collection
+	 * @param &lt;T&gt; the class of item contained in the collection
+	 * @return a parameterized instance, for more finely-tuned operations
+	 */
+	public static &lt;T&gt; CollectionsZ&lt;T&gt; of( Class&lt;T&gt; cls )
+<span class="fc" id="L43">	{ return new CollectionsZ&lt;&gt;(cls) ; }</span>
+
+	/**
+	 * A persistent reference to the class to which the instance's generic
+	 * parameter was bound at instantiation.
+	 */
+<span class="fc" id="L49">	private Class&lt;I&gt; m_cls = null ;</span>
+
+	/**
+	 * The constructor should not be invoked directly; use {@link #of} instead.
+	 * @param cls the class to which the instance's generic parameter should be
+	 *            bound
+	 */
+	private CollectionsZ( Class&lt;I&gt; cls )
+<span class="fc" id="L57">	{ m_cls = cls ; }</span>
+
+	/**
+	 * Creates a new empty array of the specified size.
+	 * @param nSize the initial capacity
+	 * @return an array of objects of the templatized type
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;) // guaranteed by restriction on m_cls
+	protected I[] newArray( int nSize )
+<span class="fc" id="L66">	{ return ((I[])( Array.newInstance( m_cls, nSize ) )) ; }</span>
+
+	/**
+	 * Provides a sane implementation of {@code toArray()} for collections which
+	 * returns an array of the object's type.
+	 * @param a the collection to be converted to an array
+	 * @return an array of elements in the collection, or {@code null} if the
+	 *  input was also null
+	 */
+	public I[] toArray( Collection&lt;I&gt; a )
+	{
+<span class="fc bfc" id="L77" title="All 2 branches covered.">		if( a == null )</span>
+<span class="fc" id="L78">			return null ;</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">		else if( a.size() == 0 )</span>
+<span class="fc" id="L80">			return this.newArray(0) ;</span>
+		else
+<span class="fc" id="L82">			return a.toArray( this.newArray( a.size() ) ) ;</span>
+	}
+
+	/**
+	 * Concatenates an arbitrary number of arrays of the same object type
+	 * @param aArrays the arrays to be concatenated
+	 * @return all arrays concatenated in the order they were specified
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;) // guaranteed logically
+	public I[] arrayConcat( I[]... aArrays )
+	{
+<span class="pc bpc" id="L93" title="1 of 4 branches missed.">		if( aArrays == null || aArrays.length == 0 ) return null ; // trivially</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">		if( aArrays.length == 1 ) return aArrays[0] ; // trivially</span>
+
+<span class="fc" id="L96">		ArrayList&lt;I&gt; aAll = new ArrayList&lt;&gt;() ;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">		for( I[] aArray : aArrays )</span>
+		{
+<span class="pc bpc" id="L99" title="2 of 4 branches missed.">			if( aArray != null &amp;&amp; aArray.length &gt; 0 )</span>
+<span class="fc" id="L100">				aAll.addAll( Arrays.asList(aArray) ) ;</span>
+		}
+<span class="fc" id="L102">		return aAll.toArray( this.newArray( aAll.size() ) ) ;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span>Generated by the Android Gradle plugin 2.2.0</div></body></html>

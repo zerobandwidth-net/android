@@ -51,13 +51,22 @@ extends HashMap&lt;Class&lt;?&gt;,Class&lt;? extends Refractor&gt;&gt;
 <span class="fc" id="L51">	}</span>
 
 	/**
+	 * Gets the default refractor class for the specified data class.
+	 * @param cls the data class
+	 * @return the default refractor for that class
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static Class&lt;? extends Refractor&gt; getRefractorFor( Class&lt;?&gt; cls )
+<span class="fc" id="L60">	{ return DEFAULT_MAPPING.get(cls) ; }</span>
+
+	/**
 	 * Initializes the instance with the default mapping.
 	 */
 	public RefractorMap()
 	{
-<span class="fc" id="L58">		super( DEFAULT_MAPPING.size() ) ;</span>
-<span class="fc" id="L59">		this.init() ;</span>
-<span class="fc" id="L60">	}</span>
+<span class="fc" id="L67">		super( DEFAULT_MAPPING.size() ) ;</span>
+<span class="fc" id="L68">		this.init() ;</span>
+<span class="fc" id="L69">	}</span>
 
 	/**
 	 * Wipes out all current entries and restores the default mapping.
@@ -65,9 +74,9 @@ extends HashMap&lt;Class&lt;?&gt;,Class&lt;? extends Refractor&gt;&gt;
 	 */
 	public RefractorMap init()
 	{
-<span class="fc" id="L68">		this.clear() ;</span>
-<span class="fc" id="L69">		this.putAll( DEFAULT_MAPPING ) ;</span>
-<span class="fc" id="L70">		return this ;</span>
+<span class="fc" id="L77">		this.clear() ;</span>
+<span class="fc" id="L78">		this.putAll( DEFAULT_MAPPING ) ;</span>
+<span class="fc" id="L79">		return this ;</span>
 	}
 
 	/**
@@ -80,19 +89,19 @@ extends HashMap&lt;Class&lt;?&gt;,Class&lt;? extends Refractor&gt;&gt;
 	public String getSQLiteColumnTypeFor( Class&lt;?&gt; cls )
 	throws IntrospectionException
 	{
-<span class="fc" id="L83">		Class&lt;? extends Refractor&gt; clsRefractor = this.get(cls) ;</span>
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">		if( clsRefractor == null )</span>
+<span class="fc" id="L92">		Class&lt;? extends Refractor&gt; clsRefractor = this.get(cls) ;</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">		if( clsRefractor == null )</span>
 		{
-<span class="nc" id="L86">			throw new IntrospectionException( String.format(</span>
+<span class="nc" id="L95">			throw new IntrospectionException( String.format(</span>
 					&quot;Could not resolve refractor for class [%s].&quot;,
-<span class="nc" id="L88">					cls.getCanonicalName() ) ) ;</span>
+<span class="nc" id="L97">					cls.getCanonicalName() ) ) ;</span>
 		}
-<span class="fc" id="L90">		try { return clsRefractor.newInstance().getSQLiteDataType() ; }</span>
-<span class="nc" id="L91">		catch( Exception x )</span>
+<span class="fc" id="L99">		try { return clsRefractor.newInstance().getSQLiteDataType() ; }</span>
+<span class="nc" id="L100">		catch( Exception x )</span>
 		{
-<span class="nc" id="L93">			throw new IntrospectionException( String.format(</span>
+<span class="nc" id="L102">			throw new IntrospectionException( String.format(</span>
 					&quot;Could not instantiate refractor [%s]&quot;,
-<span class="nc" id="L95">					clsRefractor.getCanonicalName() ) ) ;</span>
+<span class="nc" id="L104">					clsRefractor.getCanonicalName() ) ) ;</span>
 		}
 	}
 }
