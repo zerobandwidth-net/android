@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
+import net.zerobandwidth.android.lib.util.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,13 +14,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_VAR;
+
 /**
  * Builds a SQLite query using methods, rather than the methods from the
  * {@link SQLiteDatabase} methods that use long lists of parameters.
  *
  * <p>This class is supposed to do very little; the consumer should use the
  * static methods {@link #insertInto}, {@link #update}, {@link #selectFrom}, and
- * {@link #deleteFrom}) to spawn instances of the various implementation classes
+ * {@link #deleteFrom} to spawn instances of the various implementation classes
  * corresponding to database actions ({@code INSERT}, {@code UPDATE},
  * {@code SELECT}, and {@code DELETE}).</p>
  *
@@ -39,7 +43,8 @@ import java.util.Map;
  *           shared methods.
  * @param <R> The return type of the underlying {@code SQLiteDatabase} function.
  *           This is set explicitly in the declaration of the implementation
- *           class, and will be the return type of {@link #executeOn}.
+ *           class, and will be the return type of {@link #execute} and
+ *           {@link #executeOn}.
  *
  * @since zerobandwidth-net/android 0.1.1 (#20)
  */
@@ -79,39 +84,11 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 /// Static constants ///////////////////////////////////////////////////////////
 
 	/**
-	 * The character that stands in for a variable value in the Android format
-	 * string that is passed to {@link SQLiteDatabase} query methods.
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SQLITE_VAR}
 	 */
-	protected static final String ANDROID_VARIABLE_MARKER = "?" ;
-
-	/**
-	 * SQL keyword marking the beginning of a {@code WHERE} clause.
-	 * @see InsertionBuilder#toString()
-	 * @see UpdateBuilder#toString()
-	 * @see SelectionBuilder#toString()
-	 * @see DeletionBuilder#toString()
-	 */
-	protected static final String SQL_WHERE = " WHERE " ;
-
-	/**
-	 * If using integer columns to store Boolean values, where {@code 1} is true
-	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
-	 * value substitutions for "true".
-	 * @see SQLitePortal#boolToInt(boolean)
-	 * @see SQLitePortal#intToBool(int)
-	 * @see SQLitePortal#WHERE_TRUE
-	 */
-	public static final String WHERE_TRUE = SQLitePortal.WHERE_TRUE ;
-
-	/**
-	 * If using integer columns to store Boolean values, where {@code 1} is true
-	 * and {@code 0} is false, use this constant when supplying {@code WHERE}
-	 * value substitutions for "false".
-	 * @see SQLitePortal#boolToInt(boolean)
-	 * @see SQLitePortal#intToBool(int)
-	 * @see SQLitePortal#WHERE_FALSE
-	 */
-	public static final String WHERE_FALSE = SQLitePortal.WHERE_FALSE ;
+	protected static final String ANDROID_VARIABLE_MARKER =
+			SQLITE_VAR;
 
 /// Static kickoff methods (starts a query of a given type) ////////////////////
 
@@ -197,10 +174,11 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 * Returns the number of milliseconds since epoch UTC. Use this value when
 	 * comparing to timestamps stored in the database as {@code long} integers.
 	 * @return milliseconds since epoch UTC
-	 * @see SQLitePortal#now()
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#39) - refactored as
+	 *     {@link net.zerobandwidth.android.lib.util.TimeUtils#now}
 	 */
 	public long now()
-	{ return SQLitePortal.now() ; }
+	{ return TimeUtils.now() ; }
 
 	/**
 	 * Renders the key/value pairs in a set of {@link ContentValues} as a list
@@ -216,6 +194,8 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 */
 	public static String toSQLInputParams( ContentValues vals )
 	{
+		if( vals == null || vals.size() == 0 ) return "" ; // trivially
+
 		StringBuilder sb = new StringBuilder() ;
 		List<Map.Entry<String,Object>> aEntries =
 				new ArrayList<>( vals.valueSet() ) ;
@@ -355,13 +335,15 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	 * @param asWhereParams the parameters for the {@code WHERE} clause
 	 * @return (fluid)
 	 */
-	@SuppressWarnings( "unchecked" )
 	public I where( String sWhereFormat, Collection<String> asWhereParams )
 	{
-		m_sExplicitWhereFormat = sWhereFormat ;
-		m_asExplicitWhereParams =
-			asWhereParams.toArray( new String[asWhereParams.size()] ) ;
-		return (I)this ;
+		if( asWhereParams == null )
+			return this.where( sWhereFormat ) ;
+		else
+		{
+			return this.where( sWhereFormat,
+				asWhereParams.toArray( new String[asWhereParams.size()] ) ) ;
+		}
 	}
 
 	/**
@@ -398,11 +380,14 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 	protected String getWhereClause()
 	{
 		if( m_sExplicitWhereFormat == null ) return null ;
-		if( ! m_sExplicitWhereFormat.contains( "?" ) )
+		if( ! m_sExplicitWhereFormat.contains( SQLITE_VAR ) )
 			return m_sExplicitWhereFormat ;        // Contains no substitutions.
 		if( m_asExplicitWhereParams == null || m_asExplicitWhereParams.length == 0 )
-			throw new IllegalStateException( "Need parameters but don't have them" ) ;
-		String sFormat = m_sExplicitWhereFormat.replace( "?", "%s" ) ;
+		{
+			throw new IllegalStateException(
+					"Need parameters but don't have them." ) ;
+		}
+		String sFormat = m_sExplicitWhereFormat.replace( SQLITE_VAR, "%s" ) ;
 		return String.format( sFormat, ((Object[])(m_asExplicitWhereParams)) ) ;
 	}
 

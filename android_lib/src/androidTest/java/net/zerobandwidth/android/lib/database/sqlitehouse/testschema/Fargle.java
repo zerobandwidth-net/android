@@ -1,5 +1,7 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.testschema;
 
+import android.util.Log;
+
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
@@ -18,6 +20,8 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTabl
 public class Fargle
 implements SQLightable
 {
+	public static final String LOG_TAG = Fargle.class.getSimpleName() ;
+
 	/**
 	 * Should be discovered as column {@code fargle_id} of type {@code INTEGER}
 	 * and no default value.
@@ -60,14 +64,80 @@ implements SQLightable
 	}
 
 	/**
-	 * Tests for equality.
+	 * Accesses the string field.
+	 * @return the string field
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public String getString()
+	{ return m_sString ; }
+
+	/**
+	 * Allows a test method to modify the contents of the string field.
+	 * @param s the new string value
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public Fargle setString( String s )
+	{ m_sString = s ; return this ; }
+
+	/**
+	 * Tests for equality, writing detailed debug logs whenever the objects are
+	 * not equal. The logging is intended to aid in diagnosis of unit test
+	 * failures.
 	 * @param that the object to be compared to this one.
 	 * @return {@code true} if all fields are equivalent
 	 */
 	public boolean equals( Fargle that )
 	{
-		return ( this.m_nFargleID == that.m_nFargleID
-		      && this.m_sString.equals( that.m_sString )
-		      && this.m_zInteger == that.m_zInteger ) ;
+		if( this.m_nFargleID != that.m_nFargleID )
+		{
+			Log.d( LOG_TAG, String.format( "m_nFargleID [%d] [%d]",
+					this.m_nFargleID, that.m_nFargleID ) ) ;
+			return false ;
+		}
+		if( this.m_sString == null )
+		{
+			if( that.m_sString != null )
+			{
+				Log.d( LOG_TAG, String.format( "m_sString <null> [%s]",
+						that.m_sString ) ) ;
+				return false ;
+			}
+		}
+		else if( that.m_sString == null )
+		{
+			Log.d( LOG_TAG, String.format( "m_sString [%s] <null>",
+					this.m_sString ) ) ;
+			return false ;
+		}
+		else if( ! this.m_sString.equals( that.m_sString ) )
+		{
+			Log.d( LOG_TAG, String.format( "m_sString [%s] [%s]",
+					this.m_sString, that.m_sString ) ) ;
+			return false ;
+		}
+		if( this.m_zInteger != that.m_zInteger )
+		{
+			Log.d( LOG_TAG, String.format( "m_zInteger [%d] [%d]",
+					this.m_zInteger, that.m_zInteger ) ) ;
+			return false ;
+		}
+
+		return true ;
+	}
+
+	/**
+	 * As {@link #equals(Fargle)}, but ignores {@link #m_nFargleID}.
+	 * Use this when comparing a new instance whose ID might still be {@code -1}
+	 * to another instance which has already been inserted into a DB and has a
+	 * real ID.
+	 * @param that the object to be compared to this one
+	 * @return {@code true} if the non-ID content is equivalent
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public boolean matches( Fargle that )
+	{
+		return( this.m_sString.equals( that.m_sString )
+		     && this.m_zInteger == that.m_zInteger ) ;
 	}
 }

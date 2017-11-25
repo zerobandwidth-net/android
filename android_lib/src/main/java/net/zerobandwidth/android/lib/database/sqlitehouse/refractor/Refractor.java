@@ -2,7 +2,9 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 
 import java.lang.reflect.Field;
@@ -27,12 +29,15 @@ import java.lang.reflect.Field;
  */
 public interface Refractor<T>
 {
-	/** The data type token representing integer columns in SQLite. */
-	String SQLITE_TYPE_INT = "INTEGER" ;
-	/** The data type token representing decimal-numeric columns in SQLite. */
-	String SQLITE_TYPE_REAL = "REAL" ;
-	/** The data type token representing text columns in SQLite. */
-	String SQLITE_TYPE_TEXT = "TEXT" ;
+	/** @deprecated replaced by {@link SQLiteSyntax#SQLITE_TYPE_INT} in 0.1.7 (#48) */
+	@SuppressWarnings( "unused" ) // Great!
+	String SQLITE_TYPE_INT = SQLiteSyntax.SQLITE_TYPE_INT ;
+	/** @deprecated replaced by {@link SQLiteSyntax#SQLITE_TYPE_REAL} in 0.1.7 (#48) */
+	@SuppressWarnings( "unused" ) // Great!
+	String SQLITE_TYPE_REAL = SQLiteSyntax.SQLITE_TYPE_REAL ;
+	/** @deprecated replaced by {@link SQLiteSyntax#SQLITE_TYPE_TEXT} in 0.1.7 (#48) */
+	@SuppressWarnings( "unused" ) // Great!
+	String SQLITE_TYPE_TEXT = SQLiteSyntax.SQLITE_TYPE_TEXT ;
 
 	/**
 	 * Defines the SQLite data type to be used when writing a value into the
@@ -92,11 +97,32 @@ public interface Refractor<T>
 	Refractor<T> addToContentValues( ContentValues vals, String sKey, T val ) ;
 
 	/**
+	 * Determines the correct method in {@link Bundle} to be used to add the
+	 * specified value to an existing bundle.
+	 * @param bndl the bundle
+	 * @param sKey the field's key
+	 * @param val the value to be stored
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	Refractor<T> addToBundle( Bundle bndl, String sKey, T val ) ;
+
+	/**
 	 * Determines the correct method in {@link Cursor} to be used to fetch the
 	 * specified column, then returns that value.
 	 * @param crs the cursor from which data should be fetched
-	 * @param sKey the data column key
+	 * @param sKey the data column name
 	 * @return the value from the cursor
 	 */
 	T fromCursor( Cursor crs, String sKey ) ;
+
+	/**
+	 * Determines the correct method in {@link Bundle} to be used to fetch the
+	 * specified column, then returns that value.
+	 * @param bndl the bundle from which data should be fetched
+	 * @param sKey the data column name
+	 * @return the value from the bundle
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	T fromBundle( Bundle bndl, String sKey ) ;
 }

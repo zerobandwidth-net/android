@@ -6,6 +6,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import net.zerobandwidth.android.lib.util.TimeUtils;
+
 import java.io.File;
 import java.util.Date;
 import java.util.List;
@@ -31,21 +33,10 @@ import java.util.Map;
  *
  * <h3>Static Constants and Utility Methods</h3>
  *
- * <p>The class provides several static constants and methods that are generally
- * useful when dealing with SQLite databases. In particular:</p>
+ * <p>The class provides several static methods that are generally useful when
+ * dealing with SQLite databases. In particular:</p>
  *
  * <dl>
- *     <dt>{@link #COLUMN_NOT_FOUND}</dt>
- *     <dd>
- *         Compare this value to the return value of
- *         {@link Cursor#getColumnIndex} to determine whether a column exists.
- *     </dd>
- *     <dt>{@link #CURSOR_NOT_STARTED}</dt>
- *     <dd>
- *         Compare this value to the return value of
- *         {@link Cursor#getPosition} to determine whether the cursor has
- *         started traversing its contents.
- *     </dd>
  *     <dt>{@link #closeCursor(Cursor)}</dt>
  *     <dd>
  *         Safely closes a cursor, checking first whether the object is null or
@@ -56,18 +47,14 @@ import java.util.Map;
  *         Converts between Boolean values and the integer values typically used
  *         to represent them in SQLite.
  *     </dd>
- *     <dt>{@link #now()}</dt>
- *     <dd>
- *         Returns a UTC epoch timestamp as a long integer. Implementation
- *         classes are encouraged to store dates as long integer timestamps
- *         for easier comparison and storage, and convert them to displayable
- *         dates and times only when they need to be displayed.
- *     </dd>
  * </dl>
  *
  * <p>Since 0.1.1 (#20), some of these items also form the basis of
  * {@link net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder QueryBuilder}
  * and its descendants.</p>
+ *
+ * <p>Note that most of the static <i>constants</i> provided by this class were
+ * moved to {@link SQLiteSyntax} in 0.1.7 (#48).</p>
  *
  * @since zerobandwidth-net/android 0.0.2 (#8)
  */
@@ -75,78 +62,67 @@ import java.util.Map;
 public abstract class SQLitePortal
 extends SQLiteOpenHelper
 {
-/// Statics ////////////////////////////////////////////////////////////////////
+/// Static Constants (general) /////////////////////////////////////////////////
 
     public static final String LOG_TAG = SQLitePortal.class.getSimpleName() ;
 
 	/**
-	 * Magic value returned by {@link Cursor#getColumnIndex} when a column
-	 * doesn't exist. (A column index of {@code -1} indicates an invalid state.)
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#COLUMN_NOT_FOUND}
 	 */
-    public static final int COLUMN_NOT_FOUND = -1 ;
+	public static final int COLUMN_NOT_FOUND = SQLiteSyntax.COLUMN_NOT_FOUND ;
 
 	/**
-	 * Magic value returned by {@link Cursor#getPosition} when the cursor has
-	 * not yet started traversing the result set. (A cursor position of
-	 * {@code -1} indicates an uninitialized state.)
-	 *
-	 * Note, however, that the test
-	 * {@code crs.getPosition() == SQLitePortal.CURSOR_NOT_STARTED} is logically
-	 * equivalent to the result of the existing method
-	 * {@link Cursor#isBeforeFirst()}.
-	 *
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link Cursor#isBeforeFirst()} instead of comparing indices to this
 	 */
 	public static final int CURSOR_NOT_STARTED = -1 ;
 
 	/**
-	 * Magic value to be passed to {@link SQLiteDatabase#delete} when we want
-	 * the method to return a count of the number of rows deleted. (A literal
-	 * value of {@code 1} always matches as {@code true} in a {@code WHERE}
-	 * clause.) The Android documentation implies that passing {@code null} as
-	 * the {@code WHERE} clause will not return a count.
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#DELETE_ALL}
 	 */
-	public static final String DELETE_ALL = "1" ;
+	public static final String DELETE_ALL = SQLiteSyntax.DELETE_ALL ;
 
 	/**
-	 * Magic value returned by {@link SQLiteDatabase#insert} and related methods
-	 * when a row insertion fails. (A value of {@code -1} as the row ID
-	 * indicates an error state.)
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#INSERT_FAILED}
 	 */
-	public static final long INSERT_FAILED = -1 ;
+	public static final long INSERT_FAILED = SQLiteSyntax.INSERT_FAILED ;
 
 	/**
-	 * Magic value returned by {@link SQLiteDatabase#replace} and related
-	 * methods when a row replacement fails. (A value of {@code -1} as the row
-	 * ID indicates an error state.)
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#REPLACE_FAILED}
 	 */
-	public static final long REPLACE_FAILED = -1 ;
+	public static final long REPLACE_FAILED = SQLiteSyntax.REPLACE_FAILED ;
 
 	/**
-	 * Magic value to be passed to {@link SQLiteDatabase#query} and related
-	 * methods when we want to select all rows.
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SELECT_ALL}
 	 */
-	public static final String SELECT_ALL = null ;
+	public static final String SELECT_ALL = SQLiteSyntax.SELECT_ALL ;
 
 	/**
-	 * Magic value to be passed to {@link SQLiteDatabase#update} and related
-	 * methods when we want to indiscriminately update all rows, and get a count
-	 * of the number of rows that were updated. (A literal value of {@code 1}
-	 * always matches as {@code true} in a {@code WHERE} clause.)
 	 * @since zerobandwidth-net/android 0.1.1 (#23)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#UPDATE_ALL}
 	 */
-	public static final String UPDATE_ALL = "1" ;
+	public static final String UPDATE_ALL = SQLiteSyntax.UPDATE_ALL ;
 
 	/**
-	 * The string to be used in an SQLite statement to represent a null value.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
+	 *  use {@link SQLiteSyntax#SQLITE_NULL}
 	 */
-	public static final String SQLITE_NULL = "NULL" ;
+	public static final String SQLITE_NULL = SQLiteSyntax.SQLITE_NULL ;
+
+/// Static Constants: SQLite Boolean Type Conversions //////////////////////////
 
 	/**
 	 * Integer representation of "true".
@@ -199,6 +175,8 @@ extends SQLiteOpenHelper
 	 * @since zerobandwidth-net/android 0.1.1 (#20)
 	 */
 	public static final String WHERE_FALSE = "0" ;
+
+/// Static Methods /////////////////////////////////////////////////////////////
 
     /**
      * Safely closes a database cursor. If the reference is {@code null}, or the
@@ -255,9 +233,11 @@ extends SQLiteOpenHelper
 	 * comparing to timestamps stored in the database as {@code long} integers.
 	 * @return milliseconds since epoch UTC
 	 * @since zerobandwidth-net/android 0.1.1 (#20)
+	 * @deprecated zerobandwidth-net/android 0.1.7 (#39) - refactored as
+	 *     {@link net.zerobandwidth.android.lib.util.TimeUtils#now}
 	 */
 	public static long now()
-	{ return (new Date()).getTime() ; }
+	{ return TimeUtils.now() ; }
 
 /// Inner Classes //////////////////////////////////////////////////////////////
 
@@ -550,4 +530,14 @@ extends SQLiteOpenHelper
 	 */
 	public int getLatestSchemaVersion()
 	{ return m_nLatestVersion ; }
+
+/// Other Instance Methods /////////////////////////////////////////////////////
+
+	/**
+	 * Accessor for the context in which the instance was created.
+	 * @return the context in which the instance was created
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public Context getContext()
+	{ return m_ctx ; }
 }

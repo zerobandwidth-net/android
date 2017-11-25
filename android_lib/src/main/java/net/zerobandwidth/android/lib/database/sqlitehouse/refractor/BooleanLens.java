@@ -2,11 +2,15 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 
 import java.lang.reflect.Field;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
 
 /**
  * Marshals Boolean values by converting them to/from integers.
@@ -20,7 +24,7 @@ implements Refractor<Boolean>
 {
 	@Override
 	public String getSQLiteDataType()
-	{ return SQLITE_TYPE_INT ; }
+	{ return SQLiteSyntax.SQLITE_TYPE_INT ; }
 
 	/**
 	 * Defines the default value for Boolean types as {@code false}.
@@ -33,7 +37,7 @@ implements Refractor<Boolean>
 	@Override
 	public String toSQLiteString( Boolean o )
 	{
-		return ( o == null ? SQLitePortal.SQLITE_NULL :
+		return ( o == null ? SQLITE_NULL :
 				Integer.toString( SQLitePortal.boolToInt(o) ) ) ;
 	}
 
@@ -43,10 +47,18 @@ implements Refractor<Boolean>
 	{ return fld.getBoolean(o) ; }
 
 	@Override
-	public Refractor<Boolean> addToContentValues(
+	public BooleanLens addToContentValues(
 			ContentValues vals, String sKey, Boolean val )
 	{
 		vals.put( sKey, SQLitePortal.boolToInt(val) ) ;
+		return this ;
+	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public BooleanLens addToBundle( Bundle bndl, String sKey, Boolean val )
+	{
+		bndl.putBoolean( sKey, val ) ;
 		return this ;
 	}
 
@@ -56,4 +68,9 @@ implements Refractor<Boolean>
 		return SQLitePortal.intToBool(
 				crs.getInt( crs.getColumnIndex(sKey) ) ) ;
 	}
+
+	/** @since zerobandwidth-net/android 0.1.7 (#50) */
+	@Override
+	public Boolean fromBundle( Bundle bndl, String sKey )
+	{ return bndl.getBoolean(sKey) ; }
 }

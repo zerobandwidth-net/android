@@ -1,5 +1,6 @@
 package net.zerobandwidth.android.lib.content;
 
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -22,13 +23,43 @@ public class ContentUtils
 {
 	protected static final String LOG_TAG = ContentUtils.class.getSimpleName() ;
 
+/// Static constants: ContentResolver syntax ///////////////////////////////////
+
+	/**
+	 * The magic word used by {@link android.content.ContentResolver#query} to
+	 * specify that results should be sorted in ascending order.
+	 * @since zerobandwidth-net/android 0.1.7 (#39)
+	 */
+	public static final String QUERY_ORDER_ASCENDING = "ASC" ;
+
+	/**
+	 * The magic word used by {@link android.content.ContentResolver#query} to
+	 * specify that results should be sorted in descending order.
+	 * @since zerobandwidth-net/android 0.1.7 (#39)
+	 */
+	public static final String QUERY_ORDER_DESCENDING = "DESC" ;
+
+	/**
+	 * The character that stands in for a variable value in the Android format
+	 * string that is supplied to methods of
+	 * {@link android.content.ContentResolver}.
+	 * @since zerobandwidth-net/android 0.1.7 (#39)
+	 */
+	public static final String QUERY_VARIABLE_MARKER = "?" ;
+
+/// Static constants: MIME types ///////////////////////////////////////////////
+
 	/** MIME type "text/plain" */
 	public static final String MIMETYPE_TEXT_PLAIN = "text/plain" ;
+
+/// Static singleton references ////////////////////////////////////////////////
 
 	/**
 	 * A persistent reference to the system's clipboard manager.
 	 */
 	public static ClipboardManager s_mgrClipboard = null ;
+
+/// Static methods /////////////////////////////////////////////////////////////
 
 	/**
 	 * Retrieves the system's clipboard manager. If an instance is not already
@@ -173,6 +204,32 @@ public class ContentUtils
 					.append( sTweet )
 					.toString()
 				, x ) ;
+			return false ;
+		}
+	}
+
+	/**
+	 * Safe and idempotent method for unregistering a {@link BroadcastReceiver}
+	 * which might or might not still be registered in the given
+	 * {@link Context}.
+	 * @param ctx the context in which the receiver might be registered
+	 * @param rcv the receiver to be unregistered
+	 * @return {@code true} only if the unregister operation was completed
+	 *  without throwing an exception
+	 * @since zerobandwidth-net/android 0.1.7 (#50)
+	 */
+	public static boolean unregister( Context ctx, BroadcastReceiver rcv )
+	{
+		try { ctx.unregisterReceiver(rcv) ; return true ; }
+		catch( IllegalArgumentException xArg )
+		{
+			Log.i( LOG_TAG, (new StringBuilder())
+						.append( "Class [" )
+						.append( rcv.getClass().getCanonicalName() )
+						.append( "] was already not registered in this context." )
+						.toString()
+					, xArg
+				);
 			return false ;
 		}
 	}
