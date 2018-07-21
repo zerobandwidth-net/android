@@ -66,62 +66,6 @@ extends SQLiteOpenHelper
 
     public static final String LOG_TAG = SQLitePortal.class.getSimpleName() ;
 
-	/**
-	 * @since zerobandwidth-net/android 0.1.1 (#23)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#COLUMN_NOT_FOUND}
-	 */
-	public static final int COLUMN_NOT_FOUND = SQLiteSyntax.COLUMN_NOT_FOUND ;
-
-	/**
-	 * @since zerobandwidth-net/android 0.1.1 (#23)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link Cursor#isBeforeFirst()} instead of comparing indices to this
-	 */
-	public static final int CURSOR_NOT_STARTED = -1 ;
-
-	/**
-	 * @since zerobandwidth-net/android 0.1.1 (#23)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#DELETE_ALL}
-	 */
-	public static final String DELETE_ALL = SQLiteSyntax.DELETE_ALL ;
-
-	/**
-	 * @since zerobandwidth-net/android 0.1.1 (#23)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#INSERT_FAILED}
-	 */
-	public static final long INSERT_FAILED = SQLiteSyntax.INSERT_FAILED ;
-
-	/**
-	 * @since zerobandwidth-net/android 0.1.1 (#23)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#REPLACE_FAILED}
-	 */
-	public static final long REPLACE_FAILED = SQLiteSyntax.REPLACE_FAILED ;
-
-	/**
-	 * @since zerobandwidth-net/android 0.1.1 (#23)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#SELECT_ALL}
-	 */
-	public static final String SELECT_ALL = SQLiteSyntax.SELECT_ALL ;
-
-	/**
-	 * @since zerobandwidth-net/android 0.1.1 (#23)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#UPDATE_ALL}
-	 */
-	public static final String UPDATE_ALL = SQLiteSyntax.UPDATE_ALL ;
-
-	/**
-	 * @since zerobandwidth-net/android 0.1.4 (#26)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#SQLITE_NULL}
-	 */
-	public static final String SQLITE_NULL = SQLiteSyntax.SQLITE_NULL ;
-
 /// Static Constants: SQLite Boolean Type Conversions //////////////////////////
 
 	/**
@@ -227,17 +171,6 @@ extends SQLiteOpenHelper
 	 */
 	public static boolean getBooleanColumn( Cursor crs, String sColName )
 	{ return intToBool( crs.getInt( crs.getColumnIndex( sColName ) ) ) ; }
-
-	/**
-	 * Returns the number of milliseconds since epoch UTC. Use this value when
-	 * comparing to timestamps stored in the database as {@code long} integers.
-	 * @return milliseconds since epoch UTC
-	 * @since zerobandwidth-net/android 0.1.1 (#20)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#39) - refactored as
-	 *     {@link net.zerobandwidth.android.lib.util.TimeUtils#now}
-	 */
-	public static long now()
-	{ return TimeUtils.now() ; }
 
 /// Inner Classes //////////////////////////////////////////////////////////////
 

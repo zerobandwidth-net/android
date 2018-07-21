@@ -4,8 +4,6 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
-
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_INSERT_INTO;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_SET;
@@ -105,7 +103,8 @@ extends QueryBuilder<InsertionBuilder,Long>
 	 *
 	 * @param db the database instance on which the query should be executed.
 	 * @return the ID of the newly-inserted row, or
-	 *  {@link SQLitePortal#INSERT_FAILED} if the row could not be inserted
+	 *  {@link net.zerobandwidth.android.lib.database.SQLiteSyntax#INSERT_FAILED}
+	 *  if the row could not be inserted
 	 */
 	@Override
 	public Long executeOn( SQLiteDatabase db )

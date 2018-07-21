@@ -49,27 +49,6 @@ public class SelectionBuilder
 extends QueryBuilder<SelectionBuilder,Cursor>
 {
 	/**
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#SELECT_ALL}
-	 */
-	@SuppressWarnings( "unused" ) // Great!
-	public static final String SELECT_ALL_COLUMNS = SQLiteSyntax.SELECT_ALL ;
-
-	/**
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#SQL_ORDER_ASC}
-	 */
-	@SuppressWarnings( "unused" ) // Great!
-	public static final String ORDER_ASC = SQLiteSyntax.SQL_ORDER_ASC ;
-
-	/**
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#SQL_ORDER_DESC}
-	 */
-	@SuppressWarnings( "unused" ) // Great!
-	public static final String ORDER_DESC = SQLiteSyntax.SQL_ORDER_DESC ;
-
-	/**
 	 * Specifies that no result count limit should be enforced.
 	 * @see #limit(int)
 	 */
@@ -92,7 +71,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 * This is a {@code LinkedHashMap} because we want to preserve the order in
 	 * which sort keys were added to the order spec. (#52)
 	 */
-	protected LinkedHashMap<String,String> m_mapOrderBy = null ;
+	protected LinkedHashMap<String,String> m_mapOrderBy ;
 
 	/** A limit on the number of results to be returned, if any. */
 	protected int m_nLimit = NO_LIMIT ;
@@ -141,14 +120,15 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 * Sets the columns that should be returned in the selection set.
 	 *
 	 * If selecting all columns, then do not pass {@code null} to this method;
-	 * use {@link #allColumns()} instead.
+	 * use {@link #allColumns()} instead, or use
+	 * {@link SQLiteSyntax#SELECT_ALL}.
 	 *
 	 * @param asColumns the names of columns to be returned
 	 * @return (fluid)
 	 */
 	public SelectionBuilder columns( String... asColumns )
 	{
-		if( asColumns == null ) // or SQLiteSyntax.SELECT_ALL_COLUMNS
+		if( asColumns == null ) // or SQLiteSyntax.SELECT_ALL
 		{ m_vColumns = null ; return this ; }
 		this.initColumns() ;
 		for( String sColumn : asColumns )
@@ -160,14 +140,15 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 * Sets the columns that should be returned in the selection set.
 	 *
 	 * If selecting all columns, then do not pass {@code null} to this method;
-	 * use {@link #allColumns()} instead.
+	 * use {@link #allColumns()} instead, or use
+	 * {@link SQLiteSyntax#SELECT_ALL}.
 	 *
 	 * @param asColumns the names of columns to be returned
 	 * @return (fluid)
 	 */
 	public SelectionBuilder columns( Collection<String> asColumns )
 	{
-		if( asColumns == null ) // or SQLiteSyntax.SELECT_ALL_COLUMNS
+		if( asColumns == null ) // or SQLiteSyntax.SELECT_ALL
 		{ m_vColumns = null ; return this ; }
 		this.initColumns() ;
 		for( String sColumn : asColumns )
@@ -213,8 +194,8 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 * @param sColumnName the name of the column to be sorted
 	 * @param sDirection the direction of sorting
 	 * @return (fluid)
-	 * @see #ORDER_ASC
-	 * @see #ORDER_DESC
+	 * @see net.zerobandwidth.android.lib.database.SQLiteSyntax#SQL_ORDER_ASC
+	 * @see net.zerobandwidth.android.lib.database.SQLiteSyntax#SQL_ORDER_DESC
 	 */
 	public SelectionBuilder orderBy( String sColumnName, String sDirection )
 	{

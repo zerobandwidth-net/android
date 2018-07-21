@@ -15,7 +15,6 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteData
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
-import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.StringLens;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.BorkBorkBork;
@@ -81,10 +80,8 @@ public class SQLiteHouseTest
 	 * @param dbh an instance of the test class
 	 * @param <DBH> the test class
 	 * @return an instance of the test class
-	 * @throws Exception if anything goes wrong while connecting
 	 */
 	public static <DBH extends SQLiteHouse> DBH connectTo( DBH dbh )
-	throws Exception
 	{
 		dbh.openDB() ;
 		long tsGiveUp = (new Date()).getTime() + CONNECTION_TIMEOUT ;
@@ -128,13 +125,9 @@ public class SQLiteHouseTest
 		assertNull( xCaught.getCause() ) ;  // Ensure it's the reason we expect.
 	}
 
-	/**
-	 * Ensures that the factory successfully processes the annotation.
-	 * @throws Exception if anything goes wrong (implies test failure)
-	 */
+	/** Ensures that the factory successfully processes the annotation. */
 	@Test
 	public void testFactorySuccess()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
 		assertEquals( "valid_spec_class_db", dbh.getDatabaseName() ) ;
@@ -170,7 +163,6 @@ public class SQLiteHouseTest
 	@SuppressWarnings( "deprecation" ) // verify deprecated stuff also works
 	@Test
 	public void testDatabaseCreation()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -184,7 +176,7 @@ public class SQLiteHouseTest
 			SQLiteColumnInfo infoFargleID = mapInfo.get("fargle_id") ;
 			assertEquals( 1, infoFargleID.nColumnID ) ;
 			// Continue testing legacy constant until it's removed.
-			assertEquals( Refractor.SQLITE_TYPE_INT, infoFargleID.sColumnType );
+			assertEquals( SQLITE_TYPE_INT, infoFargleID.sColumnType );
 			assertEquals( SQLITE_TYPE_INT, infoFargleID.sColumnType ) ;
 			assertTrue( infoFargleID.bNotNull ) ;
 			assertEquals( null, infoFargleID.sDefault ) ;
@@ -201,7 +193,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testDatabaseUpgrade()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		delete( UpgradeSpecClass.class ) ;
@@ -261,7 +252,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testInsertion()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -292,7 +282,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testInsertionWithIDRewrite()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -315,7 +304,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testUpdate()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -363,7 +351,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testUpdateTable()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -411,7 +398,6 @@ public class SQLiteHouseTest
 	/** Exercises {@link SQLiteHouse#search(SQLightable)}. */
 	@Test
 	public void testSearch()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -442,7 +428,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testSearchWithoutKeyColumn()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -466,7 +451,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testSearchByStringID()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -496,7 +480,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testSearchByStringIDWithoutKeyColumn()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -516,7 +499,6 @@ public class SQLiteHouseTest
 	/** Exercises {@link SQLiteHouse#select(Class,long)}. */
 	@Test
 	public void testSelect()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -543,7 +525,6 @@ public class SQLiteHouseTest
 	@SuppressLint("DefaultLocale")
 	@Test
 	public void testSelectFrom()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -589,14 +570,11 @@ public class SQLiteHouseTest
 	}
 
 	/**
-	 * Exercises {@link SQLiteHouse#processResultSet(Class, Cursor)}, which in
-	 * turn exercises
-	 * {@link SQLiteHouse#processResultSet(SQLiteHouse.QueryContext, Cursor, Class)}.
+	 * Exercises {@link SQLiteHouse#processResultSet(Class, Cursor)}.
 	 * @since zerobandwidth-net/android 0.1.5 (#43)
 	 */
 	@Test
 	public void testProcessResultSet()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		final int ITERATIONS = 10 ;                            // Tune to taste.
 		final Random RNG = new Random() ;
@@ -638,8 +616,7 @@ public class SQLiteHouseTest
 			assertEquals( 0, crs.getCount() ) ;
 			assertEquals( 0, aResults.size() ) ;
 			//noinspection deprecation
-			aResults = dbh.processResultSet( dbh.getQueryContext(),
-					crs, Fargle.class ) ;
+			aResults = dbh.processResultSet( Fargle.class, crs ) ;
 			assertEquals( 0, aResults.size() ) ;
 		}
 		finally
@@ -651,7 +628,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testDelete()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -681,7 +657,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testDeleteWithoutKeyColumn()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -703,7 +678,6 @@ public class SQLiteHouseTest
 	 */
 	@Test
 	public void testDeleteFrom()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		delete( ValidSpecClass.class ) ;
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
