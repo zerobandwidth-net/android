@@ -118,7 +118,6 @@ public class SQLiteHouseKeeperTest
 	 */
 	@Test
 	public void testInsert()
-	throws Exception // Uncaught exception implies failure.
 	{
 		SQLiteHouseTest.connectTo(m_house) ;
 		m_keeper.register(m_api) ;
@@ -145,7 +144,6 @@ public class SQLiteHouseKeeperTest
 	 */
 	@Test
 	public void testInsertNeg()
-	throws Exception // Uncaught exception implies failure.
 	{
 		SQLiteHouseTest.connectTo(m_house) ;
 		m_keeper.m_api = m_api ;                 // but don't bother registering
@@ -177,7 +175,6 @@ public class SQLiteHouseKeeperTest
 	 */
 	@Test
 	public void testUpdate()
-	throws Exception // Uncaught exception implies failure.
 	{
 		SQLiteHouseTest.connectTo( m_house ) ;
 		m_keeper.register(m_api) ;
@@ -204,7 +201,6 @@ public class SQLiteHouseKeeperTest
 	 */
 	@Test
 	public void testUpdateNeg()
-	throws Exception // Uncaught exception implies failure.
 	{
 		SQLiteHouseTest.connectTo( m_house ) ;
 		m_keeper.m_api = m_api ;                 // but don't bother registering
@@ -236,7 +232,6 @@ public class SQLiteHouseKeeperTest
 	 */
 	@Test
 	public void testDelete()
-	throws Exception // Uncaught exception implies failure.
 	{
 		SQLiteHouseTest.connectTo( m_house ) ;
 		m_keeper.register(m_api) ;
@@ -265,7 +260,6 @@ public class SQLiteHouseKeeperTest
 	 */
 	@Test
 	public void testDeleteNeg()
-	throws Exception // Uncaught exception implies failure.
 	{
 		SQLiteHouseTest.connectTo( m_house ) ;
 		m_keeper.m_api = m_api ;                 // but don't bother registering

@@ -1,7 +1,5 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse.content;
 
-import net.zerobandwidth.android.lib.util.CollectionsZ;
-
 /**
  * Used by unit test classes for the SQLiteHouse keeper/relay feature.
  * @since zerobandwidth-net/android 0.1.7 (#50)

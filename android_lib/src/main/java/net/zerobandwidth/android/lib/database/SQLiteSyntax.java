@@ -1,26 +1,65 @@
 package net.zerobandwidth.android.lib.database;
 
 /**
- * Provides string constants for various SQLite syntactic elements, magic
- * values, etc., to any class that needs them. The constants in this class may
- * be individually obtained via static imports, or the entire class may be
- * imported to make all constants available to the consuming class.
+ * Provides named constants for various SQLite syntactic elements, magic values,
+ * etc., to any class that needs them. The constants in this class may be
+ * individually obtained via static imports, or the entire class may be imported
+ * to make all constants available to the consuming class.
  *
  * <h3>Magic Values for Android Database Methods</h3>
  *
- * <dl>
- * <dt>{@link #COLUMN_NOT_FOUND}</dt>
- *     <dd>
- *         Compare this value to the return value of
- *         {@link android.database.Cursor#getColumnIndex} to determine whether a
- *         column exists.
- *     </dd>
-
- * </dl>
+ * <ul>
+ * <li>{@link #COLUMN_NOT_FOUND} = -1</li>
+ * <li>{@link #DELETE_ALL} = {@code "1"}</li>
+ * <li>{@link #DELETE_FAILED} = -1</li>
+ * <li>{@link #INSERT_FAILED} = -1L</li>
+ * <li>{@link #REPLACE_FAILED} = -1L</li>
+ * <li>{@link #SELECT_ALL} = {@code null}</li>
+ * <li>{@link #UPDATE_ALL} = {@code "1"}</li>
+ * <li>{@link #UPDATE_FAILED} = -1</li>
+ * </ul>
  *
  * <h3>SQLite Syntactic Tokens</h3>
  *
+ * <ul>
+ * <li>{@link #SQL_ADD_COLUMN} = {@code " ADD COLUMN "}</li>
+ * <li>{@link #SQL_ALTER_TABLE} = {@code "ALTER TABLE "}</li>
+ * <li>{@link #SQL_COLUMN_DEFAULT} = {@code " DEFAULT "}</li>
+ * <li>{@link #SQL_COLUMN_DEFAULT_NULL} = {@code " DEFAULT NULL"}</li>
+ * <li>{@link #SQL_COLUMN_IS_KEYLIKE} = {@code " UNIQUE NOT NULL"}</li>
+ * <li>{@link #SQL_COLUMN_NULLABLE} = {@code " NULL"}</li>
+ * <li>{@link #SQL_COLUMN_NOT_NULLABLE} = {@code " NOT NULL"}</li>
+ * <li>{@link #SQL_DELETE_FROM} = {@code "DELETE FROM "}</li>
+ * <li>{@link #SQL_FROM} = {@code " FROM "}</li>
+ * <li>{@link #SQL_GROUP_BY} = {@code " GROUP BY "}</li>
+ * <li>{@link #SQL_HAVING} = {@code " HAVING "}</li>
+ * <li>{@link #SQL_INSERT_INTO} = {@code "INSERT INTO "}</li>
+ * <li>{@link #SQL_LIMIT} = {@code " LIMIT "}</li>
+ * <li>{@link #SQLITE_NULL} = {@code "NULL"}</li>
+ * <li>{@link #SQL_ORDER_BY} = {@code " ORDER BY "}</li>
+ * <li>{@link #SQL_ORDER_ASC} = {@code "ASC"}</li>
+ * <li>{@link #SQL_ORDER_DESC} = {@code "DESC"}</li>
+ * <li>{@link #SQL_SELECT} = {@code "SELECT "}</li>
+ * <li>{@link #SQL_SELECT_ALL_COLUMNS} = {@code "*"}</li>
+ * <li>{@link #SQL_SET} = {@code " SET "}</li>
+ * <li>{@link #SQL_UPDATE} = {@code "UPDATE "}</li>
+ * <li>{@link #SQLITE_VAR} = {@code "?"}</li>
+ * <li>{@link #SQL_WHERE} = {@code " WHERE "}</li>
+ * </ul>
+ *
+ * <p><b>Note:</b> {@code SQL_COLUMN_DEFAULT} should not be used in conjunction
+ * with {@code SQL_COLUMN_DEFAULT_NULL}, which also includes the SQL
+ * {@code DEFAULT} keyword. Similarly, {@code SQL_COLUMN_NOT_NULLABLE} should
+ * not be used with {@code SQL_COLUMN_IS_KEYLIKE}, which includes the same SQL
+ * {@code NOT NULL} clause.</p>
+ *
  * <h3>SQLite Type Tokens</h3>
+ *
+ * <ul>
+ * <li>{@link #SQLITE_TYPE_INT} = {@code "INTEGER"}</li>
+ * <li>{@link #SQLITE_TYPE_TEXT} = {@code "TEXT"}</li>
+ * <li>{@link #SQLITE_TYPE_REAL} = {@code "REAL"}</li>
+ * </ul>
  *
  * <h2>Items NOT Provided by This Class</h2>
  *
@@ -75,6 +114,7 @@ public final class SQLiteSyntax
 	 * methods when a row replacement fails. (A value of {@code -1} as the row
 	 * ID indicates an error state.)
 	 */
+	@SuppressWarnings("unused")
 	public static final long REPLACE_FAILED = -1L ;
 
 	/**

@@ -3,7 +3,6 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.refractor;
 import android.content.Context;
 import android.support.test.runner.AndroidJUnit4;
 
-import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouseTest;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;

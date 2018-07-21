@@ -45,12 +45,15 @@ extends RuntimeException
 				"No class name was supplied in the intent.", xCause ) ;
 	}
 
+	@SuppressWarnings("unused")
 	public SQLiteContentException()
 	{ super(DEFAULT_MESSAGE) ; }
 
+	@SuppressWarnings("unused")
 	public SQLiteContentException( String sMessage )
 	{ super(sMessage) ; }
 
+	@SuppressWarnings("unused")
 	public SQLiteContentException( Throwable xCause )
 	{ super( DEFAULT_MESSAGE, xCause ) ; }
 
