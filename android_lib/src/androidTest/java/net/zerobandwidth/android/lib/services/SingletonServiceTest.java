@@ -183,9 +183,11 @@ public class SingletonServiceTest
 	 * accessible even when written from multiple contexts.
 	 *
 	 * Note that, because of the way service testing works in Android, this test
-	 * case is inherently unstable, and returns a lot of false negatives.
+	 * case is inherently unstable, and returns a lot of false negatives. It has
+	 * been disabled as of 0.2.0 (#52), but may be re-enabled by temporarily
+	 * un-commenting the {@code @Test} annotation.
 	 */
-	@Test
+	//@Test
 	public void testAcrossContexts()
 	{
 		final int ACTIVITY_DELAY_MS = 7500 ; // Activity timeout delay. Tune to taste.

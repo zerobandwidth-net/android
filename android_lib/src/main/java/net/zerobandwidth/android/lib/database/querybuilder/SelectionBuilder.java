@@ -7,7 +7,7 @@ import android.text.TextUtils;
 import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Vector;
 
@@ -87,8 +87,12 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	/** The SQLite {@code HAVING} clause to be used, if any. */
 	protected String m_sHaving = null ;
 
-	/** The mapping of SQLite {@code ORDER BY} clauses and directions, if any. */
-	protected HashMap<String,String> m_mapOrderBy = null ;
+	/**
+	 * The mapping of SQLite {@code ORDER BY} clauses and directions, if any.
+	 * This is a {@code LinkedHashMap} because we want to preserve the order in
+	 * which sort keys were added to the order spec. (#52)
+	 */
+	protected LinkedHashMap<String,String> m_mapOrderBy = null ;
 
 	/** A limit on the number of results to be returned, if any. */
 	protected int m_nLimit = NO_LIMIT ;
@@ -97,7 +101,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	{
 		super( sTableName ) ;
 		this.initColumns() ;
-		m_mapOrderBy = new HashMap<>() ;
+		m_mapOrderBy = new LinkedHashMap<>() ;
 	}
 
 	/**
