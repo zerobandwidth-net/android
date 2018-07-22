@@ -28,10 +28,12 @@ public class AppUtils
 
     /**
      * Replacement text to be used if the app's version name can't be found.
+     * In version [NEXT] of this library, the value changed from an
+     * empty string to {@code "(unknown)"}.
      * @see #getAppVersion
      * @see #getAppNameAndVersion
      */
-    public static final String APP_VERSION_NOT_FOUND = "" ;
+    public static final String APP_VERSION_NOT_FOUND = "(unknown)" ;
 
     /**
      * Returns the string containing the app's current version.
@@ -49,8 +51,8 @@ public class AppUtils
         }
         catch( Exception x )
         {
-            Log.w( LOG_TAG, "Can't discover app version." ) ;
-            return "" ;
+            Log.w( LOG_TAG, "Can't discover app version.", x ) ;
+            return APP_VERSION_NOT_FOUND ;
         }
     }
 

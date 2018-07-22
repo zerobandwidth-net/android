@@ -8,6 +8,7 @@ import android.os.IBinder;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import net.zerobandwidth.android.lib.app.Managers;
 import net.zerobandwidth.android.lib.telephony.exceptions.ControllerConstructionException;
 import net.zerobandwidth.android.lib.telephony.exceptions.ControllerInvocationException;
 
@@ -60,14 +61,13 @@ public class TelephonyController
 
 	/**
 	 * Fetches an instance of the device's telephony manager.
+	 * As of 0.2.0, this is merely an alias for {@link Managers#get} with the
+	 * appropriate class selected.
 	 * @param ctx the context in which services are available
 	 * @return the device's telephony manager service
 	 */
 	public static TelephonyManager getManager( Context ctx )
-	{
-		return ((TelephonyManager)
-				( ctx.getSystemService( Context.TELEPHONY_SERVICE ) )) ;
-	}
+	{ return Managers.get( ctx, TelephonyManager.class ) ; }
 
 	/**
 	 * Indicates the current call state.
@@ -279,17 +279,20 @@ public class TelephonyController
 	/**
 	 * Used to discover the actual definition of the {@code ITelephony}
 	 * interface as visible to the current app.
+	 * @return the dumped methods (since [NEXT]/#53)
 	 * @since zerobandwidth-net/android 0.0.6 (#17)
 	 */
 	@SuppressWarnings( "unused" )               // For diagnostic purposes only.
-	protected void dumpDiscoveredMethods()
+	protected String dumpDiscoveredMethods()
 	{
 		Method[] amthITelephony = m_clsITelephony.getMethods() ;
 		StringBuilder sb = new StringBuilder() ;
 		sb.append( "*** DEBUG *** Methods discovered in ITelephony:" ) ;
 		for( Method mth : amthITelephony )
 			sb.append( "\n" ).append( mth.toString() ) ;
-		Log.d( LOG_TAG, sb.toString() ) ;
+		String sDump = sb.toString() ;
+		Log.d( LOG_TAG, sDump ) ;
+		return sDump ;
 	}
 
 	/**
