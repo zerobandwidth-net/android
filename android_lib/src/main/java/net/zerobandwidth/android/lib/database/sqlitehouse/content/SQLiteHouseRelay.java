@@ -439,19 +439,24 @@ extends BroadcastReceiver
 					.append( "Can't discover class to marshal [" )
 					.append( nCount )
 					.append(( nCount == 1 ? "] result" : "] results" ))
-					.append( "from the keeper's signal." )
+					.append( " from the keeper's signal." )
 					.toString()
 				, x );
 			this.onSelectFailed(sig) ;
 		}
 		String sExtra = m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;
 		if( ! sig.hasExtra(sExtra) )
-		{ // Short-circuit; can't find the data extra (should at least be empty)
+		{ // Short-circuit; can't find the data extra.
 			Log.w( LOG_TAG, "Selection result signal had no data." ) ;
 			this.onSelectFailed(sig) ;
 		}
 		Parcelable[] apclRows = sig.getParcelableArrayExtra(sExtra) ;
-		if( apclRows == null ) return ;
+		if( apclRows == null )
+		{
+			if( nCount > 0 )
+				Log.w( LOG_TAG, "Could not extract data from signal." ) ;
+			return ;
+		}
 		ArrayList<SC> aoRows = new ArrayList<>( apclRows.length ) ;
 		SQLightable.Reflection<SC> tbl = m_api.reflect(cls) ;
 		for( Parcelable pclRow : apclRows )

@@ -48,6 +48,7 @@ extends RuntimeException
 	 * @return a new exception with an informative message
 	 * @since zerobandwidth-net/android 0.1.6 (#47)
 	 */
+	@SuppressWarnings("unused")
 	public static SchematicException columnNotFound(
 			String sClassName, String sFieldName, String sTableName, Throwable x )
 	{

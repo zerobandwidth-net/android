@@ -45,13 +45,6 @@ extends QueryBuilder<UpdateBuilder,Integer>
 	protected static final String LOG_TAG = UpdateBuilder.class.getSimpleName();
 
 	/**
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#UPDATE_FAILED}
-	 */
-	@SuppressWarnings( "unused" ) // Great!
-	public static final int UPDATE_FAILED = SQLiteSyntax.UPDATE_FAILED ;
-
-	/**
 	 * The numeric ID of the conflict resolution algorithm provided by Android.
 	 * By default, no conflict resolution algorithm is requested.
 	 * @see SQLiteDatabase#CONFLICT_ABORT

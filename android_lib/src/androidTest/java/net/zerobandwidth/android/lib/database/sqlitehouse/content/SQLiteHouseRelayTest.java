@@ -3,8 +3,10 @@ package net.zerobandwidth.android.lib.database.sqlitehouse.content;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import net.zerobandwidth.android.lib.content.querybuilder.SelectionBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable;
@@ -49,6 +51,9 @@ import static net.zerobandwidth.android.lib.database.sqlitehouse.content.SQLiteH
 @RunWith( AndroidJUnit4.class )
 public class SQLiteHouseRelayTest
 {
+	public static final String LOG_TAG =
+			SQLiteHouseRelayTest.class.getSimpleName() ;
+
 	protected Context m_ctx = null ;
 	protected SQLiteHouseRelay m_relay = null ;
 	protected ValidTestSchemaAPI m_api = new ValidTestSchemaAPI() ;
@@ -64,27 +69,41 @@ public class SQLiteHouseRelayTest
 		public void onRowInserted( long nRowID ) {}
 
 		@Override
-		public void onInsertFailed() {}
+		public void onInsertFailed()
+		{ throw new RuntimeException( "An insertion failed." ) ; }
 
 		@Override
 		public void onRowsUpdated( int nCount ) {}
 
 		@Override
-		public void onUpdateFailed() {}
+		public void onUpdateFailed()
+		{ throw new RuntimeException( "An update failed." ) ; }
 
 		@Override
 		public void onRowsDeleted( int nCount ) {}
 
 		@Override
-		public void onDeleteFailed() {}
+		public void onDeleteFailed()
+		{ throw new RuntimeException( "A deletion failed." ) ; }
 
 		@Override
 		public <SC extends SQLightable> void onRowsSelected(
 				Class<SC> cls, int nTotalCount, List<SC> aoRows )
-		{}
+		{
+			Log.i( LOG_TAG, (new StringBuilder())
+					.append( "Successfully processed signal for [" )
+					.append( nTotalCount )
+					.append(( nTotalCount == 1 ? "] row " : "] rows " ))
+					.append( "of type [" )
+					.append( cls.getSimpleName() )
+					.append( "].")
+					.toString()
+				);
+		}
 
 		@Override
-		public void onSelectFailed() {}
+		public void onSelectFailed()
+		{ throw new RuntimeException( "A selection failed." ) ; }
 	}
 
 	@Before
@@ -340,7 +359,6 @@ public class SQLiteHouseRelayTest
 	 */
 	@Test
 	public void testSelectionSignal()
-	throws Exception // Uncaught exception implies failure.
 	{
 		m_relay.register(m_api) ;
 		SelectionBuilder q = new SelectionBuilder()
@@ -381,20 +399,45 @@ public class SQLiteHouseRelayTest
 	@Test
 	public void testOnRowsSelected()
 	{
+		RuntimeException xFailed = null ;
 		m_relay.register(m_api) ;
+		m_relay.addListener( new MockRelayListener() ) ;
 		Intent sig = new Intent() ;
+
+		// Test a signal that has none of the extra data in it. (expect fail)
+		Log.i( LOG_TAG, "Bogus signal test 1/3 (expect an exception)" ) ;
 		sig.setAction( m_api.getFormattedRelayAction(RELAY_RECEIVE_SELECTION) );
-		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
+		try { m_relay.onReceive( m_ctx, sig ) ; }
+		catch( RuntimeException x ) { xFailed = x ; }
+		assertNotNull(xFailed) ;
+		xFailed = null ;
+
+		// Test a signal that has a row count but no data. (expect fail)
+		Log.i( LOG_TAG, "Bogus signal test 2/3 (expect an exception)" ) ;
 		sig.putExtra( m_api.getFormattedExtraTag(EXTRA_RESULT_ROW_COUNT), 3 ) ;
-		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
+		try { m_relay.onReceive( m_ctx, sig ) ; }
+		catch( RuntimeException x ) { xFailed = x ; }
+		assertNotNull(xFailed) ;
+		xFailed = null ;
+
+		// Test a signal with a class name but still no data. (expect fail)
+		Log.i( LOG_TAG, "Bogus signal test 3/3 (expect an exception)" ) ;
 		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),
 				Fargle.class.getCanonicalName() ) ;
-		m_relay.onReceive( m_ctx, sig ) ;            // Flows through trivially.
+		try { m_relay.onReceive( m_ctx, sig ) ; }
+		catch( RuntimeException x ) { xFailed = x ; }
+		assertNotNull(xFailed) ;
+		xFailed = null ;
+
+		// Build out some rows, add them to the signal, and test. (expect pass)
+		Log.i( LOG_TAG, "Real signal test (expect successful processing)" ) ;
 		ArrayList<Bundle> bndlRows = new ArrayList<>(3) ;
 		SQLightable.Reflection<Fargle> tbl = m_api.reflect(Fargle.class) ;
 		bndlRows.add( tbl.toBundle( new Fargle( 1, "foo", 19 ) ) ) ;
 		bndlRows.add( tbl.toBundle( new Fargle( 2, "bar", 19 ) ) ) ;
 		bndlRows.add( tbl.toBundle( new Fargle( 3, "baz", 19 ) ) ) ;
+		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),
+				bndlRows.toArray( new Parcelable[3] ) ) ;
 		m_relay.onReceive( m_ctx, sig ) ;          // Gets processed and logged.
 	} // Complete execution implies success.
 
