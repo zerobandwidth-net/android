@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.support.test.runner.AndroidJUnit4;
 
 import net.zerobandwidth.android.lib.database.MockCursor;
-import net.zerobandwidth.android.lib.database.SQLiteSyntax;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +13,9 @@ import java.util.Collections;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL ;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_TEXT ;
 
 /**
  * Exercises the canonical implementations of {@link StringCollectionLens},
@@ -45,10 +47,9 @@ public class StringListLensesTest
 		assertNull( lens.toStringValue(null) ) ;
 		assertEquals( "foo,bar,baz", lens.toStringValue( asTestValues ) ) ;
 
-		assertEquals( SQLiteSyntax.SQLITE_TYPE_TEXT, lens.getSQLiteDataType() );
-		assertEquals( Refractor.SQLITE_TYPE_TEXT, lens.getSQLiteDataType() ) ;
+		assertEquals( SQLITE_TYPE_TEXT, lens.getSQLiteDataType() );
 
-		assertEquals( SQLiteSyntax.SQLITE_NULL, lens.toSQLiteString(null) ) ;
+		assertEquals( SQLITE_NULL, lens.toSQLiteString(null) ) ;
 		assertEquals( "'foo,bar,baz'", lens.toSQLiteString( asTestValues ) ) ;
 
 		ContentValues vals = new ContentValues() ;
@@ -80,10 +81,9 @@ public class StringListLensesTest
 		assertNull( lens.toStringValue(null) ) ;
 		assertEquals( "foo\fbar\fbaz", lens.toStringValue( asTestValues ) ) ;
 
-		assertEquals( SQLiteSyntax.SQLITE_TYPE_TEXT, lens.getSQLiteDataType() ) ;
-		assertEquals( Refractor.SQLITE_TYPE_TEXT, lens.getSQLiteDataType() ) ;
+		assertEquals( SQLITE_TYPE_TEXT, lens.getSQLiteDataType() ) ;
 
-		assertEquals( SQLiteSyntax.SQLITE_NULL, lens.toSQLiteString(null) ) ;
+		assertEquals( SQLITE_NULL, lens.toSQLiteString(null) ) ;
 		assertEquals( "'foo\fbar\fbaz'", lens.toSQLiteString( asTestValues ) ) ;
 
 		ContentValues vals = new ContentValues() ;

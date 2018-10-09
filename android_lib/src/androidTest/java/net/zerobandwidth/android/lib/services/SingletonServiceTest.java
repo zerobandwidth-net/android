@@ -183,12 +183,18 @@ public class SingletonServiceTest
 	 * accessible even when written from multiple contexts.
 	 *
 	 * Note that, because of the way service testing works in Android, this test
+<<<<<<< HEAD
 	 * case is inherently unstable, and returns a lot of false negatives.
 	 * Because of this, as of version 0.1.7, the {@code Test} annotation has
 	 * been commented out. In any version in which any changes are made to
 	 * {@link SingletonService}, this test will be enabled and rerun as part of
 	 * the verification process. Until then, because it is so consistently
 	 * unstable, it has been removed.
+=======
+	 * case is inherently unstable, and returns a lot of false negatives. It has
+	 * been disabled as of 0.2.0 (#52), but may be re-enabled by temporarily
+	 * un-commenting the {@code @Test} annotation.
+>>>>>>> develop
 	 */
 	//@Test
 	public void testAcrossContexts()

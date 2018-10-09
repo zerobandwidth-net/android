@@ -14,7 +14,7 @@ import net.zerobandwidth.android.lib.util.CollectionsZ;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Vector;
 
@@ -56,8 +56,12 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	/** The columns to be included in the result set. */
 	protected Vector<String> m_vColumns = null ;
 
-	/** The mapping of sortable columns to sorting directions, if any. */
-	protected HashMap<String,String> m_mapSortSpec = null ;
+	/**
+	 * The mapping of sortable columns to sorting directions, if any.
+	 * This is a {@code LinkedHashMap} because we want to preserve the order in
+	 * which sort keys were added to the order spec. (#52)
+	 */
+	protected LinkedHashMap<String,String> m_mapSortSpec = null ;
 
 	public SelectionBuilder( ContentResolver rslv, Uri uri )
 	{
@@ -97,7 +101,7 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	protected SelectionBuilder initSortSpec()
 	{
 		if( m_mapSortSpec == null )
-			m_mapSortSpec = new HashMap<>() ;
+			m_mapSortSpec = new LinkedHashMap<>() ;
 		else
 			m_mapSortSpec.clear() ;
 		return this ;
@@ -211,7 +215,6 @@ extends QueryBuilder<SelectionBuilder,Cursor>
 	 */
 	@Override
 	public Cursor executeQuery( ContentResolver rslv, Uri uri )
-	throws Exception
 	{
 		return rslv.query( uri,
 				this.getColumns(),

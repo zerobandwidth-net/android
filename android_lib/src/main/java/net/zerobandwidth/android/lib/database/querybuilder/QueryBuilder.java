@@ -4,8 +4,6 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import net.zerobandwidth.android.lib.database.SQLitePortal;
-import net.zerobandwidth.android.lib.database.SQLiteSyntax;
-import net.zerobandwidth.android.lib.util.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,12 +81,7 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 
 /// Static constants ///////////////////////////////////////////////////////////
 
-	/**
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#48) -
-	 *  use {@link SQLiteSyntax#SQLITE_VAR}
-	 */
-	protected static final String ANDROID_VARIABLE_MARKER =
-			SQLITE_VAR;
+	// Last one was removed in 0.2.0 (#49). Placeholder space remains.
 
 /// Static kickoff methods (starts a query of a given type) ////////////////////
 
@@ -171,16 +164,6 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 /// Other static methods ///////////////////////////////////////////////////////
 
 	/**
-	 * Returns the number of milliseconds since epoch UTC. Use this value when
-	 * comparing to timestamps stored in the database as {@code long} integers.
-	 * @return milliseconds since epoch UTC
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#39) - refactored as
-	 *     {@link net.zerobandwidth.android.lib.util.TimeUtils#now}
-	 */
-	public long now()
-	{ return TimeUtils.now() ; }
-
-	/**
 	 * Renders the key/value pairs in a set of {@link ContentValues} as a list
 	 * of input parameters to an SQL {@code INSERT} or {@code UPDATE} query's
 	 * {@code SET} clause.
@@ -220,7 +203,7 @@ public abstract class QueryBuilder<I extends QueryBuilder, R>
 /// Shared member fields ///////////////////////////////////////////////////////
 
 	/** The name of the table on which the query will operate. */
-	protected String m_sTableName = null ;
+	protected String m_sTableName ;
 
 	/**
 	 * For {@code INSERT} and {@code DELETE} operations, these are the values to

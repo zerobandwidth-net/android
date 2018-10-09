@@ -1,7 +1,6 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;

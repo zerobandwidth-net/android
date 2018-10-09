@@ -33,7 +33,6 @@ public class SQLightableReflectionTest
 	/** Exercises the constructor and accessors. */
 	@Test
 	public void testConstructionAndAccess()
-	throws Exception // Any uncaught exception is a failure.
 	{
 		SQLightable.Reflection<Quargle> refl =
 				SQLightable.Reflection.reflect( Quargle.class ) ;

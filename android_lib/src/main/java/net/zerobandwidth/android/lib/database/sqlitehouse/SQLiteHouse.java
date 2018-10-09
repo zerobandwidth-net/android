@@ -652,29 +652,7 @@ extends SQLitePortal
 
 /// Static Methods /////////////////////////////////////////////////////////////
 
-	/**
-	 * Standardized way to choose the name of a SQLite table based on the class
-	 * definition and its annotations, if any.
-	 *
-	 * @param clsTable the class which defines the SQLite table
-	 * @param antTableArg the annotation which relates the class to the schema,
-	 *  if any; if {@code null} is passed, this method will still try to
-	 *  discover one for itself
-	 * @param <SC> the schematic class
-	 * @return either the name specified in the annotation, or a lower-cased
-	 *  transformation of the class name itself if the annotation is not
-	 *  provided
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#50)
-	 */
-	@SuppressWarnings( "unused" )
-	protected static <SC extends SQLightable> String getTableName(
-			Class<SC> clsTable, SQLiteTable antTableArg )
-	{
-		SQLiteTable antTable = ( antTableArg == null ?
-			clsTable.getAnnotation( SQLiteTable.class ) : antTableArg ) ;
-		return ( antTable == null ?
-			clsTable.getSimpleName().toLowerCase() : antTable.value() ) ;
-	}
+	// getTableName(Class,SQLiteTable) was removed in 0.2.0 (#49).
 
 /// Static Constants ///////////////////////////////////////////////////////////
 
@@ -1214,54 +1192,6 @@ extends SQLitePortal
 	/**
 	 * Reads a row of data from a cursor, and marshals it into a schematic class
 	 * instance corresponding to the table from which the row was fetched.
-	 *
-	 * <p>Consumed by {@link #search} and {@link #select}, and may also be
-	 * consumed externally by any class that receives a cursor over results from
-	 * a {@code SELECT} query.</p>
-	 *
-	 * @param qctx the context of the selection query
-	 * @param crs the cursor currently pointing to a data row
-	 * @param <SC> the schematic class
-	 * @return an instance of the class, containing the cursor's current row
-	 * @throws SchematicException if the data class instance cannot be
-	 *  constructed for some reason
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#50) - use
-	 *  {@link #fromCursor(Cursor,Class)}
-	 */
-	public <SC extends SQLightable> SC fromCursor(
-			QueryContext<DSC> qctx, Cursor crs )
-	throws SchematicException
-	{
-		//noinspection unchecked - guaranteed
-		SQLightable.Reflection<SC> tbl = ((SQLightable.Reflection<SC>)
-					( this.getReflection(qctx.clsTable) )) ;
-		return tbl.fromCursor( crs ) ;
-	}
-
-	/**
-	 * Alias for {@link #fromCursor(Cursor,Class)} to support apps that consume
-	 * a version of the library between 0.1.5 and 0.1.7.
-	 * @param qctx the context of the selection query; ignored because we don't
-	 *             need it anymore
-	 * @param crs the cursor currently pointing at a data row
-	 * @param cls the schematic class
-	 * @param <SC> the schematic class
-	 * @return an instance of the class, containing the cursor's current row
-	 * @throws SchematicException if the data class instance cannot be
-	 *  constructed for some reason
-	 * @since zerobandwidth-net/android 0.1.5 (#43)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#50) -
-	 *  use {@link #fromCursor(Cursor,Class)}
-	 */
-	@SuppressWarnings( "UnusedParameters" ) // see note above
-	public <SC extends SQLightable> SC fromCursor(
-			QueryContext<DSC> qctx, Cursor crs, Class<SC> cls )
-	throws SchematicException
-	{ return this.fromCursor(crs,cls) ; }
-
-	/**
-	 * Reads a row of data from a cursor, and marshals it into a schematic class
-	 * instance corresponding to the table from which the row was fetched.
 	 * @param crs the cursor from which data will be marshalled
 	 * @param cls the schematic class to which data will be marshalled
 	 * @param <SC> the schematic class to which data will be marshalled
@@ -1271,27 +1201,6 @@ extends SQLitePortal
 	public <SC extends SQLightable> SC fromCursor( Cursor crs, Class<SC> cls )
 	throws SchematicException
 	{ return this.getReflection(cls).fromCursor(crs) ; }
-
-	/**
-	 * Given a result set loaded into a {@link Cursor}, iterate over that cursor
-	 * to produce a list of schematic class instances containing the rows in the
-	 * result set.
-	 * @param qctx the context of the selection query
-	 * @param crs the cursor containing a result set
-	 * @param cls the schematic class which could contain each row
-	 * @param <SC> the schematic class which could contain each row
-	 * @return a list of schematic class instances, containing the rows of the
-	 *  result set
-	 * @throws SchematicException if any instance cannot be instantiated
-	 * @since zerobandwidth-net/android 0.1.5 (#43)
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#50) - use
-	 *  {@link #processResultSet(Class, Cursor)}
-	 */
-	@SuppressWarnings( "UnusedParameters" )
-	public <SC extends SQLightable> List<SC> processResultSet(
-			QueryContext<DSC> qctx, Cursor crs, Class<SC> cls )
-	throws SchematicException
-	{ return this.processResultSet( cls, crs ) ; }
 
 	/**
 	 * Given a result set loaded into a {@link Cursor}, iterate over that cursor
@@ -1383,23 +1292,5 @@ extends SQLitePortal
 					.toString(),
 				x ) ;
 		}
-	}
-
-	/**
-	 * Extracts the values of all known fields in an object which correspond to
-	 * database columns, and returns a {@link ContentValues} instance containing
-	 * those values.
-	 *
-	 * <p>Consumed by {@link #insert} and {@link #update}.</p>
-	 *
-	 * @param o the object to be processed.
-	 * @return the values that would be stored in the database
-	 * @deprecated zerobandwidth-net/android 0.1.7 (#50)
-	 */
-	@SuppressWarnings({ "unchecked", "unused" })
-	public ContentValues toContentValues( SQLightable o )
-	{
-		SQLightable.Reflection tbl = m_mapReflections.get( o.getClass() ) ;
-		return tbl.toContentValues(o) ;
 	}
 }
