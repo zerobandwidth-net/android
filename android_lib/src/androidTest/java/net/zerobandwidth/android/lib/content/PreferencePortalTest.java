@@ -7,6 +7,8 @@ import android.preference.PreferenceManager;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import net.zerobandwidth.android.lib.test.R ;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +36,32 @@ public class PreferencePortalTest
 	{
 		m_ctx = InstrumentationRegistry.getTargetContext() ;
 		m_prefs = PreferenceManager.getDefaultSharedPreferences(m_ctx) ;
+	}
+
+	/**
+	 * Exercises {@link PreferencePortal#getStringifiedBoolean(SharedPreferences, String, boolean)}.
+	 * @since zerobandwidth-net/android [NEXT] (#55)
+	 */
+	@Test
+	public void testStaticGetStringifiedBoolean()
+	{
+		m_prefs.edit().putString( "foo", "true" ).commit() ;
+		assertTrue( PreferencePortal
+				.getStringifiedBoolean( m_prefs, "foo", false ) ) ;
+		m_prefs.edit().putString( "foo", "false" ).commit() ;
+		assertFalse( PreferencePortal
+				.getStringifiedBoolean( m_prefs, "foo", true ) ) ;
+	}
+
+	/**
+	 * Exercises {@link PreferencePortal#putStringifiedBoolean(SharedPreferences, String, boolean)}.
+	 * @since zerobandwidth-net/android [NEXT] (#55)
+	 */
+	@Test
+	public void testStaticPutStringifiedBoolean()
+	{
+		PreferencePortal.putStringifiedBoolean( m_prefs, "foo", true ).commit();
+		assertTrue( Boolean.valueOf( m_prefs.getString( "foo", null ) ) ) ;
 	}
 
 	/** Exercises {@link PreferencePortal#getStringifiedInt(SharedPreferences,String,int)} */
@@ -104,6 +132,9 @@ public class PreferencePortalTest
 		final String sPrefKey = UUID.randomUUID().toString() ;
 		p.putBoolean( sPrefKey, true ).commit() ;
 		assertTrue( p.getBoolean( sPrefKey ) ) ;
+		p.putStringifiedBoolean( sPrefKey, true ).commit() ;
+		assertEquals( "true", p.getString( sPrefKey ) ) ;
+		assertTrue( p.getStringifiedBoolean( sPrefKey ) ) ;
 		p.putInt( sPrefKey, 50 ).commit() ;
 		assertEquals( 50, p.getInt( sPrefKey ) ) ;
 		p.putStringifiedInt( sPrefKey, 1987 ).commit() ;
@@ -114,5 +145,33 @@ public class PreferencePortalTest
 		assertEquals( 789456123789456123L, p.getStringifiedLong( sPrefKey ) ) ;
 		p.putString( sPrefKey, "qarnfarglebarg" ).commit() ;
 		assertEquals( "qarnfarglebarg", p.getString( sPrefKey ) ) ;
+	}
+
+	/**
+	 * Exercises the various put and get methods of {@link PreferencePortal}
+	 * where the preference's key is gleaned from the value of a string
+	 * resource.
+	 * @since zerobandwidth-net/android [NEXT] (#55,#53)
+	 */
+	@Test
+	public void testKeyResourcePutsAndGetsWithDefaults()
+	{
+		final int resKey = R.string.sUnitTestablePreferenceKey ;
+		PreferencePortal p = new PreferencePortal(m_ctx) ;
+		p.putBoolean( resKey, true ).commit() ;
+		assertTrue( p.getBoolean(resKey) ) ;
+		p.putStringifiedBoolean( resKey, true ).commit() ;
+		assertEquals( "true", p.getString(resKey) ) ;
+		assertTrue( p.getStringifiedBoolean(resKey) ) ;
+		p.putInt( resKey, 50 ).commit() ;
+		assertEquals( 50, p.getInt(resKey) ) ;
+		p.putStringifiedInt( resKey, 1987 ).commit() ;
+		assertEquals( 1987, p.getStringifiedInt(resKey) ) ;
+		p.putLong( resKey, 321654987321654987L ).commit() ;
+		assertEquals( 321654987321654987L, p.getLong(resKey) ) ;
+		p.putStringifiedLong( resKey, 789456123789456123L ).commit() ;
+		assertEquals( 789456123789456123L, p.getStringifiedLong(resKey) ) ;
+		p.putString( resKey, "qarnfarglebarg" ).commit() ;
+		assertEquals( "qarnfarglebarg", p.getString(resKey) ) ;
 	}
 }
