@@ -21,6 +21,7 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicEx
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.NullRefractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.RefractorMap;
+import net.zerobandwidth.android.lib.util.LexicalStringComparator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -121,12 +122,12 @@ import java.util.List;
  * merely be {@code UNIQUE NOT NULL} in the table creation SQL, and a standard,
  * magic {@code _id} column will be used as the actual primary key. This is done
  * because of SQLite's inherent preference for auto-incremented integer keys.
- * However, the {@code SQLiteHouse} will behave as if this function is the
+ * However, the {@code SQLiteHouse} will behave as if this object field is the
  * actual primary key, allowing consumers to search tables by this field rather
  * than the magic numeric ID.</p>
  *
  * <p>For notes on the predictability of column order in the table definition,
- * see the {@link ColumnIndexComparator} inner class.</p>
+ * see the {@link SQLightable.Reflection.ColumnSequencer} class.</p>
  *
  * <h3>Constructing a Database Instance</h3>
  *
@@ -152,10 +153,13 @@ import java.util.List;
  * <p>{@code SQLiteHouse} uses implementations of the {@link Refractor}
  * interface to process various data types. The standard set of implementations,
  * generally named "lenses", are automatically constructed and mapped by the
- * {@link RefractorMap} class. To customize this mapping with your own
- * {@code Refractor} implementations, override the
- * {@link #registerCustomRefractors()} method, which is called by the
- * {@link #SQLiteHouse(Factory)} constructor.</p>
+ * {@link RefractorMap} class.</p>
+ *
+ * <p>To customize this mapping with your own {@code Refractor} implementations,
+ * you may explicitly name a refractor class in the {@link SQLiteColumn}
+ * annotation for any individual field in a schematic class. This is the most
+ * efficient way to define a custom refractor, as it will be picked up
+ * automatically by {@code SQLiteHouse} during the introspection process.</p>
  *
  * <h3>Connecting to the Database</h3>
  *
@@ -399,7 +403,8 @@ extends SQLitePortal
 	 * Used by {@link SQLiteHouse} to sort the indices and/or names of columns
 	 * within a table specification.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
-	 * @see SQLightable.Reflection#initFieldMap()
+	 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; replaced by
+	 *  {@link SQLightable.Reflection.ColumnSequencer}
 	 */
 	public static class ColumnIndexComparator
 	implements Comparator<Field>
@@ -444,25 +449,8 @@ extends SQLitePortal
 				return 1 ;
 
 			// If "index" is equal, the sort alphabetically.
-			String sFirst = antFirst.name() ;
-			String sSecond = antSecond.name() ;
-
-			int nCharIndex = 0 ;
-			while( nCharIndex < sFirst.length() && nCharIndex < sSecond.length() )
-			{
-				if( sFirst.charAt(nCharIndex) < sSecond.charAt(nCharIndex) )
-					return -1 ;
-				if( sFirst.charAt(nCharIndex) > sSecond.charAt(nCharIndex) )
-					return 1 ;
-				++nCharIndex ;
-			}
-
-			if( sFirst.length() < sSecond.length() )
-				return -1 ;
-			if( sFirst.length() > sSecond.length() )
-				return 1 ;
-
-			return 0 ;
+			return (new LexicalStringComparator()).compare(
+					antFirst.name(), antSecond.name() ) ;
 		}
 	}
 
@@ -473,8 +461,13 @@ extends SQLitePortal
 	 * functions, or must be passed <i>between</i> functions, it is useful to
 	 * have all of these fields gathered in a single contextual container.
 	 * Since 0.1.7 (#50), this class is not particularly different from
-	 * {@link SQLightable.Reflection}, but is still not deprecated&hellip; yet.
+	 * {@link SQLightable.Reflection}.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
+	 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; use
+	 *  {@link SQLightable.Reflection} instead, by using
+	 *  {@link #getReflection(Class)} to fetch the one that the database class
+	 *  has already generated, or by using
+	 *  {@link SQLightable.Reflection#reflect(Class)} to generate a new one.
 	 */
 	public static class QueryContext<DBH extends SQLiteHouse>
 	{
@@ -569,7 +562,7 @@ extends SQLitePortal
 				return this.clearColumnDef() ;
 			SQLightable.Reflection tbl =
 					this.house.getReflection( this.clsTable ) ;
-			SQLightable.Reflection.Column col = tbl.getColumnDef( sSoughtName );
+			SQLightable.Reflection.Column col = tbl.getColumn( sSoughtName ) ;
 			if( col != null ) return this.loadColumnDef( col.getField() ) ;
 			Log.w( LOG_TAG, (new StringBuilder())
 					.append( "No column found with name [" )
@@ -721,6 +714,7 @@ extends SQLitePortal
 		    .processReflections()
 			;
 		m_mapRefractor = (new RefractorMap()).init() ;
+		//noinspection deprecation - TODO (deprecation) remove in next major revision
 		this.registerCustomRefractors() ;
 	}
 
@@ -780,8 +774,11 @@ extends SQLitePortal
 	 * @return (fluid)
 	 * @see Refractor
 	 * @see RefractorMap
+	 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; instead, use
+	 *  the {@code refractor} attribute of the {@link SQLiteColumn} annotation
+	 *  to define refractors for each relevant field in your schematic classes
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings( { "unchecked", "DeprecatedIsStillUsed" } )
 	protected DSC registerCustomRefractors()
 	{ return (DSC)this ; } // trivially
 
@@ -885,9 +882,9 @@ extends SQLitePortal
 		}
 		else
 		{ // Examine the table's columns, creating new ones where needed.
-			SQLightable.Reflection.ColumnMap<SC> mapColumns =
-					tbl.getColumnMap() ;
-			for( SQLightable.Reflection<SC>.Column col : mapColumns.values() )
+//			SQLightable.Reflection.ColumnMap<SC> mapColumns = tbl.getColumnMap() ;
+//			for( SQLightable.Reflection<SC>.Column col : mapColumns.values() )
+			for( SQLightable.Reflection<SC>.Column col : tbl.getColumns() )
 			{
 				int nColSince = col.getColAttrs().since() ;
 				if( nColSince > nOld )
@@ -1230,8 +1227,9 @@ extends SQLitePortal
 	/**
 	 * Creates an empty query context bound to this database helper.
 	 * @return a context object
-	 */
-	@SuppressWarnings("unchecked")
+	 * @deprecated zerobandwidth-net/android [NEXT] (#56)
+	 */ // TODO (deprecation) remove in next major revision
+	@SuppressWarnings( { "unchecked", "deprecation" } )
 	public QueryContext<DSC> getQueryContext()
 	{ return new QueryContext<>( (DSC)this ) ; }
 
@@ -1240,7 +1238,10 @@ extends SQLitePortal
 	 * information for a specified table.
 	 * @param clsTable the schematic table to be pre-loaded
 	 * @return a context object
-	 */
+	 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; use
+	 *  {@link #getReflection(Class)} instead
+	 */ // TODO (deprecation) remove in next major revision
+	@SuppressWarnings( "deprecation" )
 	public QueryContext<DSC> getQueryContext( Class<? extends SQLightable> clsTable )
 	{ return this.getQueryContext().loadTableDef(clsTable) ; }
 

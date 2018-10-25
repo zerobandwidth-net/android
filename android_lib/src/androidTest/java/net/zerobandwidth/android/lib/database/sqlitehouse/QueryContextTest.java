@@ -25,14 +25,15 @@ import static junit.framework.Assert.assertTrue;
  * this class completes coverage of the {@code QueryContext} class by targeting
  * specific methods not covered elsewhere.
  * @since zerobandwidth-net/android 0.1.7 (#50)
- */
-@RunWith( AndroidJUnit4.class )
+ * @deprecated zerobandwidth-net/android [NEXT] (#56)
+ */ // TODO (deprecation) remove in next major version
+@SuppressWarnings( "deprecation" )
 public class QueryContextTest
 {
 	/**
 	 * Exercises {@link SQLiteHouse.QueryContext#loadColumnDef(Field)}.
 	 */
-	@Test
+//	@Test // disabled zerobandwidth-net/android [NEXT] (#56)
 	public void testLoadColumnDef()
 	throws Exception // Any uncaught exception is a failure.
 	{
@@ -55,7 +56,7 @@ public class QueryContextTest
 	/**
 	 * Exercises {@link SQLiteHouse.QueryContext#loadColumnDef(String)}.
 	 */
-	@Test
+//	@Test // disabled zerobandwidth-net/android [NEXT] (#56)
 	public void testLoadColumnDefByName()
 	{
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -83,7 +84,7 @@ public class QueryContextTest
 	/**
 	 * Exercises {@link SQLiteHouse.QueryContext#loadColumnValue}.
 	 */
-	@Test
+//	@Test // disabled zerobandwidth-net/android [NEXT] (#56)
 	public void testLoadColumnValue()
 	{
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
