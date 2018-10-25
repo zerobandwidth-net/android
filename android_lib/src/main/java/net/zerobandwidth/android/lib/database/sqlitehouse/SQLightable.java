@@ -606,6 +606,12 @@ public interface SQLightable
 						1     // a default in case no other version is indicated
 					));
 				m_aColumns.add(col) ;
+
+				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )
+				{ // Designate inherited field as key only if we don't have one.
+					if( m_fldKey == null )
+						m_fldKey = fld ;
+				}
 			}
 
 			// Continue recursing up the inheritance stack.
