@@ -27,6 +27,7 @@ import static net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse.MAG
  * Exercises {@link SQLightable.Reflection}.
  * @since zerobandwidth-net/android 0.1.7 (#50)
  */
+@SuppressWarnings( "deprecation" ) // TODO (deprecation) remove deprecated stuff in next major version
 @RunWith( AndroidJUnit4.class )
 public class SQLightableReflectionTest
 {

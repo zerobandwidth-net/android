@@ -1,6 +1,6 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
-import android.support.test.runner.AndroidJUnit4;
+//import android.support.test.runner.AndroidJUnit4;
 
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.IntegerLens;
@@ -8,8 +8,8 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.StringLens;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.ValidSpecClass;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+//import org.junit.Test;
+//import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
 
@@ -25,9 +25,10 @@ import static junit.framework.Assert.assertTrue;
  * this class completes coverage of the {@code QueryContext} class by targeting
  * specific methods not covered elsewhere.
  * @since zerobandwidth-net/android 0.1.7 (#50)
- * @deprecated zerobandwidth-net/android [NEXT] (#56)
+ * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; This class will be
+ *  removed entirely when {@link SQLiteHouse.QueryContext} is removed.
  */ // TODO (deprecation) remove in next major version
-@SuppressWarnings( "deprecation" )
+@SuppressWarnings({ "unused", "deprecation" })
 public class QueryContextTest
 {
 	/**

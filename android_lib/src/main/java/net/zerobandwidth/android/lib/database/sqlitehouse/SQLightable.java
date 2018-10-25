@@ -197,7 +197,7 @@ public interface SQLightable
 
 		/**
 		 * Orders {@link Column} attributes in a list.
-		 * Deprecates and replaces {@link SQLiteHouse.ColumnIndexComparator}.
+		 * Deprecates and replaces {@code SQLiteHouse.ColumnIndexComparator}.
 		 * @since zerobandwidth-net/android [NEXT] (#56)
 		 */
 		@SuppressWarnings( "deprecation" )

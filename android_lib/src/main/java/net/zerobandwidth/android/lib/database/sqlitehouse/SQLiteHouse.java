@@ -469,6 +469,7 @@ extends SQLitePortal
 	 *  has already generated, or by using
 	 *  {@link SQLightable.Reflection#reflect(Class)} to generate a new one.
 	 */
+	@SuppressWarnings("deprecation") // TODO (deprecation) remove in future major version
 	public static class QueryContext<DBH extends SQLiteHouse>
 	{
 		/** A persistent reference back to a database portal. */
