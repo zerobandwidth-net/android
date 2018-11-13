@@ -11,6 +11,7 @@ import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.SelectionBuilder;
 import net.zerobandwidth.android.lib.database.querybuilder.UpdateBuilder;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
+import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteInheritColumns;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
 import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
@@ -18,13 +19,15 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicEx
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.NullRefractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.RefractorMap;
+import net.zerobandwidth.android.lib.util.LexicalStringComparator;
+import net.zerobandwidth.android.lib.util.MathZ;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,6 +44,7 @@ import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_COLUMN_IS_
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_COLUMN_NOT_NULLABLE;
 import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_COLUMN_NULLABLE;
 import static net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse.MAGIC_ID_COLUMN_NAME;
+import static net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn.NO_INDEX_DEFINED ;
 
 /**
  * Designates a class as a data container which can be used in a database
@@ -178,6 +182,9 @@ public interface SQLightable
 			 * seems to confuse the compiler when used in contexts where the
 			 * generic type parameter might be erased.
 			 * @return a list of column reflections
+			 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; don't
+			 *  rely on this method to get an array of columns; use
+			 *  {@link #getColumns()} instead.
 			 */
 			public List<Reflection<ST>.Column> getColumnsAsList()
 			{
@@ -185,6 +192,38 @@ public interface SQLightable
 						= new ArrayList<>( this.size() ) ;
 				aCols.addAll( this.values() ) ;
 				return aCols ;
+			}
+		}
+
+		/**
+		 * Orders {@link Column} attributes in a list.
+		 * Deprecates and replaces {@code SQLiteHouse.ColumnIndexComparator}.
+		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 */
+		@SuppressWarnings( "deprecation" )
+		public class ColumnSequencer implements Comparator<Column>
+		{
+			@Override
+			public int compare( Column col1, Column col2 )
+			{
+				if( col1.m_antColumn.index() == NO_INDEX_DEFINED )
+				{
+					if( col2.m_antColumn.index() != NO_INDEX_DEFINED )
+					{ // Always sort cols without indices after cols with indices.
+						return 1 ;
+					} // Do nothing yet if they're both undefined.
+				}
+				else if( col2.m_antColumn.index() == NO_INDEX_DEFINED )
+				{ // Always sort cols without indices after cols with indices.
+					return -1 ;
+				}
+				else if( col1.m_antColumn.index() < col2.m_antColumn.index() )
+					return -1 ;
+				else if( col1.m_antColumn.index() > col2.m_antColumn.index() )
+					return 1 ;
+
+				return (new LexicalStringComparator()).compare(
+						col1.m_antColumn.name(), col2.m_antColumn.name() ) ;
 			}
 		}
 
@@ -208,6 +247,16 @@ public interface SQLightable
 			 * The {@link Refractor} implementation to be used for the column.
 			 */
 			protected Refractor m_lens = null ;
+
+			/**
+			 * The version of the schema in which the column was added to the
+			 * reflected table. This is the maximum of any {@code since} value
+			 * in the annotations on the field's declaration, the enclosing
+			 * class's declaration, or any {@link SQLiteInheritColumns} found
+			 * while tracing the reflected class's lineage.
+			 * @since zerobandwidth-net/android [NEXT] (#56)
+			 */
+			protected int m_nSince = 1 ;
 
 			/**
 			 * Initializes the object with the selected field's data.
@@ -294,6 +343,12 @@ public interface SQLightable
 			/** Accesses the column's {@link Refractor} implementation. */
 			public Refractor getRefractor()
 			{ return m_lens ; }
+
+			public int getSince()
+			{ return m_nSince ; }
+
+			protected Column setSince( int n )
+			{ m_nSince = n ; return this ; }
 
 			/**
 			 * Generates the SQL clause that will create this column as part of
@@ -388,8 +443,30 @@ public interface SQLightable
 		/** A map of fields to their column schemas. */
 		protected ColumnMap<T> m_mapFields = null ;
 
-		/** A map of DB column names to field definitions. */
+		/**
+		 * A map of DB column names to field definitions.
+		 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; this is no
+		 *  longer populated; use {@link #getColumn(String)} to directly fetch a
+		 *  column reflection corresponding to the DB column name, then use
+		 *  {@link Column#getField()} to get the field
+		 */
 		protected HashMap<String,Field> m_mapColNames = null ;
+
+		/**
+		 * A simple list of columns, sorted roughly by the sequence defined by
+		 * the corresponding fields' {@link SQLiteColumn} annotations.
+		 * Replaces {@code m_mapFields}, from which we used only the values (the
+		 * list of columns).
+		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 */
+		protected ArrayList<Column> m_aColumns = null ;
+
+		/**
+		 * A map of DB column names to column schemas.
+		 * Replaces {@code m_mapColNames}, which mapped to fields.
+		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 */
+		protected HashMap<String,Column> m_mapColumns = null ;
 
 		/** The field that is the primary key for the table. */
 		protected Field m_fldKey = null ;
@@ -399,6 +476,17 @@ public interface SQLightable
 		 * auto-incremented row key, if any.
 		 */
 		protected Field m_fldMagicID = null ;
+
+		/*
+		 * A map in which the keys are schematic column fields that have been
+		 * inherited by the reflected class from its ancestry, and the values
+		 * represent the schema version in which the field was added to <i>this
+		 * table</i> &mdash; which might or might not be the schema version in
+		 * which the field was added to its declaring class.
+		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 */
+//		protected Map<Field,Integer> m_mapInherited = null ;
+//		protected List<Field> m_afldInherited = null ;
 
 		/**
 		 * Constructor kicks off a reflection of the selected class.
@@ -410,15 +498,132 @@ public interface SQLightable
 		{
 			m_clsTable = cls ;
 			m_antTable = cls.getAnnotation( SQLiteTable.class ) ;
-			this.initFieldMap() ;
+//			this.initFieldMap() ;
+			this.reflectColumns() ;
 		}
 
 		/**
+		 * Analyzes the fields defined in the selected class and its ancestors,
+		 * to produce a complete, ordered list of columns for the database table
+		 * in this version of the schema.
+		 * Deprecates and replaces {@code initFieldMap()}.
+		 * @return (fluid)
+		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 */
+		protected Reflection<T> reflectColumns()
+		{
+			m_aColumns = new ArrayList<>() ;
+			m_mapColumns = new HashMap<>() ;
+			m_mapFields = new ColumnMap<>() ;
+
+			int nTableSince = ( m_antTable == null ? 0 : m_antTable.since() ) ;
+
+			List<Field> afldDeclared =
+					Arrays.asList( m_clsTable.getDeclaredFields() ) ;
+			for( Field fld : afldDeclared )
+			{ // Process only the fields that were annotated as columns.
+				if( fld.isAnnotationPresent( SQLiteColumn.class ) )
+				{
+					fld.setAccessible(true) ;
+					Column col = new Column(fld) ;
+					col.setSince( Math.max(
+							col.getColAttrs().since(), nTableSince ) ) ;
+					m_aColumns.add(col) ;
+					if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )
+						m_fldKey = fld ;
+				}
+			}
+
+			this.processInheritanceTo( m_clsTable, nTableSince ) ;
+
+			if( m_aColumns.size() > 1 )
+				Collections.sort( m_aColumns, new ColumnSequencer() ) ;
+
+			for( Column col : m_aColumns )
+			{
+				m_mapColumns.put( col.getName(), col ) ;
+				m_mapFields.put( col.getField(), col ) ;
+				if( MAGIC_ID_COLUMN_NAME.equals( col.getName() ) )
+					m_fldMagicID = col.getField() ;
+			}
+
+			return this ;
+		}
+
+		/**
+		 * If the class being reflected is annotated with
+		 * {@link SQLiteInheritColumns}, then this method will update the
+		 * {@code Reflection}'s list of "inherited" fields with anything that is
+		 * annotated with {@link SQLiteColumn} in the class's <b>parent</b>.
+		 *
+		 * Note that the parent class <b>does not</b> need to be annotated as an
+		 * {@link SQLiteTable}, nor does it need to implement
+		 * {@link SQLightable}.
+		 *
+		 * <b>THIS METHOD WILL RECURSE</b> as long as it continues to find and
+		 * traverse classes whose parents are also annotated with
+		 * {@code SQLiteInheritColumns}.
+		 *
+		 * @param cls the class to be examined; this is originally called with
+		 *  the class that is being reflected, and may recurse with its parent
+		 *  as far as we continue to see {@link SQLiteInheritColumns}
+		 *  annotations
+		 *
+		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 * @see #reflectColumns()
+		 */
+		protected void processInheritanceTo( Class<?> cls, int nSince )
+		{
+			SQLiteInheritColumns antAncestry =
+					cls.getAnnotation( SQLiteInheritColumns.class ) ;
+			if( antAncestry == null ) return ; // Terminate; no more inheritance
+
+			Class<?> clsParent = cls.getSuperclass() ;
+			if( clsParent == null ) return ;  // Terminate; no ancestors remain.
+
+			SQLiteTable antParent = cls.getAnnotation( SQLiteTable.class ) ;
+
+			// The version in which a given column is added is at least as new
+			// as the max of:
+			// - the last observed "since" version that was passed in
+			// - the @SQLiteInheritColumns annotation of the target class
+			// - the @SQLiteTable.since() of the parent class (if any)
+			int nEffectiveSince = MathZ.max( nSince, antAncestry.since(),
+				( antParent == null ? 1 : antParent.since() ) ) ;
+
+			List<Field> afldInheritable =
+					Arrays.asList( clsParent.getDeclaredFields() ) ;
+			for( Field fld : afldInheritable )
+			{ // Inherit only the fields that are annotated as columns.
+				SQLiteColumn antColumn =
+						fld.getAnnotation( SQLiteColumn.class ) ;
+				if( antColumn == null ) continue ; // ignore this field
+				fld.setAccessible(true) ;
+				Column col = new Column(fld) ;
+				col.setSince( MathZ.max(
+						nEffectiveSince,                     // calculated above
+						antColumn.since(),  // the field's own annotated version
+						1     // a default in case no other version is indicated
+					));
+				m_aColumns.add(col) ;
+
+				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )
+				{ // Designate inherited field as key only if we don't have one.
+					if( m_fldKey == null )
+						m_fldKey = fld ;
+				}
+			}
+
+			// Continue recursing up the inheritance stack.
+			this.processInheritanceTo( clsParent, nEffectiveSince ) ;
+		}
+
+		/*
 		 * Initializes the map of field names to fields.
 		 * Consumed by the constructor.
 		 * @return (fluid)
 		 * @throws IntrospectionException if the column def can't be loaded
-		 */
+		 *
 		protected Reflection<T> initFieldMap()
 		throws IntrospectionException
 		{
@@ -437,6 +642,10 @@ public interface SQLightable
 				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )
 					m_fldKey = fld ;
 			}
+//			if( this.processInheritedFields(m_clsTable) != null )
+//			{ // (#56) We must account for at least one inherited field.
+//				afldAnnotated.addAll( m_afldInherited ) ;
+//			}
 			if( afldAnnotated.size() > 1 )
 			{
 				Collections.sort( afldAnnotated,
@@ -454,7 +663,52 @@ public interface SQLightable
 			}
 
 			return this ;
-		}
+		}*/
+
+		/*
+		 * If the specified class is annotated with
+		 * {@link SQLiteInheritColumns}, then this method will update the
+		 * {@code Reflection}'s list of "inherited" fields with anything that is
+		 * annotated with {@link SQLiteColumn} in the class's parent.
+		 *
+		 * Note that the parent class <b>does not</b> need to be annotated as an
+		 * {@link SQLiteTable}, nor does it need to implement
+		 * {@link SQLightable}.
+		 *
+		 * <b>THIS METHOD WILL RECURSE</b> if the parent is also annotated with
+		 * {@code SQLiteInheritColumns}.
+		 *
+		 * @param cls the class to be examined; this is originally called with
+		 *  the class that is being reflected, and may recurse with its parent
+		 *  as far as we continue to see {@link SQLiteInheritColumns}
+		 *  annotations
+		 *
+		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 *
+		protected List<Field> processInheritedFields( Class<?> cls )
+		{
+			if( ! cls.isAnnotationPresent( SQLiteInheritColumns.class ) )
+				return this.m_afldInherited ; // This terminates the recursion.
+
+			Class<?> clsParent = cls.getSuperclass() ;
+			if( clsParent == null ) return m_afldInherited ; // also terminates
+
+			if( m_afldInherited == null )     // Create it, so we can add to it.
+				m_afldInherited = new ArrayList<>() ;
+
+			List<Field> afldInheritable =
+					Arrays.asList( clsParent.getDeclaredFields() ) ;
+			for( Field fld : afldInheritable )
+			{
+				if( fld.isAnnotationPresent( SQLiteColumn.class ) )
+				{
+					fld.setAccessible(true) ;
+					m_afldInherited.add(fld) ;
+				}
+			}
+
+			return this.processInheritedFields( clsParent ) ;
+		}*/
 
 		/**
 		 * Accesses the schematic class reflected in this object.
@@ -487,6 +741,16 @@ public interface SQLightable
 		}
 
 		/**
+		 * Accesses the reflection of a database column (and its corresponding
+		 * class field) with the specified name.
+		 * @param sColName the name of a column in the database table
+		 * @return the reflection of that column
+		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 */
+		public Column getColumn( String sColName )
+		{ return m_mapColumns.get(sColName) ; }
+
+		/**
 		 * Accesses the field in the schematic class corresponding to the name
 		 * of a column in the table described by the class.
 		 * @param sColName the name of a column in the database table
@@ -494,11 +758,22 @@ public interface SQLightable
 		 *  column
 		 */
 		public Field getField( String sColName )
-		{ return m_mapColNames.get(sColName) ; }
+		{ return this.getColumn(sColName).getField() ; }
+
+		/**
+		 * Accesses the ordered list of column reflections.
+		 * @return the list of database columns
+		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 */
+		public List<Column> getColumns()
+		{ return m_aColumns ; }
 
 		/**
 		 * Accesses the complete map of fields and column reflections.
 		 * @return the complete map of fields and columns
+		 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; use
+		 *  {@link #getColumns()} to get the list of columns directly, or get
+		 *  {@link #getColumn(String)} to get a specific column
 		 */
 		public ColumnMap<T> getColumnMap()
 		{ return m_mapFields ; }
@@ -508,17 +783,28 @@ public interface SQLightable
 		 * the schematic class.
 		 * @param fld the field that corresponds to a database table column
 		 * @return a reflection of that column
+		 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; it's
+		 *  unlikely that anything outside of SQLiteHouse itself would have
+		 *  also reflected the class and want to get to the column that way
 		 */
+		@SuppressWarnings( "unused" )
 		public Column getColumnDef( Field fld )
-		{ return m_mapFields.get(fld) ; }
+//		{ return m_mapFields.get(fld) ; }
+		{
+			throw new UnsupportedOperationException(
+					"This method is deprecated." ) ;
+		}
 
 		/**
 		 * Accesses the SQLite column definition for the given column name.
 		 * @param sColName the name of the table column
 		 * @return a reflection of that column
+		 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; use
+		 *  {@link #getColumn} instead
 		 */
 		public Column getColumnDef( String sColName )
-		{ return this.getColumnDef( this.getField( sColName ) ) ; }
+//		{ return this.getColumnDef( this.getField( sColName ) ) ; }
+		{ return this.getColumn(sColName) ; }
 
 		/**
 		 * Accesses the field that was defined as the practical key for the
@@ -683,8 +969,9 @@ public interface SQLightable
 		{
 			T oResult = this.getInstance() ; // Can throw IntrospectionException
 
-			Collection<Column> aColumns = this.getColumnMap().values() ;
-			for( Column col : aColumns )
+//			Collection<Column> aColumns = this.getColumnMap().values() ;
+//			for( Column col : aColumns )
+			for( Column col : m_aColumns )
 			{
 				try
 				{
@@ -718,8 +1005,9 @@ public interface SQLightable
 		{
 			T oResult = this.getInstance() ; // Can throw IntrospectionException
 
-			Collection<Column> aColumns = this.getColumnMap().values() ;
-			for( Column col : aColumns )
+//			Collection<Column> aColumns = this.getColumnMap().values() ;
+//			for( Column col : aColumns )
+			for( Column col : m_aColumns )
 			{
 				try
 				{
@@ -754,7 +1042,8 @@ public interface SQLightable
 		throws SchematicException
 		{
 			ContentValues vals = new ContentValues() ;
-			for( Column col : this.getColumnMap().values() )
+//			for( Column col : this.getColumnMap().values() )
+			for( Column col : m_aColumns )
 			{
 				Refractor lens = col.getRefractor() ;
 
@@ -802,7 +1091,8 @@ public interface SQLightable
 		throws SchematicException
 		{
 			Bundle bndl = new Bundle() ;
-			for( Column col : this.getColumnMap().values() )
+//			for( Column col : this.getColumnMap().values() )
+			for( Column col : m_aColumns )
 			{
 				Refractor lens = col.getRefractor() ;
 
