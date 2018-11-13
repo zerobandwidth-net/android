@@ -22,7 +22,7 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteData
 				{ Flargle.class, Dargle.class, Quargle.class, Blargh.class }
 )
 public class UpgradeSpecClass
-		extends SQLiteHouse<UpgradeSpecClass>
+extends SQLiteHouse<UpgradeSpecClass>
 {
 	/**
 	 * Constructs an instance of the test DB class, bound to the test

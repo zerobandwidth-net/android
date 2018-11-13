@@ -6,4 +6,6 @@
     <string name="sMultitapAlertConfirmButton">Yep</string>
     <string name="sMultitapAlertCancelButton">Nope</string>
 
+    <string name="sUnitTestablePreferenceKey">pref_key_unit_test_foo</string>
+
 </resources>
