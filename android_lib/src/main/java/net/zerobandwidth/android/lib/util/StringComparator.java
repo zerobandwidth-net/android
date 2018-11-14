@@ -7,7 +7,7 @@ import java.util.Comparator;
  * them just in this library. Also, I get pretty crossed up as to how the value
  * returned by a comparator works. So here's an interface with some handy
  * semantic constants for derpy developers like myself.
- * @since zerobandwidth-net/android [NEXT] (#56)
+ * @since zerobandwidth-net/android 0.2.1 (#56)
  */
 public interface StringComparator
 extends Comparator<String>
@@ -22,7 +22,7 @@ extends Comparator<String>
 	 * {@link #executeComparison} may proceed already knowing that the strings
 	 * are non-null and non-empty, and that {@link String#equals} has already
 	 * been tried and is not worth trying again.
-	 * @since zerobandwidth-net/android [NEXT] (#56)
+	 * @since zerobandwidth-net/android 0.2.1 (#56)
 	 */
 	abstract class Base implements StringComparator
 	{

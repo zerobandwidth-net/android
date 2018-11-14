@@ -21,7 +21,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Exercises {@link CalendarLens}
- * @since zerobandwidth-net/android [NEXT] (#53)
+ * @since zerobandwidth-net/android 0.2.1 (#53)
  */
 @RunWith( AndroidJUnit4.class )
 public class CalendarLensTest
@@ -29,7 +29,7 @@ public class CalendarLensTest
 	/**
 	 * None of the other test schema classes bother to have a calendar-type
 	 * field, so we have a one-off here.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	@SQLiteTable( value = "got_gregged" )
 	private class GotGregged

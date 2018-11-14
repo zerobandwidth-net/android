@@ -25,7 +25,7 @@ import static junit.framework.Assert.assertTrue;
  * this class completes coverage of the {@code QueryContext} class by targeting
  * specific methods not covered elsewhere.
  * @since zerobandwidth-net/android 0.1.7 (#50)
- * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; This class will be
+ * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; This class will be
  *  removed entirely when {@link SQLiteHouse.QueryContext} is removed.
  */ // TODO (deprecation) remove in next major version
 @SuppressWarnings({ "unused", "deprecation" })
@@ -34,7 +34,7 @@ public class QueryContextTest
 	/**
 	 * Exercises {@link SQLiteHouse.QueryContext#loadColumnDef(Field)}.
 	 */
-//	@Test // disabled zerobandwidth-net/android [NEXT] (#56)
+//	@Test // disabled zerobandwidth-net/android 0.2.1 (#56)
 	public void testLoadColumnDef()
 	throws Exception // Any uncaught exception is a failure.
 	{
@@ -57,7 +57,7 @@ public class QueryContextTest
 	/**
 	 * Exercises {@link SQLiteHouse.QueryContext#loadColumnDef(String)}.
 	 */
-//	@Test // disabled zerobandwidth-net/android [NEXT] (#56)
+//	@Test // disabled zerobandwidth-net/android 0.2.1 (#56)
 	public void testLoadColumnDefByName()
 	{
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
@@ -85,7 +85,7 @@ public class QueryContextTest
 	/**
 	 * Exercises {@link SQLiteHouse.QueryContext#loadColumnValue}.
 	 */
-//	@Test // disabled zerobandwidth-net/android [NEXT] (#56)
+//	@Test // disabled zerobandwidth-net/android 0.2.1 (#56)
 	public void testLoadColumnValue()
 	{
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;

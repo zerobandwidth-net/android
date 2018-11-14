@@ -440,7 +440,7 @@ public class SQLightableReflectionTest
 	/**
 	 * Really messes with the logic in
 	 * {@link SQLightable.Reflection#toContentValues}.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	@Test
 	public void testToContentValuesNegatively()
@@ -470,7 +470,7 @@ public class SQLightableReflectionTest
 	/**
 	 * Really messes with the logic in
 	 * {@link SQLightable.Reflection#toBundle}.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	@Test
 	public void testToBundleNegatively()
@@ -499,7 +499,7 @@ public class SQLightableReflectionTest
 
 	/**
 	 * Coverage-motivated test of {@link SQLightable.ReflectionMap#put}.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	@Test
 	public void testRepetitivePut()
@@ -515,14 +515,14 @@ public class SQLightableReflectionTest
 
 	/**
 	 * Throwaway class that doesn't even have its own constructor.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	private class SuperBorked extends BorkBorkBork implements SQLightable {}
 
 	/**
 	 * Intentionally messes with the logic of
 	 * {@link SQLightable.Reflection#getInstance()}.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	@Test
 	public void testGetInstanceNegatively()

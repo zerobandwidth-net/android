@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Exercises {@link CharacterLens}.
- * @since zerobandwidth-net/android [NEXT] (#53)
+ * @since zerobandwidth-net/android 0.2.1 (#53)
  */
 @RunWith( AndroidJUnit4.class )
 public class CharacterLensTest
@@ -29,7 +29,7 @@ public class CharacterLensTest
 	/**
 	 * None of the other test schema classes bother to have a character-type
 	 * field, so we have a one-off here.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	@SQLiteTable( value = "charcoal" )
 	private class Charcoal

@@ -279,7 +279,7 @@ public class TelephonyController
 	/**
 	 * Used to discover the actual definition of the {@code ITelephony}
 	 * interface as visible to the current app.
-	 * @return the dumped methods (since [NEXT]/#53)
+	 * @return the dumped methods (since 0.2.1/#53)
 	 * @since zerobandwidth-net/android 0.0.6 (#17)
 	 */
 	@SuppressWarnings( "unused" )               // For diagnostic purposes only.

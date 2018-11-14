@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
  * Exercises the methods of {@link TelephonyController} that are easy to test.
  * Testing the more advanced telephony functions will require a bit more
  * research.
- * @since [NEXT] (#53)
+ * @since 0.2.1 (#53)
  */
 @RunWith( AndroidJUnit4.class )
 public class TelephonyControllerTest

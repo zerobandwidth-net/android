@@ -15,7 +15,7 @@ import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTabl
  * hierarchy from which column-definition fields are inherited from ancestors.
  * This schematic specification represents an upgrade from that of
  * {@link ValidSpecClass}.
- * @since zerobandwidth-net/android [NEXT] (#56)
+ * @since zerobandwidth-net/android 0.2.1 (#56)
  */
 @SQLiteDatabaseSpec(
 		database_name = "inheritance_spec_class_db",
@@ -40,7 +40,7 @@ extends SQLiteHouse<InheritanceDBSpec>
 	 * the class's reasons for existence is limited, we can get away with it
 	 * just this once.
 	 *
-	 * @since zerobandwidth-net/android [NEXT] (#56)
+	 * @since zerobandwidth-net/android 0.2.1 (#56)
 	 */
 	@SQLiteTable( "fargles" )
 	@SQLiteInheritColumns
@@ -75,7 +75,7 @@ extends SQLiteHouse<InheritanceDBSpec>
 	 * the class's reasons for existence is limited, we can get away with it
 	 * just this once.
 	 *
-	 * @since zerobandwidth-net/android [NEXT] (#56)
+	 * @since zerobandwidth-net/android 0.2.1 (#56)
 	 */
 	@SQLiteTable( value = "extended_dargles", since=2 )
 	@SQLiteInheritColumns

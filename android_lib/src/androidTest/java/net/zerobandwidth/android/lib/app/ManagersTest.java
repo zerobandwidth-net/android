@@ -103,7 +103,7 @@ public class ManagersTest
 	/**
 	 * Exercises {@link Managers#initReverseMap} by feeding it API version
 	 * numbers explicitly.
-	 * @since [NEXT] (#53)
+	 * @since 0.2.1 (#53)
 	 */
 	@Test
 	public void testInitReverseMap()

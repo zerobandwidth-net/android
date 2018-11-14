@@ -6,7 +6,7 @@ package net.zerobandwidth.android.lib.util;
  * as a trivial example, but also to provide a "standard" comparator for
  * situations in which a reference to a {@code Comparator} instance is
  * necessary.
- * @since zerobandwidth-net/android [NEXT] (#56)
+ * @since zerobandwidth-net/android 0.2.1 (#56)
  * @see <a href="https://stackoverflow.com/q/11804733">StackOverflow Q#11804733</a>
  */
 public class JavaStringComparator

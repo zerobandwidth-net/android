@@ -487,7 +487,7 @@ public class QueryBuilderTest
 	/**
 	 * Uses some unlikely selection grammar in order to stress-test various
 	 * functions of {@link SelectionBuilder}.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	@Test
 	public void testWeirdSelectionGrammars()
@@ -571,7 +571,7 @@ public class QueryBuilderTest
 	/**
 	 * Exercises the {@link SelectionBuilder#having(String)} mutator for the
 	 * sake of code coverage.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	@Test
 	public void testHaving()
@@ -585,7 +585,7 @@ public class QueryBuilderTest
 
 	/**
 	 * More fully exercises {@link SelectionBuilder#orderBy(String)}.
-	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
 	 */
 	@Test
 	public void testOrderBy()

@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Exercises {@link MathZ}.
- * @since zerobandwidth-net/android [NEXT] (#56)
+ * @since zerobandwidth-net/android 0.2.1 (#56)
  */
 @RunWith( JUnit4.class )
 public class MathZTest

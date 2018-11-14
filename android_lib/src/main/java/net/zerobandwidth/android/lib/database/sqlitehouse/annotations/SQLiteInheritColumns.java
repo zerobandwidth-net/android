@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * {@link net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable.Reflection}
  * should examine the class's inheritance chain to pick up fields that are
  * annotated with {@link SQLiteColumn} in the parent classes.
- * @since zerobandwidth-net/android [NEXT] (#56)
+ * @since zerobandwidth-net/android 0.2.1 (#56)
  */
 @Documented
 @Retention( RetentionPolicy.RUNTIME )

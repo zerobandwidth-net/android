@@ -28,7 +28,7 @@ public class AppUtils
 
     /**
      * Replacement text to be used if the app's version name can't be found.
-     * In version [NEXT] of this library, the value changed from an
+     * In version 0.2.1 of this library, the value changed from an
      * empty string to {@code "(unknown)"}.
      * @see #getAppVersion
      * @see #getAppNameAndVersion

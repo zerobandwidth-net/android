@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Exercises the inheritance of schematic specifications via a class's ancestry,
  * as supported by the {@link SQLiteInheritColumns} annotation.
- * @since zerobandwidth-net/android [NEXT] (#56)
+ * @since zerobandwidth-net/android 0.2.1 (#56)
  */
 @RunWith( AndroidJUnit4.class )
 public class SQLiteHouseInheritanceTest
