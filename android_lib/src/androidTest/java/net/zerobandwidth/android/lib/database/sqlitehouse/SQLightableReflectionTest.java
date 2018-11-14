@@ -1,11 +1,15 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.StringLens;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.BorkBorkBork;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Dargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Quargle;
@@ -27,9 +31,13 @@ import static net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse.MAG
  * Exercises {@link SQLightable.Reflection}.
  * @since zerobandwidth-net/android 0.1.7 (#50)
  */
+@SuppressWarnings( "deprecation" ) // TODO (deprecation) remove deprecated stuff in next major version
 @RunWith( AndroidJUnit4.class )
 public class SQLightableReflectionTest
 {
+	private static final String LOG_TAG =
+			SQLightableReflectionTest.class.getSimpleName() ;
+
 	/** Exercises the constructor and accessors. */
 	@Test
 	public void testConstructionAndAccess()
@@ -41,7 +49,7 @@ public class SQLightableReflectionTest
 		assertEquals( "quargles", antTable.value() ) ;
 		assertEquals( 2, antTable.since() ) ;
 		assertEquals( "quargles", refl.getTableName() ) ;
-		SQLightable.Reflection.Column col = refl.getColumnDef( "quargle" ) ;
+		SQLightable.Reflection.Column col = refl.getColumn( "quargle" ) ;
 		//assertEquals( Quargle.class.getField("m_sQuargle"), col.getField() ) ;
 		Field fldQuargle = col.getField() ;
 		assertEquals( "m_sQuargle", fldQuargle.getName() ) ;
@@ -60,12 +68,14 @@ public class SQLightableReflectionTest
 		SQLightable.Reflection<Fargle> tblFargle =
 				SQLightable.Reflection.reflect( Fargle.class ) ;
 		assertEquals( 3, tblFargle.m_mapFields.size() ) ;
-		assertEquals( 3, tblFargle.m_mapColNames.size() ) ;
-		SQLightable.Reflection.ColumnMap<Fargle> mapFargle =
-				tblFargle.getColumnMap() ;
-		assertEquals( 3, mapFargle.size() ) ;
+//		assertEquals( 3, tblFargle.m_mapColNames.size() ) ;
+//		SQLightable.Reflection.ColumnMap<Fargle> mapFargle =
+//				tblFargle.getColumnMap() ;
+//		assertEquals( 3, mapFargle.size() ) ;
+//		List<SQLightable.Reflection<Fargle>.Column> acolFargle =
+//				mapFargle.getColumnsAsList() ;
 		List<SQLightable.Reflection<Fargle>.Column> acolFargle =
-				mapFargle.getColumnsAsList() ;
+				tblFargle.getColumns() ;
 		assertEquals( 3, acolFargle.size() ) ;
 		for( SQLightable.Reflection<Fargle>.Column col : acolFargle )
 		{ assertNotNull( col.getColAttrs() ) ; }
@@ -84,12 +94,14 @@ public class SQLightableReflectionTest
 		SQLightable.Reflection<Dargle> tblDargle =
 				SQLightable.Reflection.reflect( Dargle.class ) ;
 		assertEquals( 3, tblDargle.m_mapFields.size() ) ;
-		assertEquals( 3, tblDargle.m_mapColNames.size() ) ;
-		SQLightable.Reflection.ColumnMap<Dargle> mapDargle =
-				tblDargle.getColumnMap() ;
-		assertEquals( 3, mapDargle.size() ) ;
+//		assertEquals( 3, tblDargle.m_mapColNames.size() ) ;
+//		SQLightable.Reflection.ColumnMap<Dargle> mapDargle =
+//				tblDargle.getColumnMap() ;
+//		assertEquals( 3, mapDargle.size() ) ;
+//		List<SQLightable.Reflection<Dargle>.Column> acolDargle =
+//				mapDargle.getColumnsAsList() ;
 		List<SQLightable.Reflection<Dargle>.Column> acolDargle =
-				mapDargle.getColumnsAsList() ;
+				tblDargle.getColumns() ;                                // (#56)
 		assertEquals( 3, acolDargle.size() ) ;
 		for( SQLightable.Reflection<Dargle>.Column col : acolDargle )
 		{ assertNotNull( col.getColAttrs() ) ; }
@@ -103,17 +115,19 @@ public class SQLightableReflectionTest
 	 * Verifies reflection algorithms using test schema class {@link Blargh}.
 	 */
 	@Test
-	public void testFieldDiscoveryOnBargle()
+	public void testFieldDiscoveryOnBlargh()
 	{
 		SQLightable.Reflection<Blargh> tblBlargh =
 				SQLightable.Reflection.reflect( Blargh.class ) ;
 		assertEquals( 1, tblBlargh.m_mapFields.size() ) ;
-		assertEquals( 1, tblBlargh.m_mapColNames.size() ) ;
-		SQLightable.Reflection.ColumnMap<Blargh> mapBlargh =
-				tblBlargh.getColumnMap() ;
-		assertEquals( 1, mapBlargh.size() ) ;
+//		assertEquals( 1, tblBlargh.m_mapColNames.size() ) ;
+//		SQLightable.Reflection.ColumnMap<Blargh> mapBlargh =
+//				tblBlargh.getColumnMap() ;
+//		assertEquals( 1, mapBlargh.size() ) ;
+//		List<SQLightable.Reflection<Blargh>.Column> acolBlargh =
+//				mapBlargh.getColumnsAsList() ;
 		List<SQLightable.Reflection<Blargh>.Column> acolBlargh =
-				mapBlargh.getColumnsAsList() ;
+				tblBlargh.getColumns() ;                                // (#56)
 		assertEquals( 1, acolBlargh.size() ) ;
 		assertNotNull( acolBlargh.get(0).getColAttrs() ) ;
 		assertColumnDefined( acolBlargh, 0, "m_sString", "blargh_string" ) ;
@@ -226,14 +240,15 @@ public class SQLightableReflectionTest
 		Field fldFargleID = tblFargle.getField( "fargle_id" ) ;
 		assertEquals( "m_nFargleID", fldFargleID.getName() ) ;
 
-		// Reflection#getColumnDef(Field)
-		SQLightable.Reflection<Fargle>.Column colFargleID =
-				tblFargle.getColumnDef( fldFargleID ) ;
-		assertEquals( "fargle_id", colFargleID.getName() ) ;
+		// Reflection#getColumnDef(Field) - strongly deprecated (#56)
+		UnsupportedOperationException xNope = null ;
+		try { tblFargle.getColumnDef( fldFargleID ) ; }
+		catch( UnsupportedOperationException x ) { xNope = x ; }
+		assertNotNull( xNope ) ;
 
-		// Reflection#getColumnDef(String)
+		// Reflection#getColumn(String)
 		SQLightable.Reflection<Fargle>.Column colFargleString =
-				tblFargle.getColumnDef( "fargle_string" ) ;
+				tblFargle.getColumn( "fargle_string" ) ;
 		assertEquals( "m_sString", colFargleString.getField().getName() ) ;
 
 		// Reflection#getKeyField()
@@ -283,14 +298,16 @@ public class SQLightableReflectionTest
 		Field fldDargleString = tblDargle.getField( "dargle_string" ) ;
 		assertEquals( "m_sString", fldDargleString.getName() ) ;
 
-		// Reflection#getColumnDef(Field)
-		SQLightable.Reflection<Dargle>.Column colDargleString =
-				tblDargle.getColumnDef( fldDargleString ) ;
-		assertEquals( "dargle_string", colDargleString.getName() ) ;
+		// Reflection#getColumnDef(Field) - deprecated (#56)
+		UnsupportedOperationException xNope = null ;
+		try { tblDargle.getColumnDef( fldDargleString ) ; }
+		catch( UnsupportedOperationException x ) { xNope = x ; }
+		assertNotNull( xNope ) ;
 
-		// Reflection#getColumnDef(String)
+
+		// Reflection#getColumn(String)
 		SQLightable.Reflection<Dargle>.Column colIsDargly =
-				tblDargle.getColumnDef( "is_dargly" ) ;
+				tblDargle.getColumn( "is_dargly" ) ;
 		assertEquals( "m_bBoolean", colIsDargly.getField().getName() ) ;
 
 		// Reflection#getKeyField()
@@ -342,14 +359,15 @@ public class SQLightableReflectionTest
 		Field fldBlarghString = tblBlargh.getField( "blargh_string" ) ;
 		assertEquals( "m_sString", fldBlarghString.getName() ) ;
 
-		// Reflection#getColumnDef(Field)
-		SQLightable.Reflection<Blargh>.Column colBlarghString =
-				tblBlargh.getColumnDef( fldBlarghString ) ;
-		assertEquals( "blargh_string", colBlarghString.getName() ) ;
+		// Reflection#getColumnDef(Field) - deprecated (#56)
+		UnsupportedOperationException xNope = null ;
+		try { tblBlargh.getColumnDef( fldBlarghString ) ; }
+		catch( UnsupportedOperationException x ) { xNope = x ; }
+		assertNotNull( xNope ) ;
 
-		// Reflection#getColumnDef(String)
+		// Reflection#getColumn(String)
 		SQLightable.Reflection<Blargh>.Column colBlarghStillString =
-				tblBlargh.getColumnDef( "blargh_string" ) ;
+				tblBlargh.getColumn( "blargh_string" ) ;
 		assertEquals( "m_sString", colBlarghStillString.getField().getName() ) ;
 
 		// Reflection#getKeyField()
@@ -417,5 +435,103 @@ public class SQLightableReflectionTest
 				"SELECT * FROM quargles" ) ) ;
 		assertTrue( tblQuargle.buildDelete().toString().startsWith(
 				"DELETE FROM quargles" ) ) ;
+	}
+
+	/**
+	 * Really messes with the logic in
+	 * {@link SQLightable.Reflection#toContentValues}.
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
+	 */
+	@Test
+	public void testToContentValuesNegatively()
+	{
+		// Force the probably can't-happen case of a broken lens.
+		SQLightable.Reflection<Fargle> tblBrokenFargle =
+				SQLightable.Reflection.reflect( Fargle.class ) ;
+		tblBrokenFargle.m_aColumns.get(0).m_lens = null ;
+		// ... and then make sure we handle it.
+		Fargle fargle = new Fargle( -1, "derp", -1 ) ;
+		SchematicException xSchema  = null ;
+		try { tblBrokenFargle.toContentValues( fargle ) ; }
+		catch( SchematicException x )
+		{ Log.d( LOG_TAG, "Caught:", x ) ; xSchema = x ; }
+		assertNotNull(xSchema) ;
+
+		// Regenerate but then lock the field again.
+		tblBrokenFargle = SQLightable.Reflection.reflect( Fargle.class ) ;
+		tblBrokenFargle.m_aColumns.get(0).getField().setAccessible(false) ;
+		xSchema = null ;
+		try { tblBrokenFargle.toContentValues( fargle ) ; }
+		catch( SchematicException x )
+		{ Log.d( LOG_TAG, "Caught:", x ) ; xSchema = x ; }
+		assertNotNull( xSchema ) ;
+	}
+
+	/**
+	 * Really messes with the logic in
+	 * {@link SQLightable.Reflection#toBundle}.
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
+	 */
+	@Test
+	public void testToBundleNegatively()
+	{
+		// Force the probably can't-happen case of a broken lens.
+		SQLightable.Reflection<Fargle> tblBrokenFargle =
+				SQLightable.Reflection.reflect( Fargle.class ) ;
+		tblBrokenFargle.m_aColumns.get(0).m_lens = null ;
+		// ... and then make sure we handle it.
+		Fargle fargle = new Fargle( -1, "derp", -1 ) ;
+		SchematicException xSchema  = null ;
+		try { tblBrokenFargle.toBundle( fargle ) ; }
+		catch( SchematicException x )
+		{ Log.d( LOG_TAG, "Caught:", x ) ; xSchema = x ; }
+		assertNotNull(xSchema) ;
+
+		// Regenerate but then lock the field again.
+		tblBrokenFargle = SQLightable.Reflection.reflect( Fargle.class ) ;
+		tblBrokenFargle.m_aColumns.get(0).getField().setAccessible(false) ;
+		xSchema = null ;
+		try { tblBrokenFargle.toBundle( fargle ) ; }
+		catch( SchematicException x )
+		{ Log.d( LOG_TAG, "Caught:", x ) ; xSchema = x ; }
+		assertNotNull( xSchema ) ;
+	}
+
+	/**
+	 * Coverage-motivated test of {@link SQLightable.ReflectionMap#put}.
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
+	 */
+	@Test
+	public void testRepetitivePut()
+	{
+		SQLightable.ReflectionMap map = new SQLightable.ReflectionMap() ;
+		map.put( Fargle.class ) ;
+		assertEquals( 1, map.size() ) ;
+		SQLightable.Reflection<Fargle> tbl = map.get(Fargle.class) ;
+		map.put( Fargle.class ) ;
+		assertEquals( 1, map.size() ) ;
+		assertTrue( tbl == map.get(Fargle.class) ) ;  // The very same instance.
+	}
+
+	/**
+	 * Throwaway class that doesn't even have its own constructor.
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
+	 */
+	private class SuperBorked extends BorkBorkBork implements SQLightable {}
+
+	/**
+	 * Intentionally messes with the logic of
+	 * {@link SQLightable.Reflection#getInstance()}.
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
+	 */
+	@Test
+	public void testGetInstanceNegatively()
+	{
+		SQLightable.Reflection<SuperBorked> tbl =
+				SQLightable.Reflection.reflect( SuperBorked.class ) ;
+		IntrospectionException xNavelgaze = null ;
+		try { tbl.getInstance() ; }
+		catch( IntrospectionException x ) { xNavelgaze = x ; }
+		assertNotNull( xNavelgaze ) ;
 	}
 }

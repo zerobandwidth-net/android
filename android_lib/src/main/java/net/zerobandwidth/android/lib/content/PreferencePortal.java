@@ -27,6 +27,10 @@ import android.preference.PreferenceManager;
  *         in the app's preferences. This is a workaround for occasional wonky
  *         behavior of native integer-value preferences in Android.
  *     </li>
+ *     <li><i>(since 0.2.1)</i>
+ *         A set of methods for marshalling Boolean-value preferences as strings
+ *         in the app's preferences.
+ *     </li>
  * </ul>
  *
  * <p>An app may choose to extend this class to further provide easy methods for
@@ -64,6 +68,36 @@ public class PreferencePortal
 
 	/** The default value for string fields. ({@code null} */
 	public static final String DEFAULT_STRING = null ;
+
+	/**
+	 * Get the value of a Boolean preference that was stored as a string.
+	 * @param prefs the app's preferences
+	 * @param sKey the preference key
+	 * @param bDefault the default value, if not set
+	 * @return the Boolean value of the preference
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
+	 */
+	public static boolean getStringifiedBoolean(
+			SharedPreferences prefs, String sKey, boolean bDefault )
+	{
+		return Boolean.valueOf(
+				prefs.getString( sKey, String.valueOf( bDefault ) ) ) ;
+	}
+
+	/**
+	 * Edit the value of a Boolean preference that is stored as a string.
+	 * This method should be chained with either the {@code apply()} or
+	 * {@code commit()} method of the preference editor to complete the change.
+	 * @param prefs the app's preferences
+	 * @param sKey the preference key
+	 * @param b the value to write
+	 * @return a preference editor which would be chained with either
+	 *  {@code apply()} or {@code commit()}
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
+	 */
+	public static SharedPreferences.Editor putStringifiedBoolean(
+			SharedPreferences prefs, String sKey, boolean b )
+	{ return prefs.edit().putString( sKey, String.valueOf(b) ) ; }
 
 	/**
 	 * Get the value of an integer preference that is stored as a string.
@@ -129,10 +163,10 @@ public class PreferencePortal
 	protected int m_zDefaultInteger = DEFAULT_INT_ZERO ;
 
 	/** The context in which preferences are managed. */
-	protected Context m_ctx = null ;
+	protected Context m_ctx ;
 
 	/** A persistent reference to the app's preferences. */
-	protected SharedPreferences m_prefs = null ;
+	protected SharedPreferences m_prefs ;
 
 	public PreferencePortal( Context ctx )
 	{
@@ -161,56 +195,92 @@ public class PreferencePortal
 	{ return m_prefs.getBoolean( sKey, bDefault ) ; }
 
 	public boolean getBoolean( String sKey )
-	{ return m_prefs.getBoolean( sKey, DEFAULT_BOOLEAN ) ; }
+	{ return this.getBoolean( sKey, DEFAULT_BOOLEAN ) ; }
 
 	public boolean getBoolean( int resKey, boolean bDefault )
-	{ return m_prefs.getBoolean( m_ctx.getString(resKey), bDefault ) ; }
+	{ return this.getBoolean( m_ctx.getString(resKey), bDefault ) ; }
 
 	public boolean getBoolean( int resKey )
-	{ return m_prefs.getBoolean( m_ctx.getString(resKey), DEFAULT_BOOLEAN ) ; }
+	{ return this.getBoolean( resKey, DEFAULT_BOOLEAN ) ; }
+
+	/**
+	 * Fetches a Boolean preference that was stored as a string.
+	 * @param sKey the preference key
+	 * @param bDefault a default if not set
+	 * @return the preference value
+	 * @since zerobandwidth-net/android 0.2.1
+	 */
+	public boolean getStringifiedBoolean( String sKey, boolean bDefault )
+	{ return PreferencePortal.getStringifiedBoolean(m_prefs,sKey,bDefault) ; }
+
+	/**
+	 * Fetches a Boolean preference that was stored as a string, using
+	 * {@link #DEFAULT_BOOLEAN} as the default if the preference is not set.
+	 * @param sKey the preference key
+	 * @return the preference value
+	 * @since zerobandwidth-net/android 0.2.1
+	 */
+	public boolean getStringifiedBoolean( String sKey )
+	{ return this.getStringifiedBoolean( sKey, DEFAULT_BOOLEAN ) ; }
+
+	/**
+	 * Fetches a Boolean preference that was stored as a string.
+	 * @param resKey the ID of a string resource whose value is the preference
+	 *               key
+	 * @param bDefault a default if not set
+	 * @return the preference value
+	 * @since zerobandwidth-net/android 0.2.1
+	 */
+	public boolean getStringifiedBoolean( int resKey, boolean bDefault )
+	{ return this.getStringifiedBoolean( m_ctx.getString(resKey), bDefault ) ; }
+
+	/**
+	 * Fetches a Boolean preference that was stored as a string, using
+	 * {@link #DEFAULT_BOOLEAN} as the default if the preference is not set.
+	 * @param resKey the ID of a string resource whose value is the preference
+	 *               key
+	 * @return the preference value
+	 * @since zerobandwidth-net/android 0.2.1
+	 */
+	public boolean getStringifiedBoolean( int resKey )
+	{ return this.getStringifiedBoolean( resKey, DEFAULT_BOOLEAN ) ; }
 
 	public int getInt( String sKey, int zDefault )
 	{ return m_prefs.getInt( sKey, zDefault ) ; }
 
 	public int getInt( String sKey )
-	{ return m_prefs.getInt( sKey, m_zDefaultInteger ) ; }
+	{ return this.getInt( sKey, m_zDefaultInteger ) ; }
 
 	public int getInt( int resKey, int zDefault )
-	{ return m_prefs.getInt( m_ctx.getString(resKey), zDefault ) ; }
+	{ return this.getInt( m_ctx.getString(resKey), zDefault ) ; }
 
 	public int getInt( int resKey )
-	{ return m_prefs.getInt( m_ctx.getString(resKey), m_zDefaultInteger ) ; }
+	{ return this.getInt( resKey, m_zDefaultInteger ) ; }
 
 	public int getStringifiedInt( String sKey, int zDefault )
 	throws NumberFormatException
 	{ return PreferencePortal.getStringifiedInt( m_prefs, sKey, zDefault ) ; }
 
 	public int getStringifiedInt( String sKey )
-	{ return PreferencePortal.getStringifiedInt( m_prefs, sKey, m_zDefaultInteger ) ; }
+	{ return this.getStringifiedInt( sKey, m_zDefaultInteger ) ; }
 
 	public int getStringifiedInt( int resKey, int zDefault )
-	{
-		return PreferencePortal.getStringifiedInt(
-				m_prefs, m_ctx.getString(resKey), zDefault ) ;
-	}
+	{ return this.getStringifiedInt( m_ctx.getString(resKey), zDefault ) ; }
 
 	public int getStringifiedInt( int resKey )
-	{
-		return PreferencePortal.getStringifiedInt(
-				m_prefs, m_ctx.getString(resKey), m_zDefaultInteger ) ;
-	}
+	{ return this.getStringifiedInt( resKey, m_zDefaultInteger ) ; }
 
-	public long getLong( String sKey, int zDefault )
+	public long getLong( String sKey, long zDefault )
 	{ return m_prefs.getLong( sKey, zDefault ) ; }
 
 	public long getLong( String sKey )
-	{ return m_prefs.getLong( sKey, ((long)(m_zDefaultInteger)) ) ; }
+	{ return this.getLong( sKey, ((long)(m_zDefaultInteger)) ) ; }
 
 	public long getLong( int resKey, long zDefault )
-	{ return m_prefs.getLong( m_ctx.getString(resKey), zDefault ) ; }
+	{ return this.getLong( m_ctx.getString(resKey), zDefault ) ; }
 
 	public long getLong( int resKey )
-	{ return m_prefs.getLong( m_ctx.getString(resKey), ((long)(m_zDefaultInteger)) ) ; }
+	{ return this.getLong( resKey, ((long)(m_zDefaultInteger)) ) ; }
 
 	public long getStringifiedLong( String sKey, long zDefault )
 	throws NumberFormatException
@@ -218,42 +288,60 @@ public class PreferencePortal
 
 	public long getStringifiedLong( String sKey )
 	throws NumberFormatException
-	{
-		return PreferencePortal.getStringifiedLong(
-				m_prefs, sKey, ((long)(m_zDefaultInteger)) ) ;
-	}
+	{ return this.getStringifiedLong( sKey, ((long)(m_zDefaultInteger)) ) ; }
 
 	public long getStringifiedLong( int resKey, long zDefault )
 	throws NumberFormatException
-	{
-		return PreferencePortal.getStringifiedLong(
-				m_prefs, m_ctx.getString(resKey), zDefault ) ;
-	}
+	{ return this.getStringifiedLong( m_ctx.getString(resKey), zDefault ) ; }
 
 	public long getStringifiedLong( int resKey )
 	throws NumberFormatException
-	{
-		return PreferencePortal.getStringifiedLong(
-			m_prefs, m_ctx.getString(resKey), ((long)(m_zDefaultInteger)) ) ;
-	}
+	{ return this.getStringifiedLong( resKey, ((long)(m_zDefaultInteger)) ) ; }
 
 	public String getString( String sKey, String sDefault )
 	{ return m_prefs.getString( sKey, sDefault ) ; }
 
 	public String getString( String sKey )
-	{ return m_prefs.getString( sKey, DEFAULT_STRING ) ; }
+	{ return this.getString( sKey, DEFAULT_STRING ) ; }
 
 	public String getString( int resKey, String sDefault )
-	{ return m_prefs.getString( m_ctx.getString(resKey), sDefault ) ; }
+	{ return this.getString( m_ctx.getString(resKey), sDefault ) ; }
 
 	public String getString( int resKey )
-	{ return m_prefs.getString( m_ctx.getString(resKey), DEFAULT_STRING ) ; }
+	{ return this.getString( resKey, DEFAULT_STRING ) ; }
 
 	public SharedPreferences.Editor putBoolean( String sKey, boolean b )
 	{ return m_prefs.edit().putBoolean( sKey, b ) ; }
 
 	public SharedPreferences.Editor putBoolean( int resKey, boolean b )
 	{ return this.putBoolean( m_ctx.getString(resKey), b ) ; }
+
+	/**
+	 * Edit the value of a Boolean preference that is stored as a string.
+	 * This method should be chained with either the {@code apply()} or
+	 * {@code commit()} method of the preference editor to complete the change.
+	 * @param sKey the preference key
+	 * @param b the value to write
+	 * @return a preference editor which would be chained with either
+	 *  {@code apply()} or {@code commit()}
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
+	 */
+	public SharedPreferences.Editor putStringifiedBoolean( String sKey, boolean b )
+	{ return m_prefs.edit().putString( sKey, String.valueOf(b) ) ; }
+
+	/**
+	 * Edit the value of a Boolean preference that is stored as a string.
+	 * This method should be chained with either the {@code apply()} or
+	 * {@code commit()} method of the preference editor to complete the change.
+	 * @param resKey the ID of a string resource whose value is the preference
+	 *               key
+	 * @param b the value to write
+	 * @return a preference editor which would be chained with either
+	 *  {@code apply()} or {@code commit()}
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
+	 */
+	public SharedPreferences.Editor putStringifiedBoolean( int resKey, boolean b )
+	{ return this.putStringifiedBoolean( m_ctx.getString(resKey), b ) ; }
 
 	public SharedPreferences.Editor putInt( String sKey, int z )
 	{ return m_prefs.edit().putInt( sKey, z ) ; }

@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import static junit.framework.Assert.* ;
 
@@ -484,6 +485,36 @@ public class QueryBuilderTest
 	}
 
 	/**
+	 * Uses some unlikely selection grammar in order to stress-test various
+	 * functions of {@link SelectionBuilder}.
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
+	 */
+	@Test
+	public void testWeirdSelectionGrammars()
+	{
+		// Ensure that a null string array is interpreted as "select all".
+		SelectionBuilder bldr = QueryBuilder.selectFrom( TEST_TABLE_NAME )
+				.columns( (String[])null ) ;
+		assertEquals( "SELECT * FROM unittestdata ;", bldr.toString() ) ;
+
+		// Ensure that a null collection is interpreted as "select all".
+		bldr = QueryBuilder.selectFrom( TEST_TABLE_NAME )
+				.columns( (Collection<String>)null ) ;
+		assertEquals( "SELECT * FROM unittestdata ;", bldr.toString() ) ;
+
+		// Ensure that redundant columns are added only once.
+		bldr = QueryBuilder.selectFrom( TEST_TABLE_NAME )
+				.columns( "bork", "bork", "bork" ) ;
+		assertEquals( 1, bldr.getColumnList().length ) ;
+		Collection<String> asCols = new ArrayList<>() ;
+		asCols.add( "bork" ) ;
+		asCols.add( "bork" ) ;
+		asCols.add( "bork" ) ;
+		bldr = QueryBuilder.selectFrom( TEST_TABLE_NAME ).columns( asCols ) ;
+		assertEquals( 1, bldr.getColumnList().length ) ;
+	}
+
+	/**
 	 * Exercises the failure mechanism built into the base class's
 	 * {@link QueryBuilder#execute} method.
 	 * The syntax/grammar used in each {@code try} block is intentionally wrong,
@@ -535,5 +566,37 @@ public class QueryBuilderTest
 		catch( QueryBuilder.UnboundException x )
 		{ xCaught = x ; }
 		assertNotNull( xCaught ) ;
+	}
+
+	/**
+	 * Exercises the {@link SelectionBuilder#having(String)} mutator for the
+	 * sake of code coverage.
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
+	 */
+	@Test
+	public void testHaving()
+	{
+		SelectionBuilder bldr = QueryBuilder.selectFrom( TEST_TABLE_NAME )
+				.having( "foo" ) ; // Obviously bogus SQL, but who cares?
+		assertEquals( "foo", bldr.m_sHaving ) ;
+		assertEquals( "SELECT * FROM unittestdata HAVING foo ;",
+				bldr.toString() ) ;
+	}
+
+	/**
+	 * More fully exercises {@link SelectionBuilder#orderBy(String)}.
+	 * @since zerobandwidth-net/android 0.2.1 (#53)
+	 */
+	@Test
+	public void testOrderBy()
+	{
+		SelectionBuilder bldr = QueryBuilder.selectFrom( TEST_TABLE_NAME )
+				.orderBy( "foo" ).orderBy( "foo" ).orderBy( "bar" ) ;
+		assertEquals( "foo ASC, bar ASC", bldr.getOrderByClause() ) ;
+		bldr.orderBy(null) ;
+		assertNotNull( bldr.m_mapOrderBy ) ;
+		assertNull( bldr.getOrderByClause() ) ;
+		bldr.m_mapOrderBy = null ; // might break the class under normal ops?
+		assertNull( bldr.getOrderByClause() ) ;
 	}
 }
