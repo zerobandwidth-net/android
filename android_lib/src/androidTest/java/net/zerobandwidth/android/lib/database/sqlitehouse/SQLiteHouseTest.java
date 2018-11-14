@@ -76,7 +76,7 @@ public class SQLiteHouseTest
 	 * @param clsSpec the database specification class under test
 	 * @param <DBS> the database specification class under test
 	 * @return a testable instance of the class
-	 * @since zerobandwidth-net/android [NEXT] (#56)
+	 * @since zerobandwidth-net/android 0.2.1 (#56)
 	 */
 	public static <DBS extends SQLiteHouse> DBS getTestableInstanceOf( Class<DBS> clsSpec )
 	{

@@ -403,7 +403,7 @@ extends SQLitePortal
 	 * Used by {@link SQLiteHouse} to sort the indices and/or names of columns
 	 * within a table specification.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
-	 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; replaced by
+	 * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; replaced by
 	 *  {@link SQLightable.Reflection.ColumnSequencer}
 	 */
 	public static class ColumnIndexComparator
@@ -463,7 +463,7 @@ extends SQLitePortal
 	 * Since 0.1.7 (#50), this class is not particularly different from
 	 * {@link SQLightable.Reflection}.
 	 * @since zerobandwidth-net/android 0.1.4 (#26)
-	 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; use
+	 * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; use
 	 *  {@link SQLightable.Reflection} instead, by using
 	 *  {@link #getReflection(Class)} to fetch the one that the database class
 	 *  has already generated, or by using
@@ -775,7 +775,7 @@ extends SQLitePortal
 	 * @return (fluid)
 	 * @see Refractor
 	 * @see RefractorMap
-	 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; instead, use
+	 * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; instead, use
 	 *  the {@code refractor} attribute of the {@link SQLiteColumn} annotation
 	 *  to define refractors for each relevant field in your schematic classes
 	 */
@@ -1228,7 +1228,7 @@ extends SQLitePortal
 	/**
 	 * Creates an empty query context bound to this database helper.
 	 * @return a context object
-	 * @deprecated zerobandwidth-net/android [NEXT] (#56)
+	 * @deprecated zerobandwidth-net/android 0.2.1 (#56)
 	 */ // TODO (deprecation) remove in next major revision
 	@SuppressWarnings( { "unchecked", "deprecation" } )
 	public QueryContext<DSC> getQueryContext()
@@ -1239,7 +1239,7 @@ extends SQLitePortal
 	 * information for a specified table.
 	 * @param clsTable the schematic table to be pre-loaded
 	 * @return a context object
-	 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; use
+	 * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; use
 	 *  {@link #getReflection(Class)} instead
 	 */ // TODO (deprecation) remove in next major revision
 	@SuppressWarnings( "deprecation" )

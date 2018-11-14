@@ -182,7 +182,7 @@ public interface SQLightable
 			 * seems to confuse the compiler when used in contexts where the
 			 * generic type parameter might be erased.
 			 * @return a list of column reflections
-			 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; don't
+			 * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; don't
 			 *  rely on this method to get an array of columns; use
 			 *  {@link #getColumns()} instead.
 			 */
@@ -198,7 +198,7 @@ public interface SQLightable
 		/**
 		 * Orders {@link Column} attributes in a list.
 		 * Deprecates and replaces {@code SQLiteHouse.ColumnIndexComparator}.
-		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 * @since zerobandwidth-net/android 0.2.1 (#56)
 		 */
 		@SuppressWarnings( "deprecation" )
 		public class ColumnSequencer implements Comparator<Column>
@@ -254,7 +254,7 @@ public interface SQLightable
 			 * in the annotations on the field's declaration, the enclosing
 			 * class's declaration, or any {@link SQLiteInheritColumns} found
 			 * while tracing the reflected class's lineage.
-			 * @since zerobandwidth-net/android [NEXT] (#56)
+			 * @since zerobandwidth-net/android 0.2.1 (#56)
 			 */
 			protected int m_nSince = 1 ;
 
@@ -445,7 +445,7 @@ public interface SQLightable
 
 		/**
 		 * A map of DB column names to field definitions.
-		 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; this is no
+		 * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; this is no
 		 *  longer populated; use {@link #getColumn(String)} to directly fetch a
 		 *  column reflection corresponding to the DB column name, then use
 		 *  {@link Column#getField()} to get the field
@@ -457,14 +457,14 @@ public interface SQLightable
 		 * the corresponding fields' {@link SQLiteColumn} annotations.
 		 * Replaces {@code m_mapFields}, from which we used only the values (the
 		 * list of columns).
-		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 * @since zerobandwidth-net/android 0.2.1 (#56)
 		 */
 		protected ArrayList<Column> m_aColumns = null ;
 
 		/**
 		 * A map of DB column names to column schemas.
 		 * Replaces {@code m_mapColNames}, which mapped to fields.
-		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 * @since zerobandwidth-net/android 0.2.1 (#56)
 		 */
 		protected HashMap<String,Column> m_mapColumns = null ;
 
@@ -496,7 +496,7 @@ public interface SQLightable
 		 * in this version of the schema.
 		 * Deprecates and replaces {@code initFieldMap()}.
 		 * @return (fluid)
-		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 * @since zerobandwidth-net/android 0.2.1 (#56)
 		 */
 		protected Reflection<T> reflectColumns()
 		{
@@ -557,7 +557,7 @@ public interface SQLightable
 		 *  as far as we continue to see {@link SQLiteInheritColumns}
 		 *  annotations
 		 *
-		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 * @since zerobandwidth-net/android 0.2.1 (#56)
 		 * @see #reflectColumns()
 		 */
 		protected void processInheritanceTo( Class<?> cls, int nSince )
@@ -641,7 +641,7 @@ public interface SQLightable
 		 * class field) with the specified name.
 		 * @param sColName the name of a column in the database table
 		 * @return the reflection of that column
-		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 * @since zerobandwidth-net/android 0.2.1 (#56)
 		 */
 		public Column getColumn( String sColName )
 		{ return m_mapColumns.get(sColName) ; }
@@ -659,7 +659,7 @@ public interface SQLightable
 		/**
 		 * Accesses the ordered list of column reflections.
 		 * @return the list of database columns
-		 * @since zerobandwidth-net/android [NEXT] (#56)
+		 * @since zerobandwidth-net/android 0.2.1 (#56)
 		 */
 		public List<Column> getColumns()
 		{ return m_aColumns ; }
@@ -667,7 +667,7 @@ public interface SQLightable
 		/**
 		 * Accesses the complete map of fields and column reflections.
 		 * @return the complete map of fields and columns
-		 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; use
+		 * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; use
 		 *  {@link #getColumns()} to get the list of columns directly, or get
 		 *  {@link #getColumn(String)} to get a specific column
 		 */
@@ -679,7 +679,7 @@ public interface SQLightable
 		 * the schematic class.
 		 * @param fld the field that corresponds to a database table column
 		 * @return a reflection of that column
-		 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; it's
+		 * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; it's
 		 *  unlikely that anything outside of SQLiteHouse itself would have
 		 *  also reflected the class and want to get to the column that way
 		 */
@@ -694,7 +694,7 @@ public interface SQLightable
 		 * Accesses the SQLite column definition for the given column name.
 		 * @param sColName the name of the table column
 		 * @return a reflection of that column
-		 * @deprecated zerobandwidth-net/android [NEXT] (#56) &mdash; use
+		 * @deprecated zerobandwidth-net/android 0.2.1 (#56) &mdash; use
 		 *  {@link #getColumn} instead
 		 */
 		public Column getColumnDef( String sColName )

@@ -40,7 +40,7 @@ public class PreferencePortalTest
 
 	/**
 	 * Exercises {@link PreferencePortal#getStringifiedBoolean(SharedPreferences, String, boolean)}.
-	 * @since zerobandwidth-net/android [NEXT] (#55)
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
 	 */
 	@Test
 	public void testStaticGetStringifiedBoolean()
@@ -55,7 +55,7 @@ public class PreferencePortalTest
 
 	/**
 	 * Exercises {@link PreferencePortal#putStringifiedBoolean(SharedPreferences, String, boolean)}.
-	 * @since zerobandwidth-net/android [NEXT] (#55)
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
 	 */
 	@Test
 	public void testStaticPutStringifiedBoolean()
@@ -151,7 +151,7 @@ public class PreferencePortalTest
 	 * Exercises the various put and get methods of {@link PreferencePortal}
 	 * where the preference's key is gleaned from the value of a string
 	 * resource.
-	 * @since zerobandwidth-net/android [NEXT] (#55,#53)
+	 * @since zerobandwidth-net/android 0.2.1 (#55,#53)
 	 */
 	@Test
 	public void testKeyResourcePutsAndGetsWithDefaults()

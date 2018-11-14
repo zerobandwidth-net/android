@@ -17,7 +17,7 @@ package net.zerobandwidth.android.lib.util;
  * </li>
  * </ol>
  *
- * @since zerobandwidth-net/android [NEXT] (#56)
+ * @since zerobandwidth-net/android 0.2.1 (#56)
  */
 public class LexicalStringComparator
 extends StringComparator.Base

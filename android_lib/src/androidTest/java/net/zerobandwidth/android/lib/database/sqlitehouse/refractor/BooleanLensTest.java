@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Exercises {@link BooleanLens}.
- * @since zerobandwidth-net/android [NEXT] (#53)
+ * @since zerobandwidth-net/android 0.2.1 (#53)
  */
 public class BooleanLensTest
 {

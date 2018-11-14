@@ -27,7 +27,7 @@ import android.preference.PreferenceManager;
  *         in the app's preferences. This is a workaround for occasional wonky
  *         behavior of native integer-value preferences in Android.
  *     </li>
- *     <li><i>(since [NEXT])</i>
+ *     <li><i>(since 0.2.1)</i>
  *         A set of methods for marshalling Boolean-value preferences as strings
  *         in the app's preferences.
  *     </li>
@@ -75,7 +75,7 @@ public class PreferencePortal
 	 * @param sKey the preference key
 	 * @param bDefault the default value, if not set
 	 * @return the Boolean value of the preference
-	 * @since zerobandwidth-net/android [NEXT] (#55)
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
 	 */
 	public static boolean getStringifiedBoolean(
 			SharedPreferences prefs, String sKey, boolean bDefault )
@@ -93,7 +93,7 @@ public class PreferencePortal
 	 * @param b the value to write
 	 * @return a preference editor which would be chained with either
 	 *  {@code apply()} or {@code commit()}
-	 * @since zerobandwidth-net/android [NEXT] (#55)
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
 	 */
 	public static SharedPreferences.Editor putStringifiedBoolean(
 			SharedPreferences prefs, String sKey, boolean b )
@@ -208,7 +208,7 @@ public class PreferencePortal
 	 * @param sKey the preference key
 	 * @param bDefault a default if not set
 	 * @return the preference value
-	 * @since zerobandwidth-net/android [NEXT]
+	 * @since zerobandwidth-net/android 0.2.1
 	 */
 	public boolean getStringifiedBoolean( String sKey, boolean bDefault )
 	{ return PreferencePortal.getStringifiedBoolean(m_prefs,sKey,bDefault) ; }
@@ -218,7 +218,7 @@ public class PreferencePortal
 	 * {@link #DEFAULT_BOOLEAN} as the default if the preference is not set.
 	 * @param sKey the preference key
 	 * @return the preference value
-	 * @since zerobandwidth-net/android [NEXT]
+	 * @since zerobandwidth-net/android 0.2.1
 	 */
 	public boolean getStringifiedBoolean( String sKey )
 	{ return this.getStringifiedBoolean( sKey, DEFAULT_BOOLEAN ) ; }
@@ -229,7 +229,7 @@ public class PreferencePortal
 	 *               key
 	 * @param bDefault a default if not set
 	 * @return the preference value
-	 * @since zerobandwidth-net/android [NEXT]
+	 * @since zerobandwidth-net/android 0.2.1
 	 */
 	public boolean getStringifiedBoolean( int resKey, boolean bDefault )
 	{ return this.getStringifiedBoolean( m_ctx.getString(resKey), bDefault ) ; }
@@ -240,7 +240,7 @@ public class PreferencePortal
 	 * @param resKey the ID of a string resource whose value is the preference
 	 *               key
 	 * @return the preference value
-	 * @since zerobandwidth-net/android [NEXT]
+	 * @since zerobandwidth-net/android 0.2.1
 	 */
 	public boolean getStringifiedBoolean( int resKey )
 	{ return this.getStringifiedBoolean( resKey, DEFAULT_BOOLEAN ) ; }
@@ -324,7 +324,7 @@ public class PreferencePortal
 	 * @param b the value to write
 	 * @return a preference editor which would be chained with either
 	 *  {@code apply()} or {@code commit()}
-	 * @since zerobandwidth-net/android [NEXT] (#55)
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
 	 */
 	public SharedPreferences.Editor putStringifiedBoolean( String sKey, boolean b )
 	{ return m_prefs.edit().putString( sKey, String.valueOf(b) ) ; }
@@ -338,7 +338,7 @@ public class PreferencePortal
 	 * @param b the value to write
 	 * @return a preference editor which would be chained with either
 	 *  {@code apply()} or {@code commit()}
-	 * @since zerobandwidth-net/android [NEXT] (#55)
+	 * @since zerobandwidth-net/android 0.2.1 (#55)
 	 */
 	public SharedPreferences.Editor putStringifiedBoolean( int resKey, boolean b )
 	{ return this.putStringifiedBoolean( m_ctx.getString(resKey), b ) ; }

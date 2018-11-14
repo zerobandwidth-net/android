@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Exercises parts of {@link PermissionCheckpoint}.
- * @since zerobandwidth-net/android [NEXT] (#53)
+ * @since zerobandwidth-net/android 0.2.1 (#53)
  */
 @RunWith( AndroidJUnit4.class )
 public class PermissionCheckpointTest

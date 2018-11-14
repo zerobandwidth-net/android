@@ -285,7 +285,7 @@ public class Managers
 	 * {@link Context} class. Invoked by a static initializer for the class
 	 * itself; the method is not intended to be called directly, except in unit
 	 * testing scenarios.
-	 * @param nVersion (since [NEXT]/#53) the environment's current SDK
+	 * @param nVersion (since 0.2.1/#53) the environment's current SDK
 	 *   version; passed in as a parameter solely to support testing. See how
 	 *   this is used "normally" in the static initializer.
 	 */

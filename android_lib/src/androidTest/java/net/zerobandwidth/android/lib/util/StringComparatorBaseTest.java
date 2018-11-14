@@ -9,7 +9,7 @@ import static net.zerobandwidth.android.lib.util.StringComparator.Base.EVALUATIO
 
 /**
  * Exercises {@link StringComparator.Base}.
- * @since zerobandwidth-net/android [NEXT] (#56)
+ * @since zerobandwidth-net/android 0.2.1 (#56)
  */
 @RunWith( JUnit4.class )
 public class StringComparatorBaseTest
@@ -17,7 +17,7 @@ public class StringComparatorBaseTest
 	/**
 	 * Allows this class to almost-directly the algorithm that is defined in
 	 * {@link StringComparator.Base}.
-	 * @since zerobandwidth-net/android [NEXT] (#56)
+	 * @since zerobandwidth-net/android 0.2.1 (#56)
 	 */
 	private class DumbStringComparator
 	extends StringComparator.Base

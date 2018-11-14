@@ -2,7 +2,7 @@ package net.zerobandwidth.android.lib.util;
 
 /**
  * A logical extension of {@link java.lang.Math}.
- * @since zerobandwidth-net/android [NEXT] (#56)
+ * @since zerobandwidth-net/android 0.2.1 (#56)
  */
 public final class MathZ
 {
