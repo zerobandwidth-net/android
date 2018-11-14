@@ -477,17 +477,6 @@ public interface SQLightable
 		 */
 		protected Field m_fldMagicID = null ;
 
-		/*
-		 * A map in which the keys are schematic column fields that have been
-		 * inherited by the reflected class from its ancestry, and the values
-		 * represent the schema version in which the field was added to <i>this
-		 * table</i> &mdash; which might or might not be the schema version in
-		 * which the field was added to its declaring class.
-		 * @since zerobandwidth-net/android [NEXT] (#56)
-		 */
-//		protected Map<Field,Integer> m_mapInherited = null ;
-//		protected List<Field> m_afldInherited = null ;
-
 		/**
 		 * Constructor kicks off a reflection of the selected class.
 		 * @param cls the class being reflected
@@ -498,7 +487,6 @@ public interface SQLightable
 		{
 			m_clsTable = cls ;
 			m_antTable = cls.getAnnotation( SQLiteTable.class ) ;
-//			this.initFieldMap() ;
 			this.reflectColumns() ;
 		}
 
@@ -618,98 +606,6 @@ public interface SQLightable
 			this.processInheritanceTo( clsParent, nEffectiveSince ) ;
 		}
 
-		/*
-		 * Initializes the map of field names to fields.
-		 * Consumed by the constructor.
-		 * @return (fluid)
-		 * @throws IntrospectionException if the column def can't be loaded
-		 *
-		protected Reflection<T> initFieldMap()
-		throws IntrospectionException
-		{
-			m_mapFields = new ColumnMap<>() ;
-			m_mapColNames = new HashMap<>() ;
-			List<Field> afldAll =
-					Arrays.asList( m_clsTable.getDeclaredFields() ) ;
-			ArrayList<Field> afldAnnotated = new ArrayList<>() ;
-			for( Field fld : afldAll )
-			{ // Find only the fields that are annotated as columns.
-				if( fld.isAnnotationPresent( SQLiteColumn.class ) )
-				{
-					fld.setAccessible(true) ;
-					afldAnnotated.add(fld) ;
-				}
-				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )
-					m_fldKey = fld ;
-			}
-//			if( this.processInheritedFields(m_clsTable) != null )
-//			{ // (#56) We must account for at least one inherited field.
-//				afldAnnotated.addAll( m_afldInherited ) ;
-//			}
-			if( afldAnnotated.size() > 1 )
-			{
-				Collections.sort( afldAnnotated,
-						new SQLiteHouse.ColumnIndexComparator() ) ;
-			}
-			for( Field fld : afldAnnotated )
-			{
-				Column col = new Column(fld) ;
-				m_mapFields.put( fld, col ) ;
-				m_mapColNames.put( col.getName(), fld ) ;
-				if( SQLiteHouse.MAGIC_ID_COLUMN_NAME.equals( col.getName() ) )
-				{ // The class uses this field to marshal the magic ID column.
-					m_fldMagicID = fld ;
-				}
-			}
-
-			return this ;
-		}*/
-
-		/*
-		 * If the specified class is annotated with
-		 * {@link SQLiteInheritColumns}, then this method will update the
-		 * {@code Reflection}'s list of "inherited" fields with anything that is
-		 * annotated with {@link SQLiteColumn} in the class's parent.
-		 *
-		 * Note that the parent class <b>does not</b> need to be annotated as an
-		 * {@link SQLiteTable}, nor does it need to implement
-		 * {@link SQLightable}.
-		 *
-		 * <b>THIS METHOD WILL RECURSE</b> if the parent is also annotated with
-		 * {@code SQLiteInheritColumns}.
-		 *
-		 * @param cls the class to be examined; this is originally called with
-		 *  the class that is being reflected, and may recurse with its parent
-		 *  as far as we continue to see {@link SQLiteInheritColumns}
-		 *  annotations
-		 *
-		 * @since zerobandwidth-net/android [NEXT] (#56)
-		 *
-		protected List<Field> processInheritedFields( Class<?> cls )
-		{
-			if( ! cls.isAnnotationPresent( SQLiteInheritColumns.class ) )
-				return this.m_afldInherited ; // This terminates the recursion.
-
-			Class<?> clsParent = cls.getSuperclass() ;
-			if( clsParent == null ) return m_afldInherited ; // also terminates
-
-			if( m_afldInherited == null )     // Create it, so we can add to it.
-				m_afldInherited = new ArrayList<>() ;
-
-			List<Field> afldInheritable =
-					Arrays.asList( clsParent.getDeclaredFields() ) ;
-			for( Field fld : afldInheritable )
-			{
-				if( fld.isAnnotationPresent( SQLiteColumn.class ) )
-				{
-					fld.setAccessible(true) ;
-					m_afldInherited.add(fld) ;
-				}
-			}
-
-			return this.processInheritedFields( clsParent ) ;
-		}*/
-
 		/**
 		 * Accesses the schematic class reflected in this object.
 		 * @return the class reflected in this object
@@ -789,7 +685,6 @@ public interface SQLightable
 		 */
 		@SuppressWarnings( "unused" )
 		public Column getColumnDef( Field fld )
-//		{ return m_mapFields.get(fld) ; }
 		{
 			throw new UnsupportedOperationException(
 					"This method is deprecated." ) ;
@@ -803,7 +698,6 @@ public interface SQLightable
 		 *  {@link #getColumn} instead
 		 */
 		public Column getColumnDef( String sColName )
-//		{ return this.getColumnDef( this.getField( sColName ) ) ; }
 		{ return this.getColumn(sColName) ; }
 
 		/**
@@ -969,8 +863,6 @@ public interface SQLightable
 		{
 			T oResult = this.getInstance() ; // Can throw IntrospectionException
 
-//			Collection<Column> aColumns = this.getColumnMap().values() ;
-//			for( Column col : aColumns )
 			for( Column col : m_aColumns )
 			{
 				try
@@ -1005,8 +897,6 @@ public interface SQLightable
 		{
 			T oResult = this.getInstance() ; // Can throw IntrospectionException
 
-//			Collection<Column> aColumns = this.getColumnMap().values() ;
-//			for( Column col : aColumns )
 			for( Column col : m_aColumns )
 			{
 				try
@@ -1042,7 +932,6 @@ public interface SQLightable
 		throws SchematicException
 		{
 			ContentValues vals = new ContentValues() ;
-//			for( Column col : this.getColumnMap().values() )
 			for( Column col : m_aColumns )
 			{
 				Refractor lens = col.getRefractor() ;
@@ -1091,7 +980,6 @@ public interface SQLightable
 		throws SchematicException
 		{
 			Bundle bndl = new Bundle() ;
-//			for( Column col : this.getColumnMap().values() )
 			for( Column col : m_aColumns )
 			{
 				Refractor lens = col.getRefractor() ;

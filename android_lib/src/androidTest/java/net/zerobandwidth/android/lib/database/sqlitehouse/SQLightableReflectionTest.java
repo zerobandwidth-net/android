@@ -1,11 +1,15 @@
 package net.zerobandwidth.android.lib.database.sqlitehouse;
 
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
 import net.zerobandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+import net.zerobandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
 import net.zerobandwidth.android.lib.database.sqlitehouse.refractor.StringLens;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Blargh;
+import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.BorkBorkBork;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Dargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Fargle;
 import net.zerobandwidth.android.lib.database.sqlitehouse.testschema.Quargle;
@@ -31,6 +35,9 @@ import static net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse.MAG
 @RunWith( AndroidJUnit4.class )
 public class SQLightableReflectionTest
 {
+	private static final String LOG_TAG =
+			SQLightableReflectionTest.class.getSimpleName() ;
+
 	/** Exercises the constructor and accessors. */
 	@Test
 	public void testConstructionAndAccess()
@@ -428,5 +435,103 @@ public class SQLightableReflectionTest
 				"SELECT * FROM quargles" ) ) ;
 		assertTrue( tblQuargle.buildDelete().toString().startsWith(
 				"DELETE FROM quargles" ) ) ;
+	}
+
+	/**
+	 * Really messes with the logic in
+	 * {@link SQLightable.Reflection#toContentValues}.
+	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 */
+	@Test
+	public void testToContentValuesNegatively()
+	{
+		// Force the probably can't-happen case of a broken lens.
+		SQLightable.Reflection<Fargle> tblBrokenFargle =
+				SQLightable.Reflection.reflect( Fargle.class ) ;
+		tblBrokenFargle.m_aColumns.get(0).m_lens = null ;
+		// ... and then make sure we handle it.
+		Fargle fargle = new Fargle( -1, "derp", -1 ) ;
+		SchematicException xSchema  = null ;
+		try { tblBrokenFargle.toContentValues( fargle ) ; }
+		catch( SchematicException x )
+		{ Log.d( LOG_TAG, "Caught:", x ) ; xSchema = x ; }
+		assertNotNull(xSchema) ;
+
+		// Regenerate but then lock the field again.
+		tblBrokenFargle = SQLightable.Reflection.reflect( Fargle.class ) ;
+		tblBrokenFargle.m_aColumns.get(0).getField().setAccessible(false) ;
+		xSchema = null ;
+		try { tblBrokenFargle.toContentValues( fargle ) ; }
+		catch( SchematicException x )
+		{ Log.d( LOG_TAG, "Caught:", x ) ; xSchema = x ; }
+		assertNotNull( xSchema ) ;
+	}
+
+	/**
+	 * Really messes with the logic in
+	 * {@link SQLightable.Reflection#toBundle}.
+	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 */
+	@Test
+	public void testToBundleNegatively()
+	{
+		// Force the probably can't-happen case of a broken lens.
+		SQLightable.Reflection<Fargle> tblBrokenFargle =
+				SQLightable.Reflection.reflect( Fargle.class ) ;
+		tblBrokenFargle.m_aColumns.get(0).m_lens = null ;
+		// ... and then make sure we handle it.
+		Fargle fargle = new Fargle( -1, "derp", -1 ) ;
+		SchematicException xSchema  = null ;
+		try { tblBrokenFargle.toBundle( fargle ) ; }
+		catch( SchematicException x )
+		{ Log.d( LOG_TAG, "Caught:", x ) ; xSchema = x ; }
+		assertNotNull(xSchema) ;
+
+		// Regenerate but then lock the field again.
+		tblBrokenFargle = SQLightable.Reflection.reflect( Fargle.class ) ;
+		tblBrokenFargle.m_aColumns.get(0).getField().setAccessible(false) ;
+		xSchema = null ;
+		try { tblBrokenFargle.toBundle( fargle ) ; }
+		catch( SchematicException x )
+		{ Log.d( LOG_TAG, "Caught:", x ) ; xSchema = x ; }
+		assertNotNull( xSchema ) ;
+	}
+
+	/**
+	 * Coverage-motivated test of {@link SQLightable.ReflectionMap#put}.
+	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 */
+	@Test
+	public void testRepetitivePut()
+	{
+		SQLightable.ReflectionMap map = new SQLightable.ReflectionMap() ;
+		map.put( Fargle.class ) ;
+		assertEquals( 1, map.size() ) ;
+		SQLightable.Reflection<Fargle> tbl = map.get(Fargle.class) ;
+		map.put( Fargle.class ) ;
+		assertEquals( 1, map.size() ) ;
+		assertTrue( tbl == map.get(Fargle.class) ) ;  // The very same instance.
+	}
+
+	/**
+	 * Throwaway class that doesn't even have its own constructor.
+	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 */
+	private class SuperBorked extends BorkBorkBork implements SQLightable {}
+
+	/**
+	 * Intentionally messes with the logic of
+	 * {@link SQLightable.Reflection#getInstance()}.
+	 * @since zerobandwidth-net/android [NEXT] (#53)
+	 */
+	@Test
+	public void testGetInstanceNegatively()
+	{
+		SQLightable.Reflection<SuperBorked> tbl =
+				SQLightable.Reflection.reflect( SuperBorked.class ) ;
+		IntrospectionException xNavelgaze = null ;
+		try { tbl.getInstance() ; }
+		catch( IntrospectionException x ) { xNavelgaze = x ; }
+		assertNotNull( xNavelgaze ) ;
 	}
 }
