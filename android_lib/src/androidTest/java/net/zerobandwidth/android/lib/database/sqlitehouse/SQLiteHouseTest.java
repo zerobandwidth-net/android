@@ -71,6 +71,20 @@ public class SQLiteHouseTest
 	{ return InstrumentationRegistry.getTargetContext() ; }
 
 	/**
+	 * Allows the unit test classes to get a testable instance of a
+	 * {@link SQLiteHouse} descendant.
+	 * @param clsSpec the database specification class under test
+	 * @param <DBS> the database specification class under test
+	 * @return a testable instance of the class
+	 * @since zerobandwidth-net/android [NEXT] (#56)
+	 */
+	public static <DBS extends SQLiteHouse> DBS getTestableInstanceOf( Class<DBS> clsSpec )
+	{
+		return SQLiteHouse.Factory.init().getInstance(
+				clsSpec, getTestContext() ) ;
+	}
+
+	/**
 	 * Milliseconds until we give up on a connection to a database.
 	 */
 	public static final int CONNECTION_TIMEOUT = 1000 ;
@@ -236,6 +250,7 @@ public class SQLiteHouseTest
 	 * exercises {@link SQLiteHouse#getQueryContext()}.
 	 */
 	@Test
+	@SuppressWarnings( "deprecation" ) // TODO (deprecation) remove in next major version
 	public void testGetQueryContext()
 	{
 		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;

@@ -274,24 +274,33 @@ public class Managers
 	 */
 	public static HashMap<Class<?>,String> REVERSE_MAP ;
 
-	static // initializer for REVERSE_MAP
-	{ initReverseMap() ; }  // Factored as function, which can take annotations.
-
-	@SuppressLint( "NewApi" )     // Build version managed via switch() control.
-	protected static void initReverseMap()
+	static // initializer for REVERSE_MAP; executes only if needed
 	{
-		if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.M )
-			return ; // trivially, because we won't be using the map.
+		if( Build.VERSION.SDK_INT < Build.VERSION_CODES.M )
+			initReverseMap( Build.VERSION.SDK_INT ) ;
+	}
 
+	/**
+	 * Initializes the reverse mapping of manager classes to constants from the
+	 * {@link Context} class. Invoked by a static initializer for the class
+	 * itself; the method is not intended to be called directly, except in unit
+	 * testing scenarios.
+	 * @param nVersion (since [NEXT]/#53) the environment's current SDK
+	 *   version; passed in as a parameter solely to support testing. See how
+	 *   this is used "normally" in the static initializer.
+	 */
+	@SuppressLint( "NewApi" )     // Build version managed via switch() control.
+	protected static void initReverseMap( int nVersion )
+	{
 		REVERSE_MAP = new HashMap<>() ;
 
 		Log.d( LOG_TAG, (new StringBuilder())
 				.append( "Loading reverse map for Android API " )
-				.append( Build.VERSION.SDK_INT )
+				.append( nVersion )
 				.toString()
 			);
 
-		switch( Build.VERSION.SDK_INT )
+		switch( nVersion )
 		{ // Fall through cases in reverse, populating each API's new classes.
 			case 22:
 				REVERSE_MAP.put( SubscriptionManager.class, TELEPHONY_SUBSCRIPTION_SERVICE ) ;

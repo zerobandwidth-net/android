@@ -40,7 +40,7 @@ public @interface SQLiteColumn
 	 * one-to-one concordance of columns to numeric indices.
 	 * @return a rough estimation of column index, which is really a sort
 	 *  order
-	 * @see net.zerobandwidth.android.lib.database.sqlitehouse.SQLiteHouse.ColumnIndexComparator
+	 * @see net.zerobandwidth.android.lib.database.sqlitehouse.SQLightable.Reflection.ColumnSequencer
 	 */
 	int index() default NO_INDEX_DEFINED ;
 

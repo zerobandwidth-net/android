@@ -71,7 +71,7 @@ public class SQLightableReflectionColumnTest
 	{
 		SQLightable.Reflection<Quargle>.Column col =
 			SQLightable.Reflection.reflect( Quargle.class )
-			                      .getColumnDef( "quargle" ) ;
+			                      .getColumn( "quargle" ) ;
 		assertEquals( "m_sQuargle", col.m_fldColumn.getName() ) ;
 		assertEquals( "quargle", col.m_antColumn.name() ) ;
 		assertFalse( col.m_bKey ) ;
@@ -105,10 +105,10 @@ public class SQLightableReflectionColumnTest
 		SQLightable.Reflection<Sparkle> tbl =
 				SQLightable.Reflection.reflect( Sparkle.class ) ;
 		assertEquals( CustomStringLens.class,
-				tbl.getColumnDef( "sparkle" ).getRefractor().getClass() ) ;
+				tbl.getColumn( "sparkle" ).getRefractor().getClass() ) ;
 		Sparkle o = new Sparkle( "Shiny!" ) ;
 		assertEquals( "'Shiny!'",
-				tbl.getColumnDef( "sparkle" ).getSQLColumnValueFrom(o) ) ;
+				tbl.getColumn( "sparkle" ).getSQLColumnValueFrom(o) ) ;
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class SQLightableReflectionColumnTest
 		SQLightable.Reflection<Flargle> tbl =
 				SQLightable.Reflection.reflect( Flargle.class ) ;
 		SQLightable.Reflection<Flargle>.Column col =
-				tbl.getColumnDef( "fargle_id" ) ;
+				tbl.getColumn( "fargle_id" ) ;
 		assertEquals( "m_nFargleID", col.getField().getName() ) ;
 		SQLiteColumn antCol = col.getColAttrs() ;
 		assertNotNull( antCol ) ;

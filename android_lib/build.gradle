@@ -1,6 +1,8 @@
 apply plugin: 'com.android.library'
 
 /*
+ * UNIT TESTING
+ *
  * This file contains a desperate effort to get jUnit output to show up in
  * Android Studio's test results panes, with little success.
  *
@@ -33,6 +35,14 @@ apply plugin: 'com.android.library'
  * To have a separate configuration that doesn't generate a report, make a copy
  * of the configuration described above, then remove the "Run Gradle Task"
  * pre-build item.
+ *
+ * (#52,#53,#54) ADJUSTMENTS FOR ANDROID STUDIO 3 AND GRADLE 4
+ *
+ * During the upgrade process from previous versions of Android Studio and
+ * Gradle, the "coverage runner" that is configured in AS for Gradle projects
+ * might be changed silently to "IntelliJ IDEA". In order to get the coverage
+ * reports to work, this must be changed to "JaCoCo" in the DEFAULT build
+ * configuration for Gradle projects.
  */
 
 import org.gradle.api.tasks.testing.logging.TestLogEvent
