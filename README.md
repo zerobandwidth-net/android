@@ -1,4 +1,4 @@
-## zerobandwidth.net Android Library ##
+## zer0bandwidth.net Android Library ##
 
 This Android library provides several useful features across a wide variety of
 subjects. It is organized to parallel the package structure of Android itself,
@@ -118,7 +118,7 @@ steps:
 3. Edit the following settings on the **General** tab:
     1. **Module** = **`android_lib`**
     2. **Test:** = **All in package**
-    3. **Package:** = **`net.zerobandwidth.android.lib`**
+    3. **Package:** = **`net.zer0bandwidth.android.lib`**
 4. In the **Before launch:** task list, add a new item for **Run Gradle Task**.
     1. **Gradle Project:** &rarr; *(folder icon)* = **`android:android_lib`**
     2. **Tasks:** = **`createDebugCoverageReport`**
@@ -129,4 +129,15 @@ steps:
 To have an additional configuration that doesn't generate a coverage report,
 make a copy of the configuration described above, and then remove the **Run
 Gradle Task** pre-build step.
+
+### The Library's Base Domain ###
+
+In November 2018, in a staggering display of derpitude, we missed the renewal
+notification for the original `zerobandwidth.net` domain, and it was seized by
+Chinese domain squatters. This precipitated an emergency refactor and re-release
+of the library, which was tracked as issue #58 and released in version 0.3.0,
+and changed the base domain to `zer0bandwidth.net`, which we will be watching
+more closely from now on. This is one of those "lessons that stick with you",
+folks — always route the domain registration emails to your primary email
+account, not the one you use for junk mail.
 
