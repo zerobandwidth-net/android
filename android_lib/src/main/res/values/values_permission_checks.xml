@@ -7,7 +7,7 @@
 
         See http://stackoverflow.com/a/36937109
 
-        Since zerobandwidth-net/android 0.0.3 (#10)
+        Since zer0bandwidth-net/android 0.0.3 (#10)
     -->
     <string-array name="asDangerousPermissionsRequired">
         <!-- <item>android.permission.READ_CALENDAR</item> -->

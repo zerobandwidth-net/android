@@ -6,8 +6,8 @@ such that any library classes that are closely related to standard Android
 classes will reside in a roughly-parallel package structure.
 
 For more information about the features of the library, consult its [GitHub
-Pages](http://zerobandwidth-net.github.io/android/) or its
-[JavaDoc](http://zerobandwidth-net.github.io/android/javadoc/index.html).
+Pages](http://zer0bandwidth-net.github.io/android/) or its
+[JavaDoc](http://zer0bandwidth-net.github.io/android/javadoc/index.html).
 
 ### Packages and Features ###
 
@@ -118,7 +118,7 @@ steps:
 3. Edit the following settings on the **General** tab:
     1. **Module** = **`android_lib`**
     2. **Test:** = **All in package**
-    3. **Package:** = **`net.zerobandwidth.android.lib`**
+    3. **Package:** = **`net.zer0bandwidth.android.lib`**
 4. In the **Before launch:** task list, add a new item for **Run Gradle Task**.
     1. **Gradle Project:** &rarr; *(folder icon)* = **`android:android_lib`**
     2. **Tasks:** = **`createDebugCoverageReport`**

@@ -4,7 +4,7 @@
 
     <string name="app_name_and_version_format">%1$s %2$s</string>
 
-    <!-- see net.zerobandwidth.android.lib.ui.MultitapAlertCompatDialog -->
+    <!-- see net.zer0bandwidth.android.lib.ui.MultitapAlertCompatDialog -->
     <string name="label_btnMultitapPositive_LTR">%1$s (%2$s)</string>
     <string name="label_btnMultitapPositive_RTL">(%2$s) %1$s</string>
 

@@ -24,7 +24,7 @@ apply plugin: 'com.android.library'
  * 3. Edit the following on the "General" tab:
  *     3a. Module -> android_lib
  *     3b. Test: -> All in package
- *     3c. Package: -> net.zerobandwidth.android.lib
+ *     3c. Package: -> net.zer0bandwidth.android.lib
  * 4. In the "Before launch:" task list, add a new item for "Run Gradle Task".
  *     4a. Gradle project: -> (folder icon) -> android:android_lib
  *     4b. Tasks: -> createDebugCoverageReport
