@@ -6,8 +6,8 @@ such that any library classes that are closely related to standard Android
 classes will reside in a roughly-parallel package structure.
 
 For more information about the features of the library, consult its [GitHub
-Pages](http://zer0bandwidth-net.github.io/android/) or its
-[JavaDoc](http://zer0bandwidth-net.github.io/android/javadoc/index.html).
+Pages](http://zerobandwidth-net.github.io/android/) or its
+[JavaDoc](http://zerobandwidth-net.github.io/android/javadoc/index.html).
 
 ### Packages and Features ###
 
@@ -129,4 +129,15 @@ steps:
 To have an additional configuration that doesn't generate a coverage report,
 make a copy of the configuration described above, and then remove the **Run
 Gradle Task** pre-build step.
+
+### The Library's Base Domain ###
+
+In November 2018, in a staggering display of derpitude, we missed the renewal
+notification for the original `zerobandwidth.net` domain, and it was seized by
+Chinese domain squatters. This precipitated an emergency refactor and re-release
+of the library, which was tracked as issue #58 and released in version 0.3.0,
+and changed the base domain to `zer0bandwidth.net`, which we will be watching
+more closely from now on. This is one of those "lessons that stick with you",
+folks — always route the domain registration emails to your primary email
+account, not the one you use for junk mail.
 
