@@ -10,7 +10,7 @@
 
     <!--
         A small selection of permission to check in PermissionCheckpointTest.
-        @since zerobandwidth-net/android 0.2.1 (#53)
+        @since zer0bandwidth-net/android 0.2.1 (#53)
     -->
     <string-array name="asTestableListOfDangerousPermissions">
         <item>android.permission.SEND_SMS</item>
