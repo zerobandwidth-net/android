@@ -1,4 +1,4 @@
-## zerobandwidth.net Android Library ##
+## zer0bandwidth.net Android Library ##
 
 This Android library provides several useful features across a wide variety of
 subjects. It is organized to parallel the package structure of Android itself,

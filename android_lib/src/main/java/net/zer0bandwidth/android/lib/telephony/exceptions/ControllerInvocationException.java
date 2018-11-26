@@ -5,7 +5,7 @@ package net.zer0bandwidth.android.lib.telephony.exceptions;
  * {@link net.zer0bandwidth.android.lib.telephony.TelephonyController} when the
  * invocation of the underlying Android OS method fails. This may be caught and
  * inspected to determine the root cause of the error.
- * @since zerobandwidth.net/android 0.0.5 (#16)
+ * @since zer0bandwidth-net/android 0.0.5 (#16)
  * @see RuntimeException#getCause()
  */
 public class ControllerInvocationException
