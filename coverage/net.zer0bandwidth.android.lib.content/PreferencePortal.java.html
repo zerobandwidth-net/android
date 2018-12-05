@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PreferencePortal.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zer0bandwidth.android.lib.content</a> &gt; <span class="el_source">PreferencePortal.java</span></div><h1>PreferencePortal.java</h1><pre class="source lang-java linenums">package net.zer0bandwidth.android.lib.content;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
+/**
+ * An instance of this class acts as a portal to the app's shared preferences.
+ * It provides some convenience wrappers for some of the more commonly-used
+ * methods of {@link android.content.SharedPreferences}; most notably:
+ *
+ * &lt;ul&gt;
+ *     &lt;li&gt;
+ *         Getter methods that substitute sane defaults, so you don't have to
+ *         keep supplying them yourself.
+ *     &lt;/li&gt;
+ *     &lt;li&gt;
+ *         Quick methods for writing preference values to a
+ *         {@link SharedPreferences.Editor}; these methods can then be chained
+ *         with {@link SharedPreferences.Editor#apply apply()} or
+ *         {@link SharedPreferences.Editor#commit commit()} (though the latter
+ *         may draw the ire of Lint without a
+ *         {@literal @SuppressLint( &quot;CommitPrefEdits&quot; )} annotation.
+ *     &lt;/li&gt;
+ *     &lt;li&gt;
+ *         A set of methods for marshalling integer-value preferences as strings
+ *         in the app's preferences. This is a workaround for occasional wonky
+ *         behavior of native integer-value preferences in Android.
+ *     &lt;/li&gt;
+ *     &lt;li&gt;&lt;i&gt;(since 0.2.1)&lt;/i&gt;
+ *         A set of methods for marshalling Boolean-value preferences as strings
+ *         in the app's preferences.
+ *     &lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;An app may choose to extend this class to further provide easy methods for
+ * getting and setting specific preferences.&lt;/p&gt;
+ *
+ * &lt;p&gt;Note that this class is basically syntactic sugar; an app can easily do
+ * all these things itself, instead. This author accepts no responsibility for
+ * any taunting or other lack of respect for using this class to clean up what
+ * would otherwise be a pretty tedious coding task. However, in the case of
+ * stringified integer values, the class does provide static versions of those
+ * methods, for those who don't want to lean heavily on the whole class.&lt;/p&gt;
+ *
+ * @since zer0bandwidth-net/android 0.0.4 (#14)
+ */
+@SuppressWarnings( &quot;unused&quot; )                              // This is a library.
+public class PreferencePortal
+{
+<span class="fc" id="L51">	public static final String LOG_TAG = PreferencePortal.class.getSimpleName();</span>
+
+	/** The default value for Boolean preferences. ({@code false}) */
+	public static final boolean DEFAULT_BOOLEAN = false ;
+	/**
+	 * A default value for integer fields, which indicates &quot;not set&quot;.
+	 * ({@code -1}). Assign this default when your integer preference is
+	 * intended to be unsigned, but knowing that the value has not been set at
+	 * all is valuable.
+	 */
+	public static final int DEFAULT_INT_NOT_SET = -1 ;
+	/**
+	 * The usual default value for integer fields. ({@code 0}) The class will
+	 * choose this default value on its own, but it may be reconfigured with
+	 * {@link #useIntegerDefaultValue}.
+	 */
+	public static final int DEFAULT_INT_ZERO = 0 ;
+
+	/** The default value for string fields. ({@code null} */
+<span class="fc" id="L70">	public static final String DEFAULT_STRING = null ;</span>
+
+	/**
+	 * Get the value of a Boolean preference that was stored as a string.
+	 * @param prefs the app's preferences
+	 * @param sKey the preference key
+	 * @param bDefault the default value, if not set
+	 * @return the Boolean value of the preference
+	 * @since zer0bandwidth-net/android 0.2.1 (#55)
+	 */
+	public static boolean getStringifiedBoolean(
+			SharedPreferences prefs, String sKey, boolean bDefault )
+	{
+<span class="fc" id="L83">		return Boolean.valueOf(</span>
+<span class="fc" id="L84">				prefs.getString( sKey, String.valueOf( bDefault ) ) ) ;</span>
+	}
+
+	/**
+	 * Edit the value of a Boolean preference that is stored as a string.
+	 * This method should be chained with either the {@code apply()} or
+	 * {@code commit()} method of the preference editor to complete the change.
+	 * @param prefs the app's preferences
+	 * @param sKey the preference key
+	 * @param b the value to write
+	 * @return a preference editor which would be chained with either
+	 *  {@code apply()} or {@code commit()}
+	 * @since zer0bandwidth-net/android 0.2.1 (#55)
+	 */
+	public static SharedPreferences.Editor putStringifiedBoolean(
+			SharedPreferences prefs, String sKey, boolean b )
+<span class="fc" id="L100">	{ return prefs.edit().putString( sKey, String.valueOf(b) ) ; }</span>
+
+	/**
+	 * Get the value of an integer preference that is stored as a string.
+	 * @param prefs the app's preferences
+	 * @param sKey the preference key
+	 * @param zDefault the default value, if not set
+	 * @return the integer value of the preference
+	 * @throws NumberFormatException if the preference's value can't be parsed
+	 */
+	public static int getStringifiedInt( SharedPreferences prefs,
+		String sKey, int zDefault )
+	throws NumberFormatException
+	{
+<span class="fc" id="L114">		return Integer.valueOf(</span>
+<span class="fc" id="L115">				prefs.getString( sKey, String.valueOf(zDefault) ) ) ;</span>
+	}
+
+	/**
+	 * Edit the value of an integer preference that is stored as a string.
+	 * This method should be chained with either the {@code apply()} or
+	 * {@code commit()} method of the preference editor to complete the change.
+	 * @param prefs the app's preferences
+	 * @param sKey the preference key
+	 * @param z the value to write
+	 * @return a preference editor which would be chained with either
+	 *  {@code apply()} or {@code commit()}
+	 */
+	public static SharedPreferences.Editor putStringifiedInt(
+		SharedPreferences prefs, String sKey, int z )
+<span class="fc" id="L130">	{ return prefs.edit().putString( sKey, String.valueOf(z) ) ; }</span>
+
+	/**
+	 * Get the value of a long-integer preference that is stored as a string.
+	 * @param prefs the app's preferences
+	 * @param sKey the preference key
+	 * @param zDefault the default value, if not set
+	 * @return the long-integer value of the preference
+	 * @throws NumberFormatException if the preference's value can't be parsed
+	 */
+	public static long getStringifiedLong( SharedPreferences prefs,
+		String sKey, long zDefault )
+	throws NumberFormatException
+	{
+<span class="fc" id="L144">		return Long.valueOf(</span>
+<span class="fc" id="L145">				prefs.getString( sKey, String.valueOf(zDefault) ) ) ;</span>
+	}
+
+	/**
+	 * Edit the value of a long-integer preference that is stored as a string.
+	 * This method should be chained with either the {@code apply} or
+	 * {@code commit()} method of the preference editor to complete the change.
+	 * @param prefs the app's preferences
+	 * @param sKey the preference key
+	 * @param z the value to write
+	 * @return a preference editor which would be chained with either
+	 *  {@code apply()} or {@code commit()}
+	 */
+	public static SharedPreferences.Editor putStringifiedLong(
+		SharedPreferences prefs, String sKey, long z )
+<span class="fc" id="L160">	{ return prefs.edit().putString( sKey, String.valueOf(z) ) ; }</span>
+
+
+<span class="fc" id="L163">	protected int m_zDefaultInteger = DEFAULT_INT_ZERO ;</span>
+
+	/** The context in which preferences are managed. */
+	protected Context m_ctx ;
+
+	/** A persistent reference to the app's preferences. */
+	protected SharedPreferences m_prefs ;
+
+	public PreferencePortal( Context ctx )
+<span class="fc" id="L172">	{</span>
+<span class="fc" id="L173">		m_ctx = ctx ;</span>
+<span class="fc" id="L174">		m_prefs = PreferenceManager.getDefaultSharedPreferences( ctx ) ;</span>
+<span class="fc" id="L175">	}</span>
+
+	/**
+	 * Accesses the {@link SharedPreferences} instance used by this class.
+	 * @return the app's preferences
+	 */
+	public SharedPreferences getPrefs()
+<span class="fc" id="L182">	{ return m_prefs ; }</span>
+
+	/**
+	 * Specifies the value that should be used as the integer default.
+	 * @param zDefault a value to be used as the default for all integers
+	 * @return (fluid)
+	 * @see #DEFAULT_INT_ZERO
+	 * @see #DEFAULT_INT_NOT_SET
+	 */
+	public PreferencePortal useIntegerDefaultValue( int zDefault )
+<span class="fc" id="L192">	{ m_zDefaultInteger = zDefault ; return this ; }</span>
+
+	public boolean getBoolean( String sKey, boolean bDefault )
+<span class="fc" id="L195">	{ return m_prefs.getBoolean( sKey, bDefault ) ; }</span>
+
+	public boolean getBoolean( String sKey )
+<span class="fc" id="L198">	{ return this.getBoolean( sKey, DEFAULT_BOOLEAN ) ; }</span>
+
+	public boolean getBoolean( int resKey, boolean bDefault )
+<span class="fc" id="L201">	{ return this.getBoolean( m_ctx.getString(resKey), bDefault ) ; }</span>
+
+	public boolean getBoolean( int resKey )
+<span class="fc" id="L204">	{ return this.getBoolean( resKey, DEFAULT_BOOLEAN ) ; }</span>
+
+	/**
+	 * Fetches a Boolean preference that was stored as a string.
+	 * @param sKey the preference key
+	 * @param bDefault a default if not set
+	 * @return the preference value
+	 * @since zer0bandwidth-net/android 0.2.1
+	 */
+	public boolean getStringifiedBoolean( String sKey, boolean bDefault )
+<span class="fc" id="L214">	{ return PreferencePortal.getStringifiedBoolean(m_prefs,sKey,bDefault) ; }</span>
+
+	/**
+	 * Fetches a Boolean preference that was stored as a string, using
+	 * {@link #DEFAULT_BOOLEAN} as the default if the preference is not set.
+	 * @param sKey the preference key
+	 * @return the preference value
+	 * @since zer0bandwidth-net/android 0.2.1
+	 */
+	public boolean getStringifiedBoolean( String sKey )
+<span class="fc" id="L224">	{ return this.getStringifiedBoolean( sKey, DEFAULT_BOOLEAN ) ; }</span>
+
+	/**
+	 * Fetches a Boolean preference that was stored as a string.
+	 * @param resKey the ID of a string resource whose value is the preference
+	 *               key
+	 * @param bDefault a default if not set
+	 * @return the preference value
+	 * @since zer0bandwidth-net/android 0.2.1
+	 */
+	public boolean getStringifiedBoolean( int resKey, boolean bDefault )
+<span class="fc" id="L235">	{ return this.getStringifiedBoolean( m_ctx.getString(resKey), bDefault ) ; }</span>
+
+	/**
+	 * Fetches a Boolean preference that was stored as a string, using
+	 * {@link #DEFAULT_BOOLEAN} as the default if the preference is not set.
+	 * @param resKey the ID of a string resource whose value is the preference
+	 *               key
+	 * @return the preference value
+	 * @since zer0bandwidth-net/android 0.2.1
+	 */
+	public boolean getStringifiedBoolean( int resKey )
+<span class="fc" id="L246">	{ return this.getStringifiedBoolean( resKey, DEFAULT_BOOLEAN ) ; }</span>
+
+	public int getInt( String sKey, int zDefault )
+<span class="fc" id="L249">	{ return m_prefs.getInt( sKey, zDefault ) ; }</span>
+
+	public int getInt( String sKey )
+<span class="fc" id="L252">	{ return this.getInt( sKey, m_zDefaultInteger ) ; }</span>
+
+	public int getInt( int resKey, int zDefault )
+<span class="fc" id="L255">	{ return this.getInt( m_ctx.getString(resKey), zDefault ) ; }</span>
+
+	public int getInt( int resKey )
+<span class="fc" id="L258">	{ return this.getInt( resKey, m_zDefaultInteger ) ; }</span>
+
+	public int getStringifiedInt( String sKey, int zDefault )
+	throws NumberFormatException
+<span class="fc" id="L262">	{ return PreferencePortal.getStringifiedInt( m_prefs, sKey, zDefault ) ; }</span>
+
+	public int getStringifiedInt( String sKey )
+<span class="fc" id="L265">	{ return this.getStringifiedInt( sKey, m_zDefaultInteger ) ; }</span>
+
+	public int getStringifiedInt( int resKey, int zDefault )
+<span class="fc" id="L268">	{ return this.getStringifiedInt( m_ctx.getString(resKey), zDefault ) ; }</span>
+
+	public int getStringifiedInt( int resKey )
+<span class="fc" id="L271">	{ return this.getStringifiedInt( resKey, m_zDefaultInteger ) ; }</span>
+
+	public long getLong( String sKey, long zDefault )
+<span class="fc" id="L274">	{ return m_prefs.getLong( sKey, zDefault ) ; }</span>
+
+	public long getLong( String sKey )
+<span class="fc" id="L277">	{ return this.getLong( sKey, ((long)(m_zDefaultInteger)) ) ; }</span>
+
+	public long getLong( int resKey, long zDefault )
+<span class="fc" id="L280">	{ return this.getLong( m_ctx.getString(resKey), zDefault ) ; }</span>
+
+	public long getLong( int resKey )
+<span class="fc" id="L283">	{ return this.getLong( resKey, ((long)(m_zDefaultInteger)) ) ; }</span>
+
+	public long getStringifiedLong( String sKey, long zDefault )
+	throws NumberFormatException
+<span class="fc" id="L287">	{ return PreferencePortal.getStringifiedLong( m_prefs, sKey, zDefault ) ; }</span>
+
+	public long getStringifiedLong( String sKey )
+	throws NumberFormatException
+<span class="fc" id="L291">	{ return this.getStringifiedLong( sKey, ((long)(m_zDefaultInteger)) ) ; }</span>
+
+	public long getStringifiedLong( int resKey, long zDefault )
+	throws NumberFormatException
+<span class="fc" id="L295">	{ return this.getStringifiedLong( m_ctx.getString(resKey), zDefault ) ; }</span>
+
+	public long getStringifiedLong( int resKey )
+	throws NumberFormatException
+<span class="fc" id="L299">	{ return this.getStringifiedLong( resKey, ((long)(m_zDefaultInteger)) ) ; }</span>
+
+	public String getString( String sKey, String sDefault )
+<span class="fc" id="L302">	{ return m_prefs.getString( sKey, sDefault ) ; }</span>
+
+	public String getString( String sKey )
+<span class="fc" id="L305">	{ return this.getString( sKey, DEFAULT_STRING ) ; }</span>
+
+	public String getString( int resKey, String sDefault )
+<span class="fc" id="L308">	{ return this.getString( m_ctx.getString(resKey), sDefault ) ; }</span>
+
+	public String getString( int resKey )
+<span class="fc" id="L311">	{ return this.getString( resKey, DEFAULT_STRING ) ; }</span>
+
+	public SharedPreferences.Editor putBoolean( String sKey, boolean b )
+<span class="fc" id="L314">	{ return m_prefs.edit().putBoolean( sKey, b ) ; }</span>
+
+	public SharedPreferences.Editor putBoolean( int resKey, boolean b )
+<span class="fc" id="L317">	{ return this.putBoolean( m_ctx.getString(resKey), b ) ; }</span>
+
+	/**
+	 * Edit the value of a Boolean preference that is stored as a string.
+	 * This method should be chained with either the {@code apply()} or
+	 * {@code commit()} method of the preference editor to complete the change.
+	 * @param sKey the preference key
+	 * @param b the value to write
+	 * @return a preference editor which would be chained with either
+	 *  {@code apply()} or {@code commit()}
+	 * @since zer0bandwidth-net/android 0.2.1 (#55)
+	 */
+	public SharedPreferences.Editor putStringifiedBoolean( String sKey, boolean b )
+<span class="fc" id="L330">	{ return m_prefs.edit().putString( sKey, String.valueOf(b) ) ; }</span>
+
+	/**
+	 * Edit the value of a Boolean preference that is stored as a string.
+	 * This method should be chained with either the {@code apply()} or
+	 * {@code commit()} method of the preference editor to complete the change.
+	 * @param resKey the ID of a string resource whose value is the preference
+	 *               key
+	 * @param b the value to write
+	 * @return a preference editor which would be chained with either
+	 *  {@code apply()} or {@code commit()}
+	 * @since zer0bandwidth-net/android 0.2.1 (#55)
+	 */
+	public SharedPreferences.Editor putStringifiedBoolean( int resKey, boolean b )
+<span class="fc" id="L344">	{ return this.putStringifiedBoolean( m_ctx.getString(resKey), b ) ; }</span>
+
+	public SharedPreferences.Editor putInt( String sKey, int z )
+<span class="fc" id="L347">	{ return m_prefs.edit().putInt( sKey, z ) ; }</span>
+
+	public SharedPreferences.Editor putInt( int resKey, int z )
+<span class="fc" id="L350">	{ return this.putInt( m_ctx.getString(resKey), z ) ; }</span>
+
+	public SharedPreferences.Editor putStringifiedInt( String sKey, int z )
+<span class="fc" id="L353">	{ return m_prefs.edit().putString( sKey, String.valueOf(z) ) ; }</span>
+
+	public SharedPreferences.Editor putStringifiedInt( int resKey, int z )
+<span class="fc" id="L356">	{ return this.putStringifiedInt( m_ctx.getString(resKey), z ) ; }</span>
+
+	public SharedPreferences.Editor putLong( String sKey, long z )
+<span class="fc" id="L359">	{ return m_prefs.edit().putLong( sKey, z ) ; }</span>
+
+	public SharedPreferences.Editor putLong( int resKey, long z )
+<span class="fc" id="L362">	{ return this.putLong( m_ctx.getString(resKey), z ) ; }</span>
+
+	public SharedPreferences.Editor putStringifiedLong( String sKey, long z )
+<span class="fc" id="L365">	{ return m_prefs.edit().putString( sKey, String.valueOf(z) ) ; }</span>
+
+	public SharedPreferences.Editor putStringifiedLong( int resKey, long z )
+<span class="fc" id="L368">	{ return this.putStringifiedLong( m_ctx.getString(resKey), z ) ; }</span>
+
+	public SharedPreferences.Editor putString( String sKey, String s )
+<span class="fc" id="L371">	{ return m_prefs.edit().putString( sKey, s ) ; }</span>
+
+	public SharedPreferences.Editor putString( int resKey, String s )
+<span class="fc" id="L374">	{ return this.putString( m_ctx.getString(resKey), s ) ; }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span>Generated by the Android Gradle plugin 3.1.3</div></body></html>

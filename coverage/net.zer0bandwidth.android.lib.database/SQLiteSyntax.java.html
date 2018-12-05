@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLiteSyntax.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zer0bandwidth.android.lib.database</a> &gt; <span class="el_source">SQLiteSyntax.java</span></div><h1>SQLiteSyntax.java</h1><pre class="source lang-java linenums">package net.zer0bandwidth.android.lib.database;
+
+/**
+ * Provides named constants for various SQLite syntactic elements, magic values,
+ * etc., to any class that needs them. The constants in this class may be
+ * individually obtained via static imports, or the entire class may be imported
+ * to make all constants available to the consuming class.
+ *
+ * &lt;h3&gt;Magic Values for Android Database Methods&lt;/h3&gt;
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;{@link #COLUMN_NOT_FOUND} = -1&lt;/li&gt;
+ * &lt;li&gt;{@link #DELETE_ALL} = {@code &quot;1&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #DELETE_FAILED} = -1&lt;/li&gt;
+ * &lt;li&gt;{@link #INSERT_FAILED} = -1L&lt;/li&gt;
+ * &lt;li&gt;{@link #REPLACE_FAILED} = -1L&lt;/li&gt;
+ * &lt;li&gt;{@link #SELECT_ALL} = {@code null}&lt;/li&gt;
+ * &lt;li&gt;{@link #UPDATE_ALL} = {@code &quot;1&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #UPDATE_FAILED} = -1&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;h3&gt;SQLite Syntactic Tokens&lt;/h3&gt;
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;{@link #SQL_ADD_COLUMN} = {@code &quot; ADD COLUMN &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_ALTER_TABLE} = {@code &quot;ALTER TABLE &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_COLUMN_DEFAULT} = {@code &quot; DEFAULT &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_COLUMN_DEFAULT_NULL} = {@code &quot; DEFAULT NULL&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_COLUMN_IS_KEYLIKE} = {@code &quot; UNIQUE NOT NULL&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_COLUMN_NULLABLE} = {@code &quot; NULL&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_COLUMN_NOT_NULLABLE} = {@code &quot; NOT NULL&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_DELETE_FROM} = {@code &quot;DELETE FROM &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_FROM} = {@code &quot; FROM &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_GROUP_BY} = {@code &quot; GROUP BY &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_HAVING} = {@code &quot; HAVING &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_INSERT_INTO} = {@code &quot;INSERT INTO &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_LIMIT} = {@code &quot; LIMIT &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQLITE_NULL} = {@code &quot;NULL&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_ORDER_BY} = {@code &quot; ORDER BY &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_ORDER_ASC} = {@code &quot;ASC&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_ORDER_DESC} = {@code &quot;DESC&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_SELECT} = {@code &quot;SELECT &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_SELECT_ALL_COLUMNS} = {@code &quot;*&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_SET} = {@code &quot; SET &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_UPDATE} = {@code &quot;UPDATE &quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQLITE_VAR} = {@code &quot;?&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQL_WHERE} = {@code &quot; WHERE &quot;}&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; {@code SQL_COLUMN_DEFAULT} should not be used in conjunction
+ * with {@code SQL_COLUMN_DEFAULT_NULL}, which also includes the SQL
+ * {@code DEFAULT} keyword. Similarly, {@code SQL_COLUMN_NOT_NULLABLE} should
+ * not be used with {@code SQL_COLUMN_IS_KEYLIKE}, which includes the same SQL
+ * {@code NOT NULL} clause.&lt;/p&gt;
+ *
+ * &lt;h3&gt;SQLite Type Tokens&lt;/h3&gt;
+ *
+ * &lt;ul&gt;
+ * &lt;li&gt;{@link #SQLITE_TYPE_INT} = {@code &quot;INTEGER&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQLITE_TYPE_TEXT} = {@code &quot;TEXT&quot;}&lt;/li&gt;
+ * &lt;li&gt;{@link #SQLITE_TYPE_REAL} = {@code &quot;REAL&quot;}&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;h2&gt;Items NOT Provided by This Class&lt;/h2&gt;
+ *
+ * &lt;p&gt;The static constants and methods that support marshalling of Boolean
+ * values as integers in SQLite are not defined here; they are defined in
+ * {@link SQLitePortal} to keep the constants and methods in one place.&lt;/p&gt;
+ *
+ * @since zer0bandwidth-net/android 0.1.7 (#48)
+ */
+public final class SQLiteSyntax
+{
+/// Magic values for Android SQLite functions //////////////////////////////////
+
+	/**
+	 * Magic value returned by {@link android.database.Cursor#getColumnIndex}
+	 * when a column doesn't exist. (A column index of {@code -1} indicates an
+	 * invalid state.)
+	 */
+	public static final int COLUMN_NOT_FOUND = -1 ;
+
+	/**
+	 * Magic value to be passed to
+	 * {@link android.database.sqlite.SQLiteDatabase#delete} when we want the
+	 * method to return a count of the number of rows deleted. (A literal value
+	 * of {@code 1} always matches as {@code true} in a {@code WHERE} clause.)
+	 * The Android documentation implies that passing {@code null} as the
+	 * {@code WHERE} clause will not return a count.
+	 */
+	public static final String DELETE_ALL = &quot;1&quot; ;
+
+	/**
+	 * Similar to the standard magic number returned when an insertion query
+	 * fails (see {@link #INSERT_FAILED}, this return value from the execution
+	 * methods of
+	 * {@link net.zer0bandwidth.android.lib.database.querybuilder.DeletionBuilder}
+	 * indicates that the delete operation could not be carried out because of
+	 * an exception.
+	 */
+	public static final int DELETE_FAILED = -1 ;
+
+	/**
+	 * Magic value returned by
+	 * {@link android.database.sqlite.SQLiteDatabase#insert} and related methods
+	 * when a row insertion fails. (A value of {@code -1} as the row ID
+	 * indicates an error state.)
+	 */
+	public static final long INSERT_FAILED = -1L ;
+
+	/**
+	 * Magic value returned by
+	 * {@link android.database.sqlite.SQLiteDatabase#replace} and related
+	 * methods when a row replacement fails. (A value of {@code -1} as the row
+	 * ID indicates an error state.)
+	 */
+	@SuppressWarnings(&quot;unused&quot;)
+	public static final long REPLACE_FAILED = -1L ;
+
+	/**
+	 * Magic value to be passed to
+	 * {@link android.database.sqlite.SQLiteDatabase#query} and related
+	 * methods when we want to select all rows, &lt;i&gt;not&lt;/i&gt; the actual SQL syntax
+	 * to specify &quot;all columns&quot; in a {@code SELECT} statement.
+	 * @see #SQL_SELECT_ALL_COLUMNS
+	 */
+<span class="nc" id="L127">	public static final String SELECT_ALL = null ;</span>
+
+	/**
+	 * Magic value to be passed to
+	 * {@link android.database.sqlite.SQLiteDatabase#update} and related
+	 * methods when we want to indiscriminately update all rows, and get a count
+	 * of the number of rows that were updated. (A literal value of {@code 1}
+	 * always matches as {@code true} in a {@code WHERE} clause.)
+	 * @since zer0bandwidth-net/android 0.1.1 (#23)
+	 */
+	public static final String UPDATE_ALL = &quot;1&quot; ;
+
+	/**
+	 * Similar to the standard magic number returned when an insertion query
+	 * fails (see {@link #INSERT_FAILED}, this return value from the execution
+	 * methods of
+	 * {@link net.zer0bandwidth.android.lib.database.querybuilder.UpdateBuilder}
+	 * indicates that the delete operation could not be carried out because of
+	 * an exception.
+	 */
+	public static final int UPDATE_FAILED = -1 ;
+
+/// Static Constants: SQLite Syntax ////////////////////////////////////////////
+
+	/**
+	 * Begins a SQL {@code ADD COLUMN} clause in an {@code ALTER TABLE}
+	 * statement.
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_ADD_COLUMN = &quot; ADD COLUMN &quot; ;
+
+	/**
+	 * Begins a SQL {@code ALTER TABLE} statement.
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_ALTER_TABLE = &quot;ALTER TABLE &quot; ;
+
+	/**
+	 * Sets up the part of a column definition clause in which the default value
+	 * is specified
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_DEFAULT = &quot; DEFAULT &quot; ;
+
+	/**
+	 * Defines a column with a null default value.
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_DEFAULT_NULL = &quot; DEFAULT NULL&quot; ;
+
+	/**
+	 * Defines a column as &quot;key-like&quot; &amp;mdash; unique and not nullable.
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_IS_KEYLIKE = &quot; UNIQUE NOT NULL&quot; ;
+
+	/**
+	 * Defines a column as nullable.
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_NULLABLE = &quot; NULL&quot; ;
+
+	/**
+	 * Defines a column as not nullable.
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	public static final String SQL_COLUMN_NOT_NULLABLE = &quot; NOT NULL&quot; ;
+
+	/** Begins a SQL {@code DELETE FROM} statement. */
+	public static final String SQL_DELETE_FROM = &quot;DELETE FROM &quot; ;
+
+	/** Begins a {@code FROM} clause in a SQL {@code SELECT} statement. */
+	public static final String SQL_FROM = &quot; FROM &quot; ;
+
+	/** Begins a {@code GROUP BY} clause in a SQL {@code SELECT} statement. */
+	public static final String SQL_GROUP_BY = &quot; GROUP BY &quot; ;
+
+	/** Begins a {@code HAVING} clause in a SQL {@code SELECT} statement. */
+	public static final String SQL_HAVING = &quot; HAVING &quot; ;
+
+	/** Begins a SQL {@code INSERT} statement. */
+	public static final String SQL_INSERT_INTO = &quot;INSERT INTO &quot; ;
+
+	/**
+	 * Begins a {@code LIMIT} clause in a SQL {@code SELECT} statement.
+	 * @see net.zer0bandwidth.android.lib.database.querybuilder.SelectionBuilder#NO_LIMIT
+	 */
+	public static final String SQL_LIMIT = &quot; LIMIT &quot; ;
+
+	/**
+	 * The string to be used in an SQLite statement to represent a null value.
+	 */
+	public static final String SQLITE_NULL = &quot;NULL&quot; ;
+
+	/** Begins an {@code ORDER BY} clause in a SQL {@code SELECT} statement. */
+	public static final String SQL_ORDER_BY = &quot; ORDER BY &quot; ;
+
+	/** Specifies that a column should be ordered ascending. */
+	public static final String SQL_ORDER_ASC = &quot;ASC&quot; ;
+
+	/** Specifies that a column should be ordered descending. */
+	public static final String SQL_ORDER_DESC = &quot;DESC&quot; ;
+
+	/** Begins a SQL {@code SELECT} operation. */
+	public static final String SQL_SELECT = &quot;SELECT &quot; ;
+
+	/**
+	 * SQL syntax to specify that all columns should be returned by a
+	 * {@code SELECT} statement. This is the usual SQL asterisk wildcard
+	 * ({@code *}), &lt;i&gt;not&lt;/i&gt; the magic Android/SQLite parameter that would be
+	 * passed to a {@link android.database.sqlite.SQLiteDatabase#query}
+	 * invocation.
+	 * @see #SELECT_ALL
+	 */
+	public static final String SQL_SELECT_ALL_COLUMNS = &quot;*&quot; ;
+
+	/**
+	 * SQLite keyword for {@code INSERT} and {@code UPDATE} queries that set
+	 * explicit column sets.
+	 */
+	public static final String SQL_SET = &quot; SET &quot; ;
+
+	/** Begins a SQL {@code UPDATE} operation. */
+	public static final String SQL_UPDATE = &quot;UPDATE &quot; ;
+
+	/**
+	 * The character that stands in for a variable value in the Android format
+	 * string that is passed to {@link android.database.sqlite.SQLiteDatabase}
+	 * query methods.
+	 */
+	public static final String SQLITE_VAR = &quot;?&quot; ;
+
+	/** Begins a {@code WHERE} clause in an SQL statement. */
+	public static final String SQL_WHERE = &quot; WHERE &quot; ;
+
+/// Static Constants: SQLite Data Types ////////////////////////////////////////
+
+	/** The data type token representing integer columns in SQLite. */
+	public static final String SQLITE_TYPE_INT = &quot;INTEGER&quot; ;
+
+	/** The data type token representing text columns in SQLite. */
+	public static final String SQLITE_TYPE_TEXT = &quot;TEXT&quot; ;
+
+	/** The data type token representing decimal-numeric columns in SQLite. */
+	public static final String SQLITE_TYPE_REAL = &quot;REAL&quot; ;
+
+/// Other //////////////////////////////////////////////////////////////////////
+
+	/** Forbid instantiation. */
+<span class="nc" id="L276">	private SQLiteSyntax() {}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span>Generated by the Android Gradle plugin 3.1.3</div></body></html>

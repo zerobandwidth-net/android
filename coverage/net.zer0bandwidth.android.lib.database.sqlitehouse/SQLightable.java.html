@@ -1,0 +1,1098 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLightable.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zer0bandwidth.android.lib.database.sqlitehouse</a> &gt; <span class="el_source">SQLightable.java</span></div><h1>SQLightable.java</h1><pre class="source lang-java linenums">package net.zer0bandwidth.android.lib.database.sqlitehouse;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.os.Bundle;
+import android.util.Log;
+
+import net.zer0bandwidth.android.lib.database.querybuilder.DeletionBuilder;
+import net.zer0bandwidth.android.lib.database.querybuilder.InsertionBuilder;
+import net.zer0bandwidth.android.lib.database.querybuilder.QueryBuilder;
+import net.zer0bandwidth.android.lib.database.querybuilder.SelectionBuilder;
+import net.zer0bandwidth.android.lib.database.querybuilder.UpdateBuilder;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.annotations.SQLiteInheritColumns;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.annotations.SQLitePrimaryKey;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.exceptions.SchematicException;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.refractor.NullRefractor;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.refractor.Refractor;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.refractor.RefractorMap;
+import net.zer0bandwidth.android.lib.util.LexicalStringComparator;
+import net.zer0bandwidth.android.lib.util.MathZ;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQLITE_NULL;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_INT;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQLITE_TYPE_TEXT;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQL_ADD_COLUMN;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQL_ALTER_TABLE;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQL_COLUMN_DEFAULT;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQL_COLUMN_DEFAULT_NULL;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQL_COLUMN_IS_KEYLIKE;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQL_COLUMN_NOT_NULLABLE;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQL_COLUMN_NULLABLE;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.SQLiteHouse.MAGIC_ID_COLUMN_NAME;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.annotations.SQLiteColumn.NO_INDEX_DEFINED ;
+
+/**
+ * Designates a class as a data container which can be used in a database
+ * defined and managed by {@link SQLiteHouse}. This class must also be decorated
+ * by a {@link net.zer0bandwidth.android.lib.database.sqlitehouse.annotations.SQLiteTable}
+ * annotation which defines the attributes of that table. Implementation classes
+ * &lt;b&gt;must&lt;/b&gt; also define a zero-argument constructor in order to be usable by
+ * {@link SQLiteHouse#search} or {@link SQLiteHouse#select}.
+ * @since zer0bandwidth-net/android 0.1.4 (#26)
+ */
+public interface SQLightable
+{
+	/**
+	 * A full reflection of a {@link SQLightable} object, which represents, and
+	 * is used to marshal data for, an SQLite table. Usable by
+	 * {@link SQLiteHouse} and any other class that needs to know how this
+	 * table class is defined.
+	 * @param &lt;T&gt; the class being reflected
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	class Reflection&lt;T extends SQLightable&gt;
+	{
+<span class="fc" id="L70">		public static final String LOG_TAG = Reflection.class.getSimpleName() ;</span>
+
+		/**
+		 * Obtain a reflection of the specified schematic class.
+		 * @param cls the schematic class
+		 * @param &lt;ST&gt; the schematic class
+		 * @return a reflection of the class
+		 */
+		public static &lt;ST extends SQLightable&gt; Reflection&lt;ST&gt;
+		reflect( Class&lt;ST&gt; cls )
+<span class="fc" id="L80">		{ return new Reflection&lt;&gt;( cls ) ; }</span>
+
+		/**
+		 * Standardized way to choose the name of a SQLite table based on the
+		 * schematic class definition and its annotations, if any.
+		 * @param cls the schematic class
+		 * @param &lt;ST&gt; the schematic class
+		 * @return either the name specified in the annotation, or a lower-cased
+		 *  transformation of the class name itself, if the annotation is not
+		 *  provided
+		 */
+		public static &lt;ST extends SQLightable&gt; String
+		getTableName( Class&lt;ST&gt; cls )
+<span class="fc" id="L93">		{ return getTableName( cls, cls.getAnnotation( SQLiteTable.class ) ) ; }</span>
+
+		/**
+		 * Standardized way to choose the name of a SQLite table based on the
+		 * annotation attached to the schematic class.
+		 * @param cls the schematic class
+		 * @param antTable the annotation that describes the table defined by
+		 *                 the class (may be null)
+		 * @param &lt;ST&gt; the schematic class
+		 * @return either the name specified in the annotation, or a lower-cased
+		 *  transformation of the class name itself, if the annotation is not
+		 *  present
+		 * @see #getTableName(Class)
+		 * @see #getTableName()
+		 */
+		protected static &lt;ST extends SQLightable&gt; String getTableName(
+				Class&lt;ST&gt; cls, SQLiteTable antTable )
+		{
+<span class="fc bfc" id="L111" title="All 2 branches covered.">			return ( antTable == null ?</span>
+<span class="fc" id="L112">					cls.getSimpleName().toLowerCase() : antTable.value() ) ;</span>
+		}
+
+		/**
+		 * Shorthand to get an instance of {@link InsertionBuilder} initialized
+		 * with the table name that would be reflected for the specified
+		 * schematic class. Use this method when you need a query builder but
+		 * don't need to retain a copy of the reflection.
+		 * @param cls the schematic class
+		 * @param &lt;ST&gt; the schematic class
+		 * @return a builder for an {@code INSERT} statement
+		 */
+		public static &lt;ST extends SQLightable&gt; InsertionBuilder
+		buildInsert( Class&lt;ST&gt; cls )
+<span class="fc" id="L126">		{ return QueryBuilder.insertInto( getTableName(cls) ) ; }</span>
+
+		/**
+		 * Shorthand to get an instance of {@link UpdateBuilder} initialized
+		 * with the table name that would be reflected for the specified
+		 * schematic class. Use this method when you need a query builder but
+		 * don't need to retain a copy of the reflection.
+		 * @param cls the schematic class
+		 * @param &lt;ST&gt; the schematic class
+		 * @return a builder for an {@code UPDATE} statement
+		 */
+		public static &lt;ST extends SQLightable&gt; UpdateBuilder
+		buildUpdate( Class&lt;ST&gt; cls )
+<span class="fc" id="L139">		{ return QueryBuilder.update( getTableName(cls) ) ; }</span>
+
+		/**
+		 * Shorthand to get an instance of {@link SelectionBuilder} initialized
+		 * with the table name that would be reflected for the specified
+		 * schematic class. Use this method when you need a query builder but
+		 * don't need to retain a copy of the reflection.
+		 * @param cls the schematic class
+		 * @param &lt;ST&gt; the schematic class
+		 * @return a builder for a {@code SELECT} statement
+		 */
+		public static &lt;ST extends SQLightable&gt; SelectionBuilder
+		buildSelect( Class&lt;ST&gt; cls )
+<span class="fc" id="L152">		{ return QueryBuilder.selectFrom( getTableName(cls) ) ; }</span>
+
+		/**
+		 * Shorthand to get an instance of {@link DeletionBuilder} initialized
+		 * with the table name that would be reflected for the specified
+		 * schematic class. Use this method when you need a query builder but
+		 * don't need to retain a copy of the reflection.
+		 * @param cls the schematic class
+		 * @param &lt;ST&gt; the schematic class
+		 * @return a builder for a {@code DELETE} statement
+		 */
+		public static &lt;ST extends SQLightable&gt; DeletionBuilder
+		buildDelete( Class&lt;ST&gt; cls )
+<span class="fc" id="L165">		{ return QueryBuilder.deleteFrom( getTableName(cls) ) ; }</span>
+
+		/**
+		 * Provides a syntactic shorthand for working with maps of fields to
+		 * column reflections.
+		 * @since zer0bandwidth-net/android 0.1.7 (#50)
+		 */
+		public static class ColumnMap&lt;ST extends SQLightable&gt;
+		extends LinkedHashMap&lt;
+				Field, Reflection&lt;ST&gt;.Column &gt;
+		{
+			public ColumnMap()
+<span class="fc" id="L177">			{ super() ; }</span>
+
+			/**
+			 * Returns the ordered set of column reflections as a list. This is
+			 * provided because using the standard {@link #values()} method
+			 * seems to confuse the compiler when used in contexts where the
+			 * generic type parameter might be erased.
+			 * @return a list of column reflections
+			 * @deprecated zer0bandwidth-net/android 0.2.1 (#56) &amp;mdash; don't
+			 *  rely on this method to get an array of columns; use
+			 *  {@link #getColumns()} instead.
+			 */
+			public List&lt;Reflection&lt;ST&gt;.Column&gt; getColumnsAsList()
+			{
+<span class="nc" id="L191">				List&lt;Reflection&lt;ST&gt;.Column&gt; aCols</span>
+<span class="nc" id="L192">						= new ArrayList&lt;&gt;( this.size() ) ;</span>
+<span class="nc" id="L193">				aCols.addAll( this.values() ) ;</span>
+<span class="nc" id="L194">				return aCols ;</span>
+			}
+		}
+
+		/**
+		 * Orders {@link Column} attributes in a list.
+		 * Deprecates and replaces {@code SQLiteHouse.ColumnIndexComparator}.
+		 * @since zer0bandwidth-net/android 0.2.1 (#56)
+		 */
+		@SuppressWarnings( &quot;deprecation&quot; )
+<span class="fc" id="L204">		public class ColumnSequencer implements Comparator&lt;Column&gt;</span>
+		{
+			@Override
+			public int compare( Column col1, Column col2 )
+			{
+<span class="fc bfc" id="L209" title="All 2 branches covered.">				if( col1.m_antColumn.index() == NO_INDEX_DEFINED )</span>
+				{
+<span class="fc bfc" id="L211" title="All 2 branches covered.">					if( col2.m_antColumn.index() != NO_INDEX_DEFINED )</span>
+					{ // Always sort cols without indices after cols with indices.
+<span class="fc" id="L213">						return 1 ;</span>
+					} // Do nothing yet if they're both undefined.
+				}
+<span class="fc bfc" id="L216" title="All 2 branches covered.">				else if( col2.m_antColumn.index() == NO_INDEX_DEFINED )</span>
+				{ // Always sort cols without indices after cols with indices.
+<span class="fc" id="L218">					return -1 ;</span>
+				}
+<span class="fc bfc" id="L220" title="All 2 branches covered.">				else if( col1.m_antColumn.index() &lt; col2.m_antColumn.index() )</span>
+<span class="fc" id="L221">					return -1 ;</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">				else if( col1.m_antColumn.index() &gt; col2.m_antColumn.index() )</span>
+<span class="fc" id="L223">					return 1 ;</span>
+
+<span class="fc" id="L225">				return (new LexicalStringComparator()).compare(</span>
+<span class="fc" id="L226">						col1.m_antColumn.name(), col2.m_antColumn.name() ) ;</span>
+			}
+		}
+
+		/**
+		 * A full reflection of a {@link SQLiteColumn} field.
+		 * Used by {@link Reflection}.
+		 *
+		 * Replaces {@code SQLiteHouse#getColumnDefinitionClause(QueryContext)}.
+		 *
+		 * @since zer0bandwidth-net/android 0.1.7 (#50)
+		 */
+		public class Column
+		{
+			/** The field that defines the column schema. */
+<span class="fc" id="L241">			protected Field m_fldColumn = null ;</span>
+			/** The annotation that defines the column schema. */
+<span class="fc" id="L243">			protected SQLiteColumn m_antColumn = null ;</span>
+			/** Indicates whether the column is also annotated as a key. */
+<span class="fc" id="L245">			protected boolean m_bKey = false ;</span>
+			/**
+			 * The {@link Refractor} implementation to be used for the column.
+			 */
+<span class="fc" id="L249">			protected Refractor m_lens = null ;</span>
+
+			/**
+			 * The version of the schema in which the column was added to the
+			 * reflected table. This is the maximum of any {@code since} value
+			 * in the annotations on the field's declaration, the enclosing
+			 * class's declaration, or any {@link SQLiteInheritColumns} found
+			 * while tracing the reflected class's lineage.
+			 * @since zer0bandwidth-net/android 0.2.1 (#56)
+			 */
+<span class="fc" id="L259">			protected int m_nSince = 1 ;</span>
+
+			/**
+			 * Initializes the object with the selected field's data.
+			 * @param fld the field to be analyzed
+			 * @throws SchematicException if the field does not have a
+			 *  {@link SQLiteColumn} annotation
+			 * @throws IntrospectionException if something goes wrong while
+			 *  analyzing the field
+			 */
+			public Column( Field fld )
+			throws SchematicException, IntrospectionException
+<span class="fc" id="L271">			{</span>
+<span class="fc" id="L272">				m_fldColumn = fld ;</span>
+<span class="fc" id="L273">				m_antColumn = fld.getAnnotation( SQLiteColumn.class ) ;</span>
+<span class="fc bfc" id="L274" title="All 2 branches covered.">				if( m_antColumn == null )</span>
+<span class="fc" id="L275">				{ throw SchematicException.fieldNotAnnotated( fld ) ; }</span>
+<span class="fc" id="L276">				m_bKey = fld.isAnnotationPresent( SQLitePrimaryKey.class ) ;</span>
+<span class="fc" id="L277">				m_lens = this.discoverRefractor() ;</span>
+<span class="fc" id="L278">			}</span>
+
+			/**
+			 * Discovers the {@link Refractor} implementation to be used for
+			 * this column field.
+			 * @return the implementation which marshals this field's data
+			 * @throws IntrospectionException if the refractor instance can't be
+			 *  created
+			 * @throws SchematicException if the refractor class can't be
+			 *  resolved
+			 */
+			protected Refractor discoverRefractor()
+			throws IntrospectionException, SchematicException
+			{
+<span class="fc" id="L292">				Class&lt;? extends Refractor&gt; clsLens = m_antColumn.refractor() ;</span>
+<span class="fc bfc" id="L293" title="All 2 branches covered.">				if( clsLens != NullRefractor.class ) try</span>
+				{ // The field explicitly specifies a custom refractor. Use it.
+<span class="fc" id="L295">					return clsLens.newInstance() ;</span>
+				}
+<span class="nc" id="L297">				catch( InstantiationException xInstance )</span>
+				{
+<span class="nc" id="L299">					throw IntrospectionException</span>
+<span class="nc" id="L300">							.instanceFailed( clsLens, xInstance ) ;</span>
+				}
+<span class="nc" id="L302">				catch( IllegalAccessException xAccess )</span>
+				{
+<span class="nc" id="L304">					throw IntrospectionException</span>
+<span class="nc" id="L305">							.instanceForbidden( clsLens, xAccess ) ;</span>
+				}
+				// Otherwise, get the standard refractor mapping.
+				try
+				{
+<span class="fc" id="L310">					return RefractorMap.getRefractorFor(m_fldColumn.getType())</span>
+<span class="fc" id="L311">							.newInstance() ;</span>
+				}
+<span class="nc" id="L313">				catch( InstantiationException xInstance )</span>
+				{
+<span class="nc" id="L315">					throw IntrospectionException</span>
+<span class="nc" id="L316">							.instanceFailed( clsLens, xInstance ) ;</span>
+				}
+<span class="nc" id="L318">				catch( IllegalAccessException xAccess )</span>
+				{
+<span class="nc" id="L320">					throw IntrospectionException</span>
+<span class="nc" id="L321">							.instanceForbidden( clsLens, xAccess ) ;</span>
+				}
+<span class="fc" id="L323">				catch( NullPointerException xNull )</span>
+<span class="fc" id="L324">				{ throw SchematicException.noLensForColumn( this, xNull ) ; }</span>
+			}
+
+			/** Accesses the schematic field. */
+			public Field getField()
+<span class="fc" id="L329">			{ return m_fldColumn ; }</span>
+
+			/** Accesses the schematic annotation. */
+			public SQLiteColumn getColAttrs()
+<span class="fc" id="L333">			{ return m_antColumn ; }</span>
+
+			/** Indicates whether the column was annotated as a key. */
+			public boolean isKey()
+<span class="fc" id="L337">			{ return m_bKey ; }</span>
+
+			/** Shorthand to get the DB column name from the annotation. */
+			public String getName()
+<span class="fc" id="L341">			{ return m_antColumn.name() ; }</span>
+
+			/** Accesses the column's {@link Refractor} implementation. */
+			public Refractor getRefractor()
+<span class="fc" id="L345">			{ return m_lens ; }</span>
+
+			public int getSince()
+<span class="fc" id="L348">			{ return m_nSince ; }</span>
+
+			protected Column setSince( int n )
+<span class="fc" id="L351">			{ m_nSince = n ; return this ; }</span>
+
+			/**
+			 * Generates the SQL clause that will create this column as part of
+			 * a {@code CREATE TABLE} or {@code ALTER TABLE ADD COLUMN}
+			 * statement.
+			 * @return an SQL statement which defines the column
+			 */
+			public String getColumnCreationClause()
+			{
+<span class="fc" id="L361">				StringBuilder sb = new StringBuilder() ;</span>
+
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">				if( m_lens == null )</span>
+<span class="nc" id="L364">					throw SchematicException.noLensForColumn( this, null ) ;</span>
+
+<span class="fc" id="L366">				sb.append( this.getName() ).append( &quot; &quot; )</span>
+<span class="fc" id="L367">				  .append( m_lens.getSQLiteDataType() )</span>
+				  ;
+<span class="fc bfc" id="L369" title="All 2 branches covered.">				if( this.isKey() ) // Override the annotation's nullability.</span>
+<span class="fc" id="L370">					sb.append( SQL_COLUMN_IS_KEYLIKE ) ;</span>
+				else
+				{
+<span class="pc bpc" id="L373" title="1 of 2 branches missed.">					sb.append(( m_antColumn.is_nullable() ?</span>
+							SQL_COLUMN_NULLABLE : SQL_COLUMN_NOT_NULLABLE )) ;
+				}
+<span class="fc bfc" id="L376" title="All 2 branches covered.">				if( SQLITE_NULL.equals( m_antColumn.sql_default() ) )</span>
+				{ // Write &quot;DEFAULT NULL&quot; only if the column is really nullable.
+<span class="pc bpc" id="L378" title="1 of 4 branches missed.">					if( ! this.isKey() &amp;&amp; m_antColumn.is_nullable() )</span>
+<span class="fc" id="L379">						sb.append( SQL_COLUMN_DEFAULT_NULL ) ;</span>
+				}
+				else
+				{ // Specify the column's default value.
+<span class="fc" id="L383">					sb.append( SQL_COLUMN_DEFAULT ) ;</span>
+<span class="fc bfc" id="L384" title="All 2 branches covered.">					if( SQLITE_TYPE_TEXT.equals( m_lens.getSQLiteDataType() ) )</span>
+					{
+<span class="fc" id="L386">						sb.append( &quot;'&quot; )</span>
+<span class="fc" id="L387">						  .append( m_antColumn.sql_default() )</span>
+<span class="fc" id="L388">						  .append( &quot;'&quot; )</span>
+						  ;
+					}
+					else
+<span class="fc" id="L392">						sb.append( m_antColumn.sql_default() ) ;</span>
+				}
+
+<span class="fc" id="L395">				return sb.toString() ;</span>
+			}
+
+			/**
+			 * Tries to discover the value of this column within the
+			 * corresponding field of an instance of the schematic class that
+			 * defines it.
+			 * @param o an instance of the schematic class that defined this
+			 *          column
+			 * @return the SQLite string representation of the value
+			 * @throws SchematicException if something goes wrong while trying
+			 *  to discover the value
+			 */
+			public String getSQLColumnValueFrom( T o )
+			{
+<span class="pc bpc" id="L410" title="1 of 2 branches missed.">				if( o == null )</span>
+				{
+<span class="nc" id="L412">					throw new IllegalArgumentException(</span>
+						&quot;Cannot obtain column value from a null object.&quot; ) ;
+				}
+<span class="pc bpc" id="L415" title="1 of 2 branches missed.">				if( m_lens == null )</span>
+<span class="nc" id="L416">				{ throw SchematicException.noLensForColumn( this, null ) ; }</span>
+				try
+				{
+					//noinspection unchecked
+<span class="fc" id="L420">					return m_lens.toSQLiteString(</span>
+<span class="fc" id="L421">							m_lens.getValueFrom( o, m_fldColumn ) ) ;</span>
+				}
+<span class="nc" id="L423">				catch( IllegalAccessException xAccess )</span>
+				{
+<span class="nc" id="L425">					throw SchematicException.fieldWasInaccessible(</span>
+<span class="nc" id="L426">							m_clsTable.getCanonicalName(),</span>
+<span class="nc" id="L427">							m_fldColumn.getName(),</span>
+							xAccess
+						);
+				}
+			}
+		}
+
+		/** The class being reflected. */
+		protected Class&lt;T&gt; m_clsTable ;
+
+		/** The annotation on the reflected table class. */
+<span class="fc" id="L438">		protected SQLiteTable m_antTable = null ;</span>
+
+		/** The name of the table. Stored once, read repeatedly. */
+<span class="fc" id="L441">		protected String m_sTableName = null ;</span>
+
+		/** A map of fields to their column schemas. */
+<span class="fc" id="L444">		protected ColumnMap&lt;T&gt; m_mapFields = null ;</span>
+
+		/**
+		 * A map of DB column names to field definitions.
+		 * @deprecated zer0bandwidth-net/android 0.2.1 (#56) &amp;mdash; this is no
+		 *  longer populated; use {@link #getColumn(String)} to directly fetch a
+		 *  column reflection corresponding to the DB column name, then use
+		 *  {@link Column#getField()} to get the field
+		 */
+<span class="fc" id="L453">		protected HashMap&lt;String,Field&gt; m_mapColNames = null ;</span>
+
+		/**
+		 * A simple list of columns, sorted roughly by the sequence defined by
+		 * the corresponding fields' {@link SQLiteColumn} annotations.
+		 * Replaces {@code m_mapFields}, from which we used only the values (the
+		 * list of columns).
+		 * @since zer0bandwidth-net/android 0.2.1 (#56)
+		 */
+<span class="fc" id="L462">		protected ArrayList&lt;Column&gt; m_aColumns = null ;</span>
+
+		/**
+		 * A map of DB column names to column schemas.
+		 * Replaces {@code m_mapColNames}, which mapped to fields.
+		 * @since zer0bandwidth-net/android 0.2.1 (#56)
+		 */
+<span class="fc" id="L469">		protected HashMap&lt;String,Column&gt; m_mapColumns = null ;</span>
+
+		/** The field that is the primary key for the table. */
+<span class="fc" id="L472">		protected Field m_fldKey = null ;</span>
+
+		/**
+		 * The field that is the class's placeholder for the magic SQLite
+		 * auto-incremented row key, if any.
+		 */
+<span class="fc" id="L478">		protected Field m_fldMagicID = null ;</span>
+
+		/**
+		 * Constructor kicks off a reflection of the selected class.
+		 * @param cls the class being reflected
+		 * @throws IntrospectionException if something goes wrong
+		 */
+		public Reflection( Class&lt;T&gt; cls )
+		throws IntrospectionException
+<span class="fc" id="L487">		{</span>
+<span class="fc" id="L488">			m_clsTable = cls ;</span>
+<span class="fc" id="L489">			m_antTable = cls.getAnnotation( SQLiteTable.class ) ;</span>
+<span class="fc" id="L490">			this.reflectColumns() ;</span>
+<span class="fc" id="L491">		}</span>
+
+		/**
+		 * Analyzes the fields defined in the selected class and its ancestors,
+		 * to produce a complete, ordered list of columns for the database table
+		 * in this version of the schema.
+		 * Deprecates and replaces {@code initFieldMap()}.
+		 * @return (fluid)
+		 * @since zer0bandwidth-net/android 0.2.1 (#56)
+		 */
+		protected Reflection&lt;T&gt; reflectColumns()
+		{
+<span class="fc" id="L503">			m_aColumns = new ArrayList&lt;&gt;() ;</span>
+<span class="fc" id="L504">			m_mapColumns = new HashMap&lt;&gt;() ;</span>
+<span class="fc" id="L505">			m_mapFields = new ColumnMap&lt;&gt;() ;</span>
+
+<span class="fc bfc" id="L507" title="All 2 branches covered.">			int nTableSince = ( m_antTable == null ? 0 : m_antTable.since() ) ;</span>
+
+<span class="fc" id="L509">			List&lt;Field&gt; afldDeclared =</span>
+<span class="fc" id="L510">					Arrays.asList( m_clsTable.getDeclaredFields() ) ;</span>
+<span class="fc bfc" id="L511" title="All 2 branches covered.">			for( Field fld : afldDeclared )</span>
+			{ // Process only the fields that were annotated as columns.
+<span class="fc bfc" id="L513" title="All 2 branches covered.">				if( fld.isAnnotationPresent( SQLiteColumn.class ) )</span>
+				{
+<span class="fc" id="L515">					fld.setAccessible(true) ;</span>
+<span class="fc" id="L516">					Column col = new Column(fld) ;</span>
+<span class="fc" id="L517">					col.setSince( Math.max(</span>
+<span class="fc" id="L518">							col.getColAttrs().since(), nTableSince ) ) ;</span>
+<span class="fc" id="L519">					m_aColumns.add(col) ;</span>
+<span class="fc bfc" id="L520" title="All 2 branches covered.">					if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )</span>
+<span class="fc" id="L521">						m_fldKey = fld ;</span>
+				}
+<span class="fc" id="L523">			}</span>
+
+<span class="fc" id="L525">			this.processInheritanceTo( m_clsTable, nTableSince ) ;</span>
+
+<span class="fc bfc" id="L527" title="All 2 branches covered.">			if( m_aColumns.size() &gt; 1 )</span>
+<span class="fc" id="L528">				Collections.sort( m_aColumns, new ColumnSequencer() ) ;</span>
+
+<span class="fc bfc" id="L530" title="All 2 branches covered.">			for( Column col : m_aColumns )</span>
+			{
+<span class="fc" id="L532">				m_mapColumns.put( col.getName(), col ) ;</span>
+<span class="fc" id="L533">				m_mapFields.put( col.getField(), col ) ;</span>
+<span class="fc bfc" id="L534" title="All 2 branches covered.">				if( MAGIC_ID_COLUMN_NAME.equals( col.getName() ) )</span>
+<span class="fc" id="L535">					m_fldMagicID = col.getField() ;</span>
+<span class="fc" id="L536">			}</span>
+
+<span class="fc" id="L538">			return this ;</span>
+		}
+
+		/**
+		 * If the class being reflected is annotated with
+		 * {@link SQLiteInheritColumns}, then this method will update the
+		 * {@code Reflection}'s list of &quot;inherited&quot; fields with anything that is
+		 * annotated with {@link SQLiteColumn} in the class's &lt;b&gt;parent&lt;/b&gt;.
+		 *
+		 * Note that the parent class &lt;b&gt;does not&lt;/b&gt; need to be annotated as an
+		 * {@link SQLiteTable}, nor does it need to implement
+		 * {@link SQLightable}.
+		 *
+		 * &lt;b&gt;THIS METHOD WILL RECURSE&lt;/b&gt; as long as it continues to find and
+		 * traverse classes whose parents are also annotated with
+		 * {@code SQLiteInheritColumns}.
+		 *
+		 * @param cls the class to be examined; this is originally called with
+		 *  the class that is being reflected, and may recurse with its parent
+		 *  as far as we continue to see {@link SQLiteInheritColumns}
+		 *  annotations
+		 *
+		 * @since zer0bandwidth-net/android 0.2.1 (#56)
+		 * @see #reflectColumns()
+		 */
+		protected void processInheritanceTo( Class&lt;?&gt; cls, int nSince )
+		{
+<span class="fc" id="L565">			SQLiteInheritColumns antAncestry =</span>
+<span class="fc" id="L566">					cls.getAnnotation( SQLiteInheritColumns.class ) ;</span>
+<span class="fc bfc" id="L567" title="All 2 branches covered.">			if( antAncestry == null ) return ; // Terminate; no more inheritance</span>
+
+<span class="fc" id="L569">			Class&lt;?&gt; clsParent = cls.getSuperclass() ;</span>
+<span class="pc bpc" id="L570" title="1 of 2 branches missed.">			if( clsParent == null ) return ;  // Terminate; no ancestors remain.</span>
+
+<span class="fc" id="L572">			SQLiteTable antParent = cls.getAnnotation( SQLiteTable.class ) ;</span>
+
+			// The version in which a given column is added is at least as new
+			// as the max of:
+			// - the last observed &quot;since&quot; version that was passed in
+			// - the @SQLiteInheritColumns annotation of the target class
+			// - the @SQLiteTable.since() of the parent class (if any)
+<span class="pc bpc" id="L579" title="1 of 2 branches missed.">			int nEffectiveSince = MathZ.max( nSince, antAncestry.since(),</span>
+<span class="fc" id="L580">				( antParent == null ? 1 : antParent.since() ) ) ;</span>
+
+<span class="fc" id="L582">			List&lt;Field&gt; afldInheritable =</span>
+<span class="fc" id="L583">					Arrays.asList( clsParent.getDeclaredFields() ) ;</span>
+<span class="fc bfc" id="L584" title="All 2 branches covered.">			for( Field fld : afldInheritable )</span>
+			{ // Inherit only the fields that are annotated as columns.
+<span class="fc" id="L586">				SQLiteColumn antColumn =</span>
+<span class="fc" id="L587">						fld.getAnnotation( SQLiteColumn.class ) ;</span>
+<span class="fc bfc" id="L588" title="All 2 branches covered.">				if( antColumn == null ) continue ; // ignore this field</span>
+<span class="fc" id="L589">				fld.setAccessible(true) ;</span>
+<span class="fc" id="L590">				Column col = new Column(fld) ;</span>
+<span class="fc" id="L591">				col.setSince( MathZ.max(</span>
+						nEffectiveSince,                     // calculated above
+<span class="fc" id="L593">						antColumn.since(),  // the field's own annotated version</span>
+						1     // a default in case no other version is indicated
+					));
+<span class="fc" id="L596">				m_aColumns.add(col) ;</span>
+
+<span class="fc bfc" id="L598" title="All 2 branches covered.">				if( fld.isAnnotationPresent( SQLitePrimaryKey.class ) )</span>
+				{ // Designate inherited field as key only if we don't have one.
+<span class="pc bpc" id="L600" title="1 of 2 branches missed.">					if( m_fldKey == null )</span>
+<span class="fc" id="L601">						m_fldKey = fld ;</span>
+				}
+<span class="fc" id="L603">			}</span>
+
+			// Continue recursing up the inheritance stack.
+<span class="fc" id="L606">			this.processInheritanceTo( clsParent, nEffectiveSince ) ;</span>
+<span class="fc" id="L607">		}</span>
+
+		/**
+		 * Accesses the schematic class reflected in this object.
+		 * @return the class reflected in this object
+		 */
+		public Class&lt;T&gt; getTableClass()
+<span class="fc" id="L614">		{ return m_clsTable ; }</span>
+
+		/**
+		 * Accesses the {@link SQLiteTable} annotation that defines the
+		 * attributes of the table described by this schematic class.
+		 * @return the annotation of table attributes
+		 */
+		public SQLiteTable getTableAttrs()
+<span class="fc" id="L622">		{ return m_antTable ; }</span>
+
+		/**
+		 * Accesses the name of the database table described by this schematic
+		 * class. If the name is not explicitly given in an annotation, then it
+		 * will be derived by lower-casing the simple name of the schematic
+		 * class itself.
+		 * @return the name of the table
+		 * @see #getTableName(Class, SQLiteTable)
+		 */
+		public String getTableName()
+		{
+<span class="fc bfc" id="L634" title="All 2 branches covered.">			if( m_sTableName == null )</span>
+<span class="fc" id="L635">				m_sTableName = getTableName( m_clsTable, m_antTable ) ;</span>
+<span class="fc" id="L636">			return m_sTableName ;</span>
+		}
+
+		/**
+		 * Accesses the reflection of a database column (and its corresponding
+		 * class field) with the specified name.
+		 * @param sColName the name of a column in the database table
+		 * @return the reflection of that column
+		 * @since zer0bandwidth-net/android 0.2.1 (#56)
+		 */
+		public Column getColumn( String sColName )
+<span class="fc" id="L647">		{ return m_mapColumns.get(sColName) ; }</span>
+
+		/**
+		 * Accesses the field in the schematic class corresponding to the name
+		 * of a column in the table described by the class.
+		 * @param sColName the name of a column in the database table
+		 * @return the field in this schematic class which corresponds to that
+		 *  column
+		 */
+		public Field getField( String sColName )
+<span class="fc" id="L657">		{ return this.getColumn(sColName).getField() ; }</span>
+
+		/**
+		 * Accesses the ordered list of column reflections.
+		 * @return the list of database columns
+		 * @since zer0bandwidth-net/android 0.2.1 (#56)
+		 */
+		public List&lt;Column&gt; getColumns()
+<span class="fc" id="L665">		{ return m_aColumns ; }</span>
+
+		/**
+		 * Accesses the complete map of fields and column reflections.
+		 * @return the complete map of fields and columns
+		 * @deprecated zer0bandwidth-net/android 0.2.1 (#56) &amp;mdash; use
+		 *  {@link #getColumns()} to get the list of columns directly, or get
+		 *  {@link #getColumn(String)} to get a specific column
+		 */
+		public ColumnMap&lt;T&gt; getColumnMap()
+<span class="nc" id="L675">		{ return m_mapFields ; }</span>
+
+		/**
+		 * Accesses the SQLite column definition defined by the given field in
+		 * the schematic class.
+		 * @param fld the field that corresponds to a database table column
+		 * @return a reflection of that column
+		 * @deprecated zer0bandwidth-net/android 0.2.1 (#56) &amp;mdash; it's
+		 *  unlikely that anything outside of SQLiteHouse itself would have
+		 *  also reflected the class and want to get to the column that way
+		 */
+		@SuppressWarnings( &quot;unused&quot; )
+		public Column getColumnDef( Field fld )
+		{
+<span class="fc" id="L689">			throw new UnsupportedOperationException(</span>
+					&quot;This method is deprecated.&quot; ) ;
+		}
+
+		/**
+		 * Accesses the SQLite column definition for the given column name.
+		 * @param sColName the name of the table column
+		 * @return a reflection of that column
+		 * @deprecated zer0bandwidth-net/android 0.2.1 (#56) &amp;mdash; use
+		 *  {@link #getColumn} instead
+		 */
+		public Column getColumnDef( String sColName )
+<span class="nc" id="L701">		{ return this.getColumn(sColName) ; }</span>
+
+		/**
+		 * Accesses the field that was defined as the practical key for the
+		 * table.
+		 * @return the field usable as a key
+		 */
+		public Field getKeyField()
+<span class="fc" id="L709">		{ return m_fldKey ; }</span>
+
+		/**
+		 * Accesses the column reflection for the field defined as the practical
+		 * key for the table.
+		 * @return the reflection of the table's key column
+		 */
+		public Column getKeyColumn()
+		{
+<span class="fc bfc" id="L718" title="All 2 branches covered.">			return ( this.getKeyField() != null ?</span>
+<span class="fc" id="L719">				m_mapFields.get( this.getKeyField() ) : null ) ;</span>
+		}
+
+		/**
+		 * Accesses the field that was defined as the container for the SQLite
+		 * magic auto-incremented row ID, if any.
+		 * @return the field which holds the auto-inc row ID
+		 */
+		public Field getMagicIDField()
+<span class="fc" id="L728">		{ return m_fldMagicID ; }</span>
+
+		/**
+		 * Accesses the column reflection for the field defined as the container
+		 * for the SQLite magic auto-incremented row ID, if any.
+		 * @return the reflection of the table's row ID column
+		 */
+		public Column getMagicIDColumn()
+		{
+<span class="fc bfc" id="L737" title="All 2 branches covered.">			return ( this.getMagicIDField() != null ?</span>
+<span class="fc" id="L738">				m_mapFields.get( this.getMagicIDField() ) : null ) ;</span>
+		}
+
+		/**
+		 * Tries to find a usable key column, by first looking for a field
+		 * defined as the practical key, then looking for a field defined as the
+		 * magic auto-incremented row ID, then returning {@code null} if neither
+		 * is defined.
+		 * @return a column usable as a key, or {@code null} if neither a
+		 *  practical key nor a magic row ID column is defined
+		 */
+		public Column getKeyOrMagicIDColumn()
+		{
+<span class="fc" id="L751">			Column col = null ;</span>
+<span class="fc bfc" id="L752" title="All 2 branches covered.">			if( m_fldKey != null )</span>
+<span class="fc" id="L753">				col = m_mapFields.get(m_fldKey) ;</span>
+<span class="fc bfc" id="L754" title="All 2 branches covered.">			else if( m_fldMagicID != null )</span>
+<span class="fc" id="L755">				col = m_mapFields.get(m_fldMagicID) ;</span>
+<span class="fc" id="L756">			return col ;             // In very rare cases, might still be null.</span>
+		}
+
+		/**
+		 * Generates the SQL statement which will create the table represented
+		 * by this schematic class, based on the class itself, and its
+		 * {@link SQLiteTable} annotation (if any).
+		 * @return an SQL statement which will create the SQLite table
+		 */
+		public String getTableCreationSQL()
+		{
+<span class="fc" id="L767">			StringBuilder sb = new StringBuilder() ;</span>
+
+<span class="fc" id="L769">			sb.append( &quot;CREATE TABLE IF NOT EXISTS &quot; )</span>
+<span class="fc" id="L770">			  .append( this.getTableName() )</span>
+<span class="fc" id="L771">			  .append( &quot; ( &quot; ).append( MAGIC_ID_COLUMN_NAME )</span>
+<span class="fc" id="L772">			  .append( &quot; &quot; ).append( SQLITE_TYPE_INT )</span>
+<span class="fc" id="L773">			  .append( &quot; PRIMARY KEY AUTOINCREMENT&quot; )</span>
+			  ;
+
+<span class="fc bfc" id="L776" title="All 2 branches covered.">			for( Map.Entry&lt;Field,Reflection&lt;T&gt;.Column&gt; pair : m_mapFields.entrySet() )</span>
+			{ // Add the column creation SQL for each schematic field.
+<span class="fc" id="L778">				Column col = pair.getValue() ;</span>
+<span class="fc bfc" id="L779" title="All 2 branches covered.">				if( MAGIC_ID_COLUMN_NAME.equals( col.getName() ) )</span>
+<span class="fc" id="L780">					continue ;   // Allow the schematic class to marshal the ID.</span>
+
+<span class="fc" id="L782">				sb.append( &quot;, &quot; )</span>
+<span class="fc" id="L783">				  .append( col.getColumnCreationClause() )</span>
+				  ;
+<span class="fc" id="L785">			}</span>
+
+<span class="fc" id="L787">			sb.append( &quot; )&quot; ) ;</span>
+
+<span class="fc" id="L789">			Log.d( LOG_TAG, sb.toString() ) ; // DEBUG ONLY</span>
+
+<span class="fc" id="L791">			return sb.toString() ;</span>
+		}
+
+		/**
+		 * Generates the SQL statement which will add the specified column to
+		 * this table.
+		 * @param col the reflection of the column to be added
+		 * @return an SQL statement which adds the column to this table
+		 */
+		public String getAddColumnSQL( Column col )
+		{
+			//noinspection StringBufferReplaceableByString
+<span class="fc" id="L803">			StringBuilder sb = new StringBuilder() ;</span>
+<span class="fc" id="L804">			sb.append( SQL_ALTER_TABLE ).append( this.getTableName() )</span>
+<span class="fc" id="L805">			  .append( SQL_ADD_COLUMN )</span>
+<span class="fc" id="L806">			  .append( col.getColumnCreationClause() )</span>
+			  ;
+
+<span class="fc" id="L809">			Log.d( LOG_TAG, sb.toString() ) ; // DEBUG ONLY</span>
+
+<span class="fc" id="L811">			return sb.toString() ;</span>
+		}
+
+		/**
+		 * Determines the first version of the schema in which this schematic
+		 * class was included. If the {@link SQLiteTable} annotation is missing,
+		 * then the method returns {@code 1}.
+		 * @return the schema version in which the schematic class was
+		 *  introduced
+		 */
+		public int getFirstSchemaVersion()
+		{
+<span class="fc bfc" id="L823" title="All 2 branches covered.">			if( m_antTable == null ) return 1 ;</span>
+<span class="fc" id="L824">			else return m_antTable.since() ;</span>
+		}
+
+		/**
+		 * Constructs an empty instance of the {@link SQLightable}
+		 * implementation class reflected in this object.
+		 * @return an empty instance of the schematic class
+		 * @throws IntrospectionException if the schematic class could not be
+		 *  constructed for some reason
+		 */
+		public T getInstance()
+		throws IntrospectionException
+		{
+			try
+			{
+<span class="fc" id="L839">				Constructor ctor = m_clsTable.getDeclaredConstructor() ;</span>
+<span class="pc bpc" id="L840" title="1 of 2 branches missed.">				if( ctor == null ) // try something different</span>
+<span class="nc" id="L841">					ctor = m_clsTable.getConstructor() ;</span>
+<span class="fc" id="L842">				ctor.setAccessible(true) ;</span>
+				//noinspection unchecked - guaranteed
+<span class="fc" id="L844">				return ((T)(ctor.newInstance())) ;</span>
+			}
+<span class="fc" id="L846">			catch( Exception x )</span>
+<span class="fc" id="L847">			{ throw IntrospectionException.instanceFailed( m_clsTable, x ) ; }</span>
+		}
+
+		/**
+		 * Reads a row of data from the specified cursor, and marshals it into a
+		 * schematic class instance corresponding to the table from which the
+		 * row was fetched.
+		 * @param crs the cursor which is currently pointing to a data row
+		 * @return an instance of the class, containing the cursor's current row
+		 * @throws IntrospectionException if the data class could not be
+		 *  constructed for some reason
+		 * @throws SchematicException if the data could not be properly
+		 *  marshalled into the class instance
+		 */
+		public T fromCursor( Cursor crs )
+		throws IntrospectionException, SchematicException
+		{
+<span class="fc" id="L864">			T oResult = this.getInstance() ; // Can throw IntrospectionException</span>
+
+<span class="fc bfc" id="L866" title="All 2 branches covered.">			for( Column col : m_aColumns )</span>
+			{
+				try
+				{
+<span class="fc" id="L870">					col.getField().set( oResult,</span>
+<span class="fc" id="L871">						col.getRefractor().fromCursor( crs, col.getName() ) ) ;</span>
+				}
+<span class="nc" id="L873">				catch( IllegalAccessException xAccess )</span>
+				{
+<span class="nc" id="L875">					throw SchematicException.fieldWasInaccessible(</span>
+<span class="nc" id="L876">							m_clsTable.getCanonicalName(),</span>
+<span class="nc" id="L877">							col.getName(), xAccess</span>
+						);
+<span class="fc" id="L879">				}</span>
+<span class="fc" id="L880">			}</span>
+
+<span class="fc" id="L882">			return oResult ;</span>
+		}
+
+		/**
+		 * Reads fields from a supplied {@link Bundle}, and marshals it into a
+		 * schematic class instance.
+		 * @param bndl the bundle into which data was marshalled
+		 * @return an instance of the class, containing the bundled data
+		 * @throws IntrospectionException if the data class could not be
+		 *  constructed for some reason
+		 * @throws SchematicException if the data could not be properly
+		 *  marshalled into the class instance
+		 */
+		public T fromBundle( Bundle bndl )
+		throws IntrospectionException, SchematicException
+		{
+<span class="fc" id="L898">			T oResult = this.getInstance() ; // Can throw IntrospectionException</span>
+
+<span class="fc bfc" id="L900" title="All 2 branches covered.">			for( Column col : m_aColumns )</span>
+			{
+				try
+				{
+<span class="fc" id="L904">					col.getField().set( oResult,</span>
+<span class="fc" id="L905">						col.getRefractor().fromBundle( bndl, col.getName() ) ) ;</span>
+				}
+<span class="nc" id="L907">				catch( IllegalAccessException xAccess )</span>
+				{
+<span class="nc" id="L909">					throw SchematicException.fieldWasInaccessible(</span>
+<span class="nc" id="L910">							m_clsTable.getCanonicalName(),</span>
+<span class="nc" id="L911">							col.getName(), xAccess</span>
+						);
+<span class="fc" id="L913">				}</span>
+<span class="fc" id="L914">			}</span>
+
+<span class="fc" id="L916">			return oResult ;</span>
+		}
+
+		/**
+		 * Extracts the values of all known fields, corresponding to database
+		 * table columns, from a schematic class instance, and returns a
+		 * {@link ContentValues} instance containing those values.
+		 *
+		 * Replaces {@code SQLiteHouse#toContentValues(SQLightable)}.
+		 *
+		 * @param oSource the object to be processed
+		 * @return the values that would be stored in the database
+		 * @throws SchematicException if no {@link Refractor} implementation can
+		 *  be found for one of the columns/fields
+		 */
+		public ContentValues toContentValues( T oSource )
+		throws SchematicException
+		{
+<span class="fc" id="L934">			ContentValues vals = new ContentValues() ;</span>
+<span class="fc bfc" id="L935" title="All 2 branches covered.">			for( Column col : m_aColumns )</span>
+			{
+<span class="fc" id="L937">				Refractor lens = col.getRefractor() ;</span>
+
+<span class="fc bfc" id="L939" title="All 2 branches covered.">				if( lens == null )</span>
+<span class="fc" id="L940">					throw SchematicException.noLensForColumn( col, null ) ;</span>
+
+				try
+				{
+					//noinspection unchecked - lens corresponds to field
+<span class="fc" id="L945">					lens.addToContentValues( vals, col.getName(),</span>
+<span class="fc" id="L946">							lens.getValueFrom( oSource, col.getField() ) ) ;</span>
+				}
+<span class="fc" id="L948">				catch( IllegalAccessException xAccess )</span>
+				{
+<span class="fc" id="L950">					throw SchematicException.fieldWasInaccessible(</span>
+<span class="fc" id="L951">							m_clsTable.getCanonicalName(),</span>
+<span class="fc" id="L952">							col.getField().getName(),</span>
+							xAccess
+						);
+				}
+<span class="nc" id="L956">				catch( SchematicException xSchema )</span>
+				{
+<span class="nc" id="L958">					Log.e( LOG_TAG, (new StringBuilder())</span>
+<span class="nc" id="L959">								.append( &quot;Could not extract value for field [&quot; )</span>
+<span class="nc" id="L960">								.append( col.getField().getName() )</span>
+<span class="nc" id="L961">								.append( &quot;]:&quot; )</span>
+<span class="nc" id="L962">								.toString(),</span>
+							xSchema
+						);
+<span class="fc" id="L965">				} // and continue</span>
+<span class="fc" id="L966">			}</span>
+<span class="fc" id="L967">			return vals ;</span>
+		}
+
+		/**
+		 * Extracts the values of all known fields, corresponding to database
+		 * table columns, from a schematic class instance, and returns a
+		 * {@link Bundle} instance containing those values.
+		 * @param oSource the object to be processed
+		 * @return the values that would be stored in the database
+		 * @throws SchematicException if no {@link Refractor} implementation can
+		 *  be found for one of the column's fields
+		 */
+		public Bundle toBundle( T oSource )
+		throws SchematicException
+		{
+<span class="fc" id="L982">			Bundle bndl = new Bundle() ;</span>
+<span class="fc bfc" id="L983" title="All 2 branches covered.">			for( Column col : m_aColumns )</span>
+			{
+<span class="fc" id="L985">				Refractor lens = col.getRefractor() ;</span>
+
+<span class="fc bfc" id="L987" title="All 2 branches covered.">				if( lens == null )</span>
+<span class="fc" id="L988">					throw SchematicException.noLensForColumn( col, null ) ;</span>
+
+				try
+				{
+					// noinspection unchecked - lens corresponds to field
+<span class="fc" id="L993">					lens.addToBundle( bndl, col.getName(),</span>
+<span class="fc" id="L994">							lens.getValueFrom( oSource, col.getField() ) ) ;</span>
+				}
+<span class="fc" id="L996">				catch( IllegalAccessException xAccess )</span>
+				{
+<span class="fc" id="L998">					throw SchematicException.fieldWasInaccessible(</span>
+<span class="fc" id="L999">							m_clsTable.getCanonicalName(),</span>
+<span class="fc" id="L1000">							col.getField().getName(),</span>
+							xAccess
+						);
+				}
+<span class="nc" id="L1004">				catch( SchematicException xSchema )</span>
+				{
+<span class="nc" id="L1006">					Log.e( LOG_TAG, (new StringBuilder())</span>
+<span class="nc" id="L1007">								.append( &quot;Could not get value for field [&quot; )</span>
+<span class="nc" id="L1008">								.append( col.getField().getName() )</span>
+<span class="nc" id="L1009">								.append( &quot;] from a bundle:&quot; )</span>
+<span class="nc" id="L1010">								.toString(),</span>
+							xSchema
+						);
+<span class="fc" id="L1013">				} // and continue</span>
+<span class="fc" id="L1014">			}</span>
+<span class="fc" id="L1015">			return bndl ;</span>
+		}
+
+		/**
+		 * Get an instance of an {@link InsertionBuilder} initialized with the
+		 * table name discovered by this reflection.
+		 * @return a builder for an {@code INSERT} statement
+		 */
+		public InsertionBuilder buildInsert()
+<span class="fc" id="L1024">		{ return QueryBuilder.insertInto( this.getTableName() ) ; }</span>
+
+		/**
+		 * Get an instance of an {@link UpdateBuilder} initialized with the
+		 * table name discovered by this reflection.
+		 * @return a builder for an {@code UPDATE} statement
+		 */
+		public UpdateBuilder buildUpdate()
+<span class="fc" id="L1032">		{ return QueryBuilder.update( this.getTableName() ) ; }</span>
+
+		/**
+		 * Get an instance of a {@link SelectionBuilder} initialized with the
+		 * table name discovered by this reflection.
+		 * @return a builder for a {@code SELECT} statement
+		 */
+		public SelectionBuilder buildSelect()
+<span class="fc" id="L1040">		{ return QueryBuilder.selectFrom( this.getTableName() ) ; }</span>
+
+		/**
+		 * Get an instance of a {@link DeletionBuilder} initialized with the
+		 * table name discovered by this reflection.
+		 * @return a builder for a {@code DELETE} statement
+		 */
+		public DeletionBuilder buildDelete()
+<span class="fc" id="L1048">		{ return QueryBuilder.deleteFrom( this.getTableName() ) ; }</span>
+	}
+
+	/**
+	 * Provides a precise method for retrieving an entry from a map of schematic
+	 * classes to their {@link Reflection} instances.
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	class ReflectionMap
+	extends HashMap&lt; Class&lt;? extends SQLightable&gt;,
+			Reflection&lt;? extends SQLightable&gt; &gt;
+	{
+		public ReflectionMap()
+<span class="fc" id="L1061">		{ super() ; }</span>
+
+		/**
+		 * As {@link Map#get(Object)}, but forces a cast on the
+		 * {@link Reflection} object that is returned from the map. This cast is
+		 * made unchecked; it is up to the consumer to ensure that the types
+		 * match.
+		 * @param cls the schematic class
+		 * @param &lt;SC&gt; the schematic class
+		 * @return a reflection of the schematic class
+		 */
+		public &lt;SC extends SQLightable&gt; Reflection&lt;SC&gt; get( Class&lt;SC&gt; cls )
+		{
+			//noinspection unchecked - guaranteed logically
+<span class="fc" id="L1075">			return ((Reflection&lt;SC&gt;)( super.get(cls) )) ;</span>
+		}
+
+		/**
+		 * As {@link Map#put(Object,Object)}, but since we can obtain the
+		 * {@link Reflection} instance on-the-fly, it is not required.
+		 * @param cls the schematic class
+		 * @param &lt;SC&gt; the schematic class
+		 * @return the previously-mapped reflection, if any
+		 */
+		public &lt;SC extends SQLightable&gt; Reflection&lt;SC&gt; put( Class&lt;SC&gt; cls )
+		{
+<span class="fc bfc" id="L1087" title="All 2 branches covered.">			if( this.containsKey( cls ) )</span>
+<span class="fc" id="L1088">				return this.get(cls) ;</span>
+			else
+			{
+				//noinspection unchecked - guaranteed logically
+<span class="fc" id="L1092">				return ((Reflection&lt;SC&gt;)</span>
+<span class="fc" id="L1093">						( super.put( cls, Reflection.reflect(cls) ) ))  ;</span>
+			}
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span>Generated by the Android Gradle plugin 3.1.3</div></body></html>

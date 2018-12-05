@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TitleFormatter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zer0bandwidth.android.lib.text.format</a> &gt; <span class="el_source">TitleFormatter.java</span></div><h1>TitleFormatter.java</h1><pre class="source lang-java linenums">package net.zer0bandwidth.android.lib.text.format;
+
+
+import android.content.Context;
+
+import net.zer0bandwidth.android.lib.R;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * Formats a string as a title. The class currently supports only an English
+ * locale, but other locale supports may be added in the future.
+ * @since zer0bandwidth-net/android 0.1.5 (#11)
+ */
+public class TitleFormatter
+{
+	/**
+	 * Formats a string as a title.
+	 * @param ctx a context, so we can fetch localized string resources
+	 * @param sInput the input string
+	 * @return a new string, formatted as a title
+	 */
+	public static String format( Context ctx, String sInput )
+<span class="fc" id="L26">	{ return format( ctx, sInput, Locale.getDefault() ) ; }</span>
+
+	/**
+	 * Formats a string as a title, using the specified locale (eventually...).
+	 * @param ctx a context, so we can fetch localized string resources
+	 * @param sInput the input string
+	 * @param loc the locale to be considered; this is currently ignored, but
+	 *            may be used in a future version
+	 * @return a new string, formatted as a title
+	 */
+	@SuppressWarnings(&quot;unused&quot;) // param &quot;loc&quot; is intended for future support
+	public static String format( Context ctx, String sInput, Locale loc )
+	{
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">		if( sInput == null ) return null ; // trivially</span>
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">		if( sInput.length() == 0 ) return &quot;&quot; ; // trivially</span>
+
+<span class="fc" id="L42">		return formatEnglishTitle( ctx, sInput ) ;</span>
+	}
+
+/// English locales ////////////////////////////////////////////////////////////
+
+	/**
+	 * A data structure which self-initializes with all the data related to
+	 * evaluations in an English-speaking context.
+	 * @since zer0bandwidth-net/android 0.1.5 (#11)
+	 * @see TitleFormatter#formatEnglishTitle
+	 */
+	protected static class EnglishLocaleContext
+	{
+		public Context ctx ;
+		public List&lt;String&gt; asArticles ;
+		public List&lt;String&gt; asPrepositions ;
+		public EnglishLocaleContext( Context ctx )
+<span class="fc" id="L59">		{</span>
+<span class="fc" id="L60">			this.ctx = ctx ;</span>
+<span class="fc" id="L61">			asArticles = Arrays.asList( ctx.getResources()</span>
+<span class="fc" id="L62">					.getStringArray( R.array.asEnglishArticles ) ) ;</span>
+<span class="fc" id="L63">			asPrepositions = Arrays.asList( ctx.getResources()</span>
+<span class="fc" id="L64">					.getStringArray( R.array.asEnglishPrepositions ) ) ;</span>
+<span class="fc" id="L65">		}</span>
+	}
+
+	/**
+	 * Formats a string as a title, assuming an English-speaking locale.
+	 *
+	 * &lt;p&gt;The criteria used are as follows:&lt;/p&gt;
+	 *
+	 * &lt;ul&gt;
+	 *     &lt;li&gt;Capitalize the first and last word.&lt;/li&gt;
+	 *     &lt;li&gt;Capitalize any word that is not an article, conjunction, or
+	 *         preposition shorter than five letters.&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 *
+	 * &lt;p&gt;This most closely matches the AP Stylebook, as opposed to the Chicago
+	 * Manual of Style or the MLA guidelines.&lt;/p&gt;
+	 *
+	 * @param sInput the input string
+	 * @return a new string, formatted as a title
+	 * @see &lt;a href=&quot;http://grammar.yourdictionary.com/capitalization/rules-for-capitalization-in-titles.html&quot;&gt;Your Dictionary: Rules for Capitalization in Titles of Articles&lt;/a&gt;
+	 */
+	protected static String formatEnglishTitle( Context ctx, String sInput )
+	{
+<span class="fc" id="L88">		String[] asTokens = sInput.split( &quot;\\s&quot; ) ;</span>
+<span class="fc" id="L89">		StringBuilder sbOutput = new StringBuilder() ;</span>
+<span class="fc" id="L90">		EnglishLocaleContext lctx = new EnglishLocaleContext(ctx) ;</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">		for( int i = 0 ; i &lt; asTokens.length ; i++ )</span>
+		{ // Use numeric iterator so we know when we're on the last token.
+<span class="fc" id="L93">			String sToken = asTokens[i] ;</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">			if( i &gt; 0 )</span>
+			{ // Not the first word. Append a space, then capitalize.
+<span class="fc" id="L96">				sbOutput.append( &quot; &quot; ) ;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">				sbOutput.append( resolveEnglishToken( lctx, sToken,</span>
+						( i == asTokens.length - 1 ) ) ) ;  // is the last token
+			}
+			else
+<span class="fc" id="L101">				sbOutput.append( resolveEnglishToken( lctx, sToken, true ) ) ;</span>
+		}
+<span class="fc" id="L103">		return sbOutput.toString() ;</span>
+	}
+
+	/**
+	 * Resolves capitalization of a single English token.
+	 * @param lctx contextual information about English-speaking locales
+	 * @param sToken the input token
+	 * @param bForce specifies that capitalization should be forced
+ 	 * @return the resolved token
+	 */
+	protected static String resolveEnglishToken(
+			EnglishLocaleContext lctx, String sToken, boolean bForce )
+	{
+<span class="fc" id="L116">		String sNormal = sToken.toLowerCase() ;</span>
+<span class="fc" id="L117">		char[] acReturn = new char[ sNormal.length() ] ;</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">		if( ! bForce )</span>
+		{ // See if this is one of the words that must remain lower-case.
+<span class="fc bfc" id="L120" title="All 2 branches covered.">			if( lctx.asArticles.contains(sNormal) )</span>
+<span class="fc" id="L121">				return sNormal ;</span>
+<span class="fc bfc" id="L122" title="All 4 branches covered.">			if( sToken.length() &lt; 5 &amp;&amp; lctx.asPrepositions.contains(sNormal) )</span>
+<span class="fc" id="L123">				return sNormal ;</span>
+		}
+<span class="fc bfc" id="L125" title="All 2 branches covered.">		for( int i = 0 ; i &lt; sToken.length() ; i++ )</span>
+		{
+<span class="fc" id="L127">			char c = sNormal.charAt(i) ;</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">			if( i == 0 )</span>
+<span class="fc" id="L129">				c = Character.toUpperCase(c) ;</span>
+<span class="pc bpc" id="L130" title="1 of 4 branches missed.">			else if( i == 3 &amp;&amp; sNormal.startsWith( &quot;o'&quot; ) )</span>
+<span class="nc" id="L131">				c = Character.toUpperCase(c) ;</span>
+<span class="fc bfc" id="L132" title="All 4 branches covered.">			else if( i &gt; 1 &amp;&amp; sNormal.charAt(i-1) == '-' )</span>
+<span class="fc" id="L133">				c = Character.toUpperCase(c) ;</span>
+<span class="fc" id="L134">			acReturn[i] = c ;</span>
+		}
+<span class="fc" id="L136">		return new String(acReturn) ;</span>
+	}
+
+/// Other locales... ///////////////////////////////////////////////////////////
+
+	// TBD
+
+/// Other methods //////////////////////////////////////////////////////////////
+
+	/** This class is static-only; it should not be instantiated. */
+<span class="nc" id="L146">	private TitleFormatter() {}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span>Generated by the Android Gradle plugin 3.1.3</div></body></html>

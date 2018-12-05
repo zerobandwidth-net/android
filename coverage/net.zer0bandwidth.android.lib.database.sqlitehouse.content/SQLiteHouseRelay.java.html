@@ -1,0 +1,611 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SQLiteHouseRelay.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zer0bandwidth.android.lib.database.sqlitehouse.content</a> &gt; <span class="el_source">SQLiteHouseRelay.java</span></div><h1>SQLiteHouseRelay.java</h1><pre class="source lang-java linenums">package net.zer0bandwidth.android.lib.database.sqlitehouse.content;
+
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.util.Log;
+
+import net.zer0bandwidth.android.lib.content.ContentUtils;
+import net.zer0bandwidth.android.lib.content.IntentUtils;
+import net.zer0bandwidth.android.lib.content.querybuilder.SelectionBuilder;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.SQLightable;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.SQLiteHouse;
+import net.zer0bandwidth.android.lib.database.sqlitehouse.content.exceptions.SQLiteContentException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.DELETE_FAILED;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.INSERT_FAILED;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.UPDATE_FAILED;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_INSERT_ROW_ID;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_RESULT_ROW_COUNT;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_DATA;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SCHEMA_CLASS_NAME;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.EXTRA_SELECTION_QUERY_SPEC;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_DELETE;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_INSERT;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_SELECT;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.KEEPER_UPDATE;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_DELETE_FAILED;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_INSERT_FAILED;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_SELECT_FAILED;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_NOTIFY_UPDATE_FAILED;
+import static net.zer0bandwidth.android.lib.database.sqlitehouse.content.SQLiteHouseSignalAPI.RELAY_RECEIVE_SELECTION;
+
+/**
+ * A class which can send requests to, and receive notifications from, a
+ * {@link SQLiteHouseKeeper}.
+ *
+ * This class fills the role of a {@link ContentResolver} without implementing
+ * that class's API, since the prototypes of the {@code ContentResolver}'s
+ * methods don't fit with the workflow of a {@code SQLiteHouse}.
+ *
+ * If an app uses an implementation of {@link SQLiteHouse} to marshal data
+ * to/from a SQLite database, then it should provide a library which includes
+ * the schematic classes and an implementation of this class. Since the
+ * implementation class is expected to be provided in a library that is separate
+ * from the {@code SQLiteHouse} implementation, its declaration &lt;i&gt;must not&lt;/i&gt;
+ * depend on the ability to import that implementation (&lt;i&gt;e.g.&lt;/i&gt; as part of
+ * a generic template parameter on the class).
+ *
+ * @since zer0bandwidth-net/android 0.1.7 (#50)
+ */
+public class SQLiteHouseRelay
+extends BroadcastReceiver
+{
+/// Inner Classes //////////////////////////////////////////////////////////////
+
+	/**
+	 * Methods that must be implemented by any class that wants to process the
+	 * information received in signals from a {@link SQLiteHouseKeeper}.
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	public interface Listener
+	{
+		/**
+		 * Called by {@link SQLiteHouseRelay#onRowInserted} to inform the
+		 * listener of a successful insertion.
+		 * @param nRowID the integer ID of the new database row
+		 */
+		void onRowInserted( long nRowID ) ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onInsertFailed} to inform the
+		 * listener of a failed insertion.
+		 */
+		void onInsertFailed() ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onRowsUpdated} to inform the
+		 * listener of a successful update.
+		 * @param nCount the number of rows that were updated
+		 */
+		void onRowsUpdated( int nCount ) ;
+		/**
+		 * Called by {@link SQLiteHouseRelay#onUpdateFailed} to inform the
+		 * listener of a failed update.
+		 */
+		void onUpdateFailed() ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onRowsDeleted} to inform the
+		 * listener of a successful deletion.
+		 * @param nCount the number of rows that were deleted
+		 */
+		void onRowsDeleted( int nCount ) ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onDeleteFailed} to inform the
+		 * listener of a failed deletion.
+		 */
+		void onDeleteFailed() ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onRowsSelected} to pass the results
+		 * of a successful selection to the listener.
+		 * @param cls the schematic class that will marshal the data
+		 * @param nTotalCount the total number of rows
+		 * @param aoRows the rows themselves, already marshalled
+		 * @param &lt;SC&gt; the schematic class
+		 */
+		&lt;SC extends SQLightable&gt; void onRowsSelected( Class&lt;SC&gt; cls, int nTotalCount, List&lt;SC&gt; aoRows ) ;
+
+		/**
+		 * Called by {@link SQLiteHouseRelay#onSelectFailed} to inform the
+		 * listener of a failed selection.
+		 */
+		void onSelectFailed() ;
+	}
+
+/// Static constants ///////////////////////////////////////////////////////////
+
+<span class="fc" id="L130">	public static final String LOG_TAG = SQLiteHouseRelay.class.getSimpleName();</span>
+
+/// Member fields //////////////////////////////////////////////////////////////
+
+	/** The context in which the relay will operate. */
+<span class="fc" id="L135">	protected Context m_ctx = null ;</span>
+
+	/** A reference for the contract under which the relay is registered. */
+<span class="fc" id="L138">	protected SQLiteHouseSignalAPI m_api = null ;</span>
+
+	/** The set of active listeners. */
+<span class="fc" id="L141">	protected Vector&lt;Listener&gt; m_vListeners = null ;</span>
+
+/// Constructors and initializers //////////////////////////////////////////////
+
+	/**
+	 * Constructs an instance, but does not register it.
+	 * @param ctx the context in which the relay will operate
+	 */
+	public SQLiteHouseRelay( Context ctx )
+<span class="fc" id="L150">	{</span>
+<span class="fc" id="L151">		m_ctx = ctx ;</span>
+<span class="fc" id="L152">		m_vListeners = new Vector&lt;&gt;() ;</span>
+<span class="fc" id="L153">	}</span>
+
+	/**
+	 * Registers the relay instance as a {@link BroadcastReceiver} in its
+	 * context.
+	 * @param api the signal contract between the keeper and the relay; if
+	 *             {@code null}, then the relay will be unregistered instead
+	 * @return (fluid)
+	 */
+	public SQLiteHouseRelay register( SQLiteHouseSignalAPI api )
+	{
+<span class="fc" id="L164">		m_api = api ;</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">		if( api == null )</span>
+<span class="fc" id="L166">			this.unregister() ;</span>
+		else
+<span class="fc" id="L168">			m_ctx.registerReceiver( this, api.getRelayIntentFilter() ) ;</span>
+<span class="fc" id="L169">		return this ;</span>
+	}
+
+	/**
+	 * Unregisters the relay in its context.
+	 * @return (fluid)
+	 */
+	public SQLiteHouseRelay unregister()
+	{
+<span class="fc" id="L178">		ContentUtils.unregister( m_ctx, this ) ;</span>
+<span class="fc" id="L179">		m_api = null ;</span>
+<span class="fc" id="L180">		return this ;</span>
+	}
+
+/// android.content.BroadcastReceiver //////////////////////////////////////////
+
+	@Override
+	public final void onReceive( Context ctx, Intent sig )
+	{
+<span class="fc" id="L188">		String sAction = IntentUtils.discoverAction(sig) ;</span>
+
+<span class="fc bfc" id="L190" title="All 4 branches covered.">		if( sAction == null || sAction.isEmpty() )</span>
+		{
+<span class="fc" id="L192">			Log.i( LOG_TAG, &quot;Ignoring request with empty action token.&quot; ) ;</span>
+<span class="fc" id="L193">			return ;</span>
+		}
+
+<span class="fc bfc" id="L196" title="All 2 branches covered.">		if( m_api == null )</span>
+		{
+<span class="fc" id="L198">			Log.i( LOG_TAG, (new StringBuilder())</span>
+<span class="fc" id="L199">					.append( &quot;No signals are registered! Ignoring action [&quot; )</span>
+<span class="fc" id="L200">					.append( sAction )</span>
+<span class="fc" id="L201">					.append( &quot;].&quot; )</span>
+<span class="fc" id="L202">					.toString()</span>
+				);
+<span class="fc" id="L204">			return ;</span>
+		}
+
+<span class="fc" id="L207">		String sActionToken = m_api.getTokenFromRelayAction(sAction) ;</span>
+
+<span class="pc bpc" id="L209" title="11 of 34 branches missed.">		switch( sActionToken )</span>
+		{
+			case RELAY_NOTIFY_INSERT:
+<span class="fc" id="L212">				this.onRowInserted( sig ) ;</span>
+<span class="fc" id="L213">				break ;</span>
+			case RELAY_NOTIFY_INSERT_FAILED:
+<span class="fc" id="L215">				this.onInsertFailed( sig ) ;</span>
+<span class="fc" id="L216">				break ;</span>
+			case RELAY_NOTIFY_UPDATE:
+<span class="fc" id="L218">				this.onRowsUpdated( sig ) ;</span>
+<span class="fc" id="L219">				break ;</span>
+			case RELAY_NOTIFY_UPDATE_FAILED:
+<span class="fc" id="L221">				this.onUpdateFailed( sig ) ;</span>
+<span class="fc" id="L222">				break ;</span>
+			case RELAY_NOTIFY_DELETE:
+<span class="fc" id="L224">				this.onRowsDeleted( sig ) ;</span>
+<span class="fc" id="L225">				break ;</span>
+			case RELAY_NOTIFY_DELETE_FAILED:
+<span class="fc" id="L227">				this.onDeleteFailed( sig ) ;</span>
+<span class="fc" id="L228">				break ;</span>
+			case RELAY_RECEIVE_SELECTION:
+<span class="fc" id="L230">				this.onRowsSelected( sig ) ;</span>
+<span class="fc" id="L231">				break ;</span>
+			case RELAY_NOTIFY_SELECT_FAILED:
+<span class="nc" id="L233">				this.onSelectFailed( sig ) ;</span>
+<span class="nc" id="L234">				break ;</span>
+			default:
+<span class="fc" id="L236">				this.handleCustomAction( ctx, sig, sActionToken ) ;</span>
+		}
+<span class="fc" id="L238">	}</span>
+
+/// Listener management ////////////////////////////////////////////////////////
+
+	/**
+	 * Registers a listener.
+	 * The method is idempotent; if the same listener is passed multiple times,
+	 * then it will be added only if it is not already present.
+	 * @param l the listener to be registered
+	 * @return (fluid)
+	 */
+	public SQLiteHouseRelay addListener( Listener l )
+	{
+<span class="fc bfc" id="L251" title="All 2 branches covered.">		if( ! m_vListeners.contains(l) )</span>
+<span class="fc" id="L252">			m_vListeners.add(l) ;</span>
+<span class="fc" id="L253">		return this ;</span>
+	}
+
+	/**
+	 * Unregisters a listener.
+	 * The method is idempotent; if the same listener is passed multiple times,
+	 * then it will be removed only if it is still present.
+	 * @param l the listener to be removed
+	 * @return (fluid)
+	 */
+	public SQLiteHouseRelay removeListener( Listener l )
+	{
+<span class="fc bfc" id="L265" title="All 2 branches covered.">		if( m_vListeners.contains(l) )</span>
+<span class="fc" id="L266">			m_vListeners.remove(l) ;</span>
+<span class="fc" id="L267">		return this ;</span>
+	}
+
+/// Action handlers ////////////////////////////////////////////////////////////
+
+	/**
+	 * Override this method to handle custom actions not covered by the standard
+	 * set defined in {@link SQLiteHouseSignalAPI}. The default implementation
+	 * writes an information log stating that the action is unrecognized.
+	 * @param ctx the context from which the signal originated
+	 * @param sig the received signal
+	 * @param sToken the action token parsed from the signal
+	 */
+	@SuppressWarnings(&quot;UnusedParameters&quot;) // default intentionally ignores
+	protected void handleCustomAction( Context ctx, Intent sig, String sToken )
+	{
+<span class="fc" id="L283">		Log.i( LOG_TAG, (new StringBuilder())</span>
+<span class="fc" id="L284">				.append( &quot;Ignoring unrecognized action [&quot; )</span>
+<span class="fc" id="L285">				.append( sToken )</span>
+<span class="fc" id="L286">				.append( &quot;].&quot; )</span>
+<span class="fc" id="L287">				.toString()</span>
+			);
+<span class="fc" id="L289">	}</span>
+
+	/**
+	 * Handles a signal from the keeper that a row was inserted.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onRowInserted( Intent sig )
+	{
+<span class="fc" id="L297">		long nRowID = sig.getLongExtra(</span>
+<span class="fc" id="L298">				m_api.getFormattedExtraTag( EXTRA_INSERT_ROW_ID ),</span>
+				INSERT_FAILED
+			);
+<span class="fc" id="L301">		String sClass = m_api.getExtraSchemaClassName(sig) ;</span>
+<span class="fc" id="L302">		Log.i( LOG_TAG, (new StringBuilder())</span>
+<span class="fc bfc" id="L303" title="All 2 branches covered.">				.append( &quot;Row ID [&quot; )</span>
+<span class="fc" id="L304">				.append(( nRowID == INSERT_FAILED ? &quot;(unknown)&quot; : nRowID ))</span>
+<span class="fc bfc" id="L305" title="All 2 branches covered.">				.append( &quot;] of class [&quot; )</span>
+<span class="fc" id="L306">				.append(( sClass == null ? &quot;(unknown)&quot; : sClass ))</span>
+<span class="fc" id="L307">				.append( &quot;] inserted into the database.&quot; )</span>
+<span class="fc" id="L308">				.toString()</span>
+			);
+
+<span class="pc bpc" id="L311" title="1 of 2 branches missed.">		for( Listener l : m_vListeners )</span>
+<span class="nc" id="L312">			l.onRowInserted(nRowID) ;</span>
+<span class="fc" id="L313">	}</span>
+
+	/**
+	 * Handles a signal from the keeper that a row insertion has failed.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onInsertFailed( Intent sig )
+	{
+<span class="fc" id="L321">		String sClass = m_api.getExtraSchemaClassName(sig) ;</span>
+<span class="fc" id="L322">		Log.e( LOG_TAG, (new StringBuilder())</span>
+<span class="fc bfc" id="L323" title="All 2 branches covered.">				.append( &quot;Keeper failed to insert a row of type [&quot; )</span>
+<span class="fc" id="L324">				.append(( sClass == null ? &quot;(unknown)&quot; : sClass ))</span>
+<span class="fc" id="L325">				.append( &quot;].&quot; )</span>
+<span class="fc" id="L326">				.toString()</span>
+			);
+
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">		for( Listener l : m_vListeners )</span>
+<span class="nc" id="L330">			l.onInsertFailed() ;</span>
+<span class="fc" id="L331">	}</span>
+
+
+	/**
+	 * Handles a signal from the keeper that some rows were updated.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onRowsUpdated( Intent sig )
+	{
+<span class="fc" id="L340">		int nCount = sig.getIntExtra(</span>
+<span class="fc" id="L341">				m_api.getFormattedExtraTag( EXTRA_RESULT_ROW_COUNT ),</span>
+				UPDATE_FAILED
+			);
+<span class="fc" id="L344">		String sClass = m_api.getExtraSchemaClassName(sig) ;</span>
+<span class="fc" id="L345">		Log.i( LOG_TAG, (new StringBuilder())</span>
+<span class="fc bfc" id="L346" title="All 2 branches covered.">				.append( &quot;Updated [&quot; )</span>
+<span class="pc bpc" id="L347" title="1 of 2 branches missed.">				.append(( nCount == UPDATE_FAILED ? &quot;(unknown)&quot; : nCount ))</span>
+<span class="fc bfc" id="L348" title="All 2 branches covered.">				.append(( nCount == 1 ? &quot;] row of type [&quot; : &quot;] rows of type [&quot; ))</span>
+<span class="fc" id="L349">				.append(( sClass == null ? &quot;(unknown)&quot; : sClass ))</span>
+<span class="fc" id="L350">				.append( &quot;].&quot; )</span>
+<span class="fc" id="L351">				.toString()</span>
+			);
+
+<span class="pc bpc" id="L354" title="1 of 2 branches missed.">		for( Listener l : m_vListeners )</span>
+<span class="nc" id="L355">			l.onRowsUpdated(nCount) ;</span>
+<span class="fc" id="L356">	}</span>
+
+	/**
+	 * Handles a signal from the keeper that a table update has failed.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onUpdateFailed( Intent sig )
+	{
+<span class="fc" id="L364">		String sClass = m_api.getExtraSchemaClassName(sig) ;</span>
+<span class="fc" id="L365">		Log.e( LOG_TAG, (new StringBuilder())</span>
+<span class="fc bfc" id="L366" title="All 2 branches covered.">				.append( &quot;Keeper failed to update rows of type [&quot; )</span>
+<span class="fc" id="L367">				.append(( sClass == null ? &quot;(unknown)&quot; : sClass ))</span>
+<span class="fc" id="L368">				.append( &quot;].&quot; )</span>
+<span class="fc" id="L369">				.toString()</span>
+			);
+
+<span class="pc bpc" id="L372" title="1 of 2 branches missed.">		for( Listener l : m_vListeners )</span>
+<span class="nc" id="L373">			l.onUpdateFailed() ;</span>
+<span class="fc" id="L374">	}</span>
+
+	/**
+	 * Handles a signal from the keeper that some rows were deleted.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onRowsDeleted( Intent sig )
+	{
+<span class="fc" id="L382">		int nCount = sig.getIntExtra(</span>
+<span class="fc" id="L383">				m_api.getFormattedExtraTag( EXTRA_RESULT_ROW_COUNT ),</span>
+				DELETE_FAILED
+			);
+<span class="fc" id="L386">		String sClass = m_api.getExtraSchemaClassName(sig) ;</span>
+<span class="fc" id="L387">		Log.i( LOG_TAG, (new StringBuilder())</span>
+<span class="fc bfc" id="L388" title="All 2 branches covered.">				.append( &quot;Deleted [&quot; )</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">				.append(( nCount == DELETE_FAILED ? &quot;(unknown)&quot; : nCount ))</span>
+<span class="fc bfc" id="L390" title="All 2 branches covered.">				.append(( nCount == 1 ? &quot;] row of type [&quot; : &quot;] rows of type [&quot; ))</span>
+<span class="fc" id="L391">				.append(( sClass == null ? &quot;(unknown)&quot; : sClass ))</span>
+<span class="fc" id="L392">				.append( &quot;].&quot; )</span>
+<span class="fc" id="L393">				.toString()</span>
+			);
+
+<span class="pc bpc" id="L396" title="1 of 2 branches missed.">		for( Listener l : m_vListeners )</span>
+<span class="nc" id="L397">			l.onRowsDeleted(nCount) ;</span>
+<span class="fc" id="L398">	}</span>
+
+	/**
+	 * Handles a signal from the keeper that a row deletion failed.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onDeleteFailed( Intent sig )
+	{
+<span class="fc" id="L406">		String sClass = m_api.getExtraSchemaClassName(sig) ;</span>
+<span class="fc" id="L407">		Log.e( LOG_TAG, (new StringBuilder())</span>
+<span class="fc bfc" id="L408" title="All 2 branches covered.">				.append( &quot;Keeper failed to delete rows of type [&quot; )</span>
+<span class="fc" id="L409">				.append(( sClass == null ? &quot;(unknown)&quot; : sClass ))</span>
+<span class="fc" id="L410">				.append( &quot;].&quot; )</span>
+<span class="fc" id="L411">				.toString()</span>
+			);
+
+<span class="pc bpc" id="L414" title="1 of 2 branches missed.">		for( Listener l : m_vListeners )</span>
+<span class="nc" id="L415">			l.onDeleteFailed() ;</span>
+<span class="fc" id="L416">	}</span>
+
+	/**
+	 * Handles a signal payload from the keeper, containing a set of selected
+	 * rows from the database.
+	 * @param sig the received signal
+	 * @param &lt;SC&gt; the schematic class
+	 */
+	protected synchronized &lt;SC extends SQLightable&gt; void onRowsSelected( Intent sig )
+	{
+<span class="fc" id="L426">		int nCount = sig.getIntExtra(</span>
+<span class="fc" id="L427">				m_api.getFormattedExtraTag( EXTRA_RESULT_ROW_COUNT ), -1 ) ;</span>
+<span class="fc bfc" id="L428" title="All 2 branches covered.">		if( nCount == -1 )</span>
+		{ // Short-circuit; signal doesn't tell us how many results there are.
+<span class="fc" id="L430">			Log.w( LOG_TAG, &quot;No row count included in selection results.&quot; ) ;</span>
+<span class="nc" id="L431">			this.onSelectFailed(sig) ;</span>
+		}
+
+<span class="fc" id="L434">		Class&lt;SC&gt; cls = null ;</span>
+<span class="fc" id="L435">		try { cls = m_api.getClassFromExtra(sig) ; }</span>
+<span class="fc" id="L436">		catch( SQLiteContentException x )</span>
+		{ // Short-circuit; can't figure out how to marshal results.
+<span class="fc" id="L438">			Log.w( LOG_TAG, (new StringBuilder())</span>
+<span class="fc" id="L439">					.append( &quot;Can't discover class to marshal [&quot; )</span>
+<span class="pc bpc" id="L440" title="1 of 2 branches missed.">					.append( nCount )</span>
+<span class="fc" id="L441">					.append(( nCount == 1 ? &quot;] result&quot; : &quot;] results&quot; ))</span>
+<span class="fc" id="L442">					.append( &quot; from the keeper's signal.&quot; )</span>
+<span class="fc" id="L443">					.toString()</span>
+				, x );
+<span class="nc" id="L445">			this.onSelectFailed(sig) ;</span>
+<span class="fc" id="L446">		}</span>
+<span class="fc" id="L447">		String sExtra = m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ) ;</span>
+<span class="fc bfc" id="L448" title="All 2 branches covered.">		if( ! sig.hasExtra(sExtra) )</span>
+		{ // Short-circuit; can't find the data extra.
+<span class="fc" id="L450">			Log.w( LOG_TAG, &quot;Selection result signal had no data.&quot; ) ;</span>
+<span class="nc" id="L451">			this.onSelectFailed(sig) ;</span>
+		}
+<span class="fc" id="L453">		Parcelable[] apclRows = sig.getParcelableArrayExtra(sExtra) ;</span>
+<span class="pc bpc" id="L454" title="1 of 2 branches missed.">		if( apclRows == null )</span>
+		{
+<span class="nc bnc" id="L456" title="All 2 branches missed.">			if( nCount &gt; 0 )</span>
+<span class="nc" id="L457">				Log.w( LOG_TAG, &quot;Could not extract data from signal.&quot; ) ;</span>
+<span class="nc" id="L458">			return ;</span>
+		}
+<span class="fc" id="L460">		ArrayList&lt;SC&gt; aoRows = new ArrayList&lt;&gt;( apclRows.length ) ;</span>
+<span class="fc" id="L461">		SQLightable.Reflection&lt;SC&gt; tbl = m_api.reflect(cls) ;</span>
+<span class="fc bfc" id="L462" title="All 2 branches covered.">		for( Parcelable pclRow : apclRows )</span>
+<span class="fc" id="L463">			aoRows.add( tbl.fromBundle( ((Bundle)(pclRow)) ) ) ;</span>
+
+<span class="fc bfc" id="L465" title="All 2 branches covered.">		for( Listener l : m_vListeners )</span>
+<span class="fc" id="L466">			l.onRowsSelected( cls, nCount, aoRows ) ;</span>
+<span class="fc" id="L467">	}</span>
+
+	/**
+	 * Handles a signal from the keeper that a row selection failed.
+	 * @param sig the received signal
+	 */
+	protected synchronized void onSelectFailed( Intent sig )
+	{
+<span class="fc" id="L475">		String sClass = m_api.getExtraSchemaClassName(sig) ;</span>
+<span class="fc" id="L476">		Log.e( LOG_TAG, (new StringBuilder())</span>
+<span class="fc bfc" id="L477" title="All 2 branches covered.">				.append( &quot;Keeper failed to select rows of type [&quot; )</span>
+<span class="fc" id="L478">				.append(( sClass == null ? &quot;(unknown)&quot; : sClass ))</span>
+<span class="fc" id="L479">				.append( &quot;].&quot; )</span>
+<span class="fc" id="L480">				.toString()</span>
+			);
+
+<span class="pc bpc" id="L483" title="1 of 2 branches missed.">		for( Listener l : m_vListeners )</span>
+<span class="nc" id="L484">			l.onSelectFailed() ;</span>
+<span class="nc" id="L485">	}</span>
+
+/// Broadcasts to SQLiteHouseKeeper ////////////////////////////////////////////
+
+	/**
+	 * Requests insertion of a schematic class instance into the keeper's
+	 * database.
+	 * @param o an instance of the schematic class
+	 * @param &lt;SC&gt; the schematic class
+	 * @return (fluid)
+	 */
+	public &lt;SC extends SQLightable&gt; SQLiteHouseRelay insert( SC o )
+<span class="nc" id="L497">	{ m_ctx.sendBroadcast( this.buildInsertSignal(o) ) ; return this ; }</span>
+
+	/**
+	 * Constructs the {@link Intent} to be sent by {@link #insert}.
+	 * This is a separate method only so that it can be unit-tested.
+	 * @param o an instance of the schematic class to be inserted
+	 * @param &lt;SC&gt; the schematic class
+	 * @return the intent to be sent by {@link @insert}
+	 */
+	protected &lt;SC extends SQLightable&gt; Intent buildInsertSignal( SC o )
+	{
+<span class="fc" id="L508">		Intent sig = new Intent(</span>
+<span class="fc" id="L509">				m_api.getFormattedKeeperAction( KEEPER_INSERT ) ) ;</span>
+<span class="fc" id="L510">		SQLightable.Reflection&lt;SC&gt; tbl = m_api.reflect(o) ;</span>
+<span class="fc" id="L511">		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),</span>
+<span class="fc" id="L512">				tbl.getTableClass().getCanonicalName() ) ;</span>
+<span class="fc" id="L513">		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),</span>
+<span class="fc" id="L514">				tbl.toBundle(o) ) ;</span>
+<span class="fc" id="L515">		return sig ;</span>
+	}
+
+	/**
+	 * Requests an update of a particular row in the keeper's database,
+	 * corresponding to the schematic class instance supplied.
+	 * @param o an instance of the schematic class
+	 * @param &lt;SC&gt; the schematic class
+	 * @return (fluid)
+	 */
+	public &lt;SC extends SQLightable&gt; SQLiteHouseRelay update( SC o )
+<span class="nc" id="L526">	{ m_ctx.sendBroadcast( this.buildUpdateSignal(o) ) ; return this ; }</span>
+
+	/**
+	 * Constructs the {@link Intent} to be sent by {@link #update}.
+	 * This is a separate method only so that it can be unit-tested.
+	 * @param o an instance of the schematic class to be used as update input
+	 * @param &lt;SC&gt; the schematic class
+	 * @return the intent to be sent by {@link #update}
+	 */
+	protected &lt;SC extends SQLightable&gt; Intent buildUpdateSignal( SC o )
+	{
+<span class="fc" id="L537">		Intent sig = new Intent(</span>
+<span class="fc" id="L538">				m_api.getFormattedKeeperAction( KEEPER_UPDATE ) ) ;</span>
+<span class="fc" id="L539">		SQLightable.Reflection&lt;SC&gt; tbl = m_api.reflect(o) ;</span>
+<span class="fc" id="L540">		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),</span>
+<span class="fc" id="L541">				tbl.getTableClass().getCanonicalName() ) ;</span>
+<span class="fc" id="L542">		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),</span>
+<span class="fc" id="L543">				tbl.toBundle(o) ) ;</span>
+<span class="fc" id="L544">		return sig ;</span>
+	}
+
+	/**
+	 * Requests deletion of a particular row in the keeper's database,
+	 * corresponding to the schematic class instance supplied.
+	 * @param o an instance of the schematic class
+	 * @param &lt;SC&gt; the schematic class
+	 * @return (fluid)
+	 */
+	public &lt;SC extends SQLightable&gt; SQLiteHouseRelay delete( SC o )
+<span class="nc" id="L555">	{ m_ctx.sendBroadcast( this.buildDeleteSignal(o) ) ; return this ; }</span>
+
+	/**
+	 * Constructs the {@link Intent} to be sent by {@link #delete}.
+	 * This is a separate method only so that it can be unit-tested.
+	 * @param o an instance of the schematic class to be deleted
+	 * @param &lt;SC&gt; the schematic class
+	 * @return the intent to be sent by {@link #delete}
+	 */
+	protected &lt;SC extends SQLightable&gt; Intent buildDeleteSignal( SC o )
+	{
+<span class="fc" id="L566">		Intent sig = new Intent(</span>
+<span class="fc" id="L567">				m_api.getFormattedKeeperAction( KEEPER_DELETE ) ) ;</span>
+<span class="fc" id="L568">		SQLightable.Reflection&lt;SC&gt; tbl = m_api.reflect(o) ;</span>
+<span class="fc" id="L569">		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),</span>
+<span class="fc" id="L570">				tbl.getTableClass().getCanonicalName() ) ;</span>
+<span class="fc" id="L571">		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_DATA ),</span>
+<span class="fc" id="L572">				tbl.toBundle(o) ) ;</span>
+<span class="fc" id="L573">		return sig ;</span>
+	}
+
+	/**
+	 * Requests the selection of a set of rows from the keeper's database.
+	 * @param cls the schematic class that would contain the rows
+	 * @param q a query against that data set
+	 * @param &lt;SC&gt; the schematic class
+	 * @return (fluid)
+	 */
+	public &lt;SC extends SQLightable&gt; SQLiteHouseRelay select(
+			Class&lt;SC&gt; cls, SelectionBuilder q )
+<span class="nc" id="L585">	{ m_ctx.sendBroadcast( this.buildSelectionSignal(cls,q) ) ; return this ; }</span>
+
+	/**
+	 * Constructs the {@link Intent} to be sent by {@link #select}.
+	 * This is a separate method only so that it can be unit-tested.
+	 * @param cls the schematic class that would contain the rows
+	 * @param q a query against that data set
+	 * @param &lt;SC&gt; the schematic class
+	 * @return the intent to be sent by {@link #select}
+	 */
+	protected &lt;SC extends SQLightable&gt; Intent buildSelectionSignal(
+			Class&lt;SC&gt; cls, SelectionBuilder q )
+	{
+<span class="fc" id="L598">		Intent sig = new Intent(</span>
+<span class="fc" id="L599">				m_api.getFormattedKeeperAction( KEEPER_SELECT ) ) ;</span>
+<span class="fc" id="L600">		SQLightable.Reflection&lt;SC&gt; tbl = m_api.reflect(cls) ;</span>
+<span class="fc" id="L601">		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SCHEMA_CLASS_NAME ),</span>
+<span class="fc" id="L602">				tbl.getTableClass().getCanonicalName() ) ;</span>
+<span class="fc" id="L603">		sig.putExtra( m_api.getFormattedExtraTag( EXTRA_SELECTION_QUERY_SPEC ),</span>
+<span class="fc" id="L604">				q.toBundle() ) ;</span>
+<span class="fc" id="L605">		return sig ;</span>
+	}
+
+/// Other instance methods /////////////////////////////////////////////////////
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span>Generated by the Android Gradle plugin 3.1.3</div></body></html>

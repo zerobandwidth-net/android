@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StringComparator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zer0bandwidth.android.lib.util</a> &gt; <span class="el_source">StringComparator.java</span></div><h1>StringComparator.java</h1><pre class="source lang-java linenums">package net.zer0bandwidth.android.lib.util;
+
+import java.util.Comparator;
+
+/**
+ * There might be lots of ways to compare strings. There are at least two of
+ * them just in this library. Also, I get pretty crossed up as to how the value
+ * returned by a comparator works. So here's an interface with some handy
+ * semantic constants for derpy developers like myself.
+ * @since zer0bandwidth-net/android 0.2.1 (#56)
+ */
+public interface StringComparator
+extends Comparator&lt;String&gt;
+{
+	/**
+	 * An abstract base class which provides logic that will be common to most,
+	 * if not all, actual implementations of the interface. The implementation
+	 * of {@link #compare} begins by comparing the strings as objects, examining
+	 * their nullness/emptiness. If that algorithm is already enough to identify
+	 * the &quot;greater&quot; string, then there is no need for the actual implementation
+	 * class to do anything further. Otherwise, the implementation class's
+	 * {@link #executeComparison} may proceed already knowing that the strings
+	 * are non-null and non-empty, and that {@link String#equals} has already
+	 * been tried and is not worth trying again.
+	 * @since zer0bandwidth-net/android 0.2.1 (#56)
+	 */
+<span class="fc" id="L27">	abstract class Base implements StringComparator</span>
+	{
+		/**
+		 * Semantic constant not intended as an actual return value; instead,
+		 * the internal {@link #compareAsObjects} method will return this when
+		 * its na&amp;iuml;ve evaluation of the strings (comparing their nullness
+		 * and emptiness) isn't enough to resolve the comparison.
+		 */
+		protected static final int EVALUATION_INDETERMINATE = Integer.MIN_VALUE;
+
+		/**
+		 * Compares the strings as objects &amp;mdash; that is, it bases its
+		 * comparison on the simple question of whether one or both of the
+		 * strings is null or empty.
+		 *
+		 * &lt;ul&gt;
+		 * &lt;li&gt;Two references to the same object are trivially equal.&lt;/li&gt;
+		 * &lt;li&gt;Null and/or empty strings are equal.&lt;/li&gt;
+		 * &lt;li&gt;Non-null strings for which {@code s1.equals(s2)} are equal.&lt;/li&gt;
+		 * &lt;li&gt;
+		 *     Otherwise, a non-null, non-empty string is &quot;greater than&quot; a null
+		 *     or empty string.
+		 * &lt;/li&gt;
+		 * &lt;/ul&gt;
+		 *
+		 * @param s1 the first string to compare
+		 * @param s2 the second string to compare
+		 * @return an indication of order or equality
+		 *  &lt;ul&gt;
+		 *      &lt;li&gt;{@link #EQUAL} (0) if the strings are equal&lt;/li&gt;
+		 *      &lt;li&gt;{@link #S1_IS_GREATER} (1) if the first is &quot;greater&quot;&lt;/li&gt;
+		 *      &lt;li&gt;{@link #S2_IS_GREATER} (-1) if the second is &quot;greater&quot;&lt;/li&gt;
+		 *      &lt;li&gt;
+		 *          {@link #EVALUATION_INDETERMINATE} if this method's
+		 *          na&amp;iuml;ve algorithm was not enough to figure out which is
+		 *          greater
+		 *      &lt;/li&gt;
+		 *  &lt;/ul&gt;
+		 */
+		protected static int compareAsObjects( String s1, String s2 )
+		{
+<span class="fc bfc" id="L68" title="All 2 branches covered.">			if( s1 == null )</span>
+<span class="pc bpc" id="L69" title="1 of 4 branches missed.">				return( ( s2 == null || s2.isEmpty() ) ? EQUAL : S2_IS_GREATER ) ;</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">			else if( s2 == null ) // and s1 is not</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">				return( s1.isEmpty() ? EQUAL : S1_IS_GREATER ) ;</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">			else if( s1.isEmpty() ) // and neither string is null</span>
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">				return( s2.isEmpty() ? EQUAL : S2_IS_GREATER ) ;</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">			else if( s1.equals(s2) )</span>
+<span class="fc" id="L75">				return EQUAL ;</span>
+			else
+<span class="fc" id="L77">				return EVALUATION_INDETERMINATE ;</span>
+		}
+
+		/**
+		 * Executes the comparison that is specific to this class. If the base
+		 * class's implementation of {@link #compare} is used as-is, then this
+		 * method is guaranteed that the strings are non-null, non-empty, and
+		 * that {@link String#equals} has returned {@code false}.
+		 * @param s1 the first string to compare
+		 * @param s2 the second string to compare
+		 * @return an indication of order or equality
+		 *  &lt;ul&gt;
+		 *      &lt;li&gt;{@link #EQUAL} (0) if the strings are equal&lt;/li&gt;
+		 *      &lt;li&gt;{@link #S1_IS_GREATER} (1) if the first is &quot;greater&quot;&lt;/li&gt;
+		 *      &lt;li&gt;{@link #S2_IS_GREATER} (-1) if the second is &quot;greater&quot;&lt;/li&gt;
+		 *  &lt;/ul&gt;
+		 */
+		protected abstract int executeComparison( String s1, String s2 ) ;
+
+		/**
+		 * Executes {@link #compareAsObjects} first to determine whether there
+		 * is already a clear winner, and if not, calls the comparator's more
+		 * specific {@link #executeComparison} method. Implementation classes
+		 * must override this method if they don't want {@code compareAsObjects}
+		 * to be executed first.
+		 *
+		 * &lt;p&gt;This method &lt;i&gt;does not&lt;/i&gt; throw a {@link NullPointerException},
+		 * as it is specifically designed to handle null values.&lt;/p&gt;
+		 *
+		 * @param s1 the first string to compare
+		 * @param s2 the second string to compare
+		 * @return an indication of order or equality
+		 *  &lt;ul&gt;
+		 *      &lt;li&gt;{@link #EQUAL} (0) if the strings are equal&lt;/li&gt;
+		 *      &lt;li&gt;{@link #S1_IS_GREATER} (1) if the first is &quot;greater&quot;&lt;/li&gt;
+		 *      &lt;li&gt;{@link #S2_IS_GREATER} (-1) if the second is &quot;greater&quot;&lt;/li&gt;
+		 *      &lt;li&gt;
+		 *          {@link #EVALUATION_INDETERMINATE} if this method's
+		 *          na&amp;iuml;ve algorithm was not enough to figure out which is
+		 *          greater
+		 *      &lt;/li&gt;
+		 *  &lt;/ul&gt;
+		 */
+		@Override
+		public int compare( String s1, String s2 )
+		{
+<span class="fc" id="L123">			int zAsObjects = compareAsObjects( s1, s2 ) ;</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">			return( zAsObjects == EVALUATION_INDETERMINATE ?</span>
+<span class="fc" id="L125">				this.executeComparison( s1, s2 ) : zAsObjects ) ;</span>
+		}
+	}
+
+	/** Semantic constant indicating the &lt;b&gt;first&lt;/b&gt; string is &quot;greater&quot;. */
+	int S1_IS_GREATER = 1 ;
+	/** Semantic constant indicating the &lt;b&gt;second&lt;/b&gt; string is &quot;greater&quot;. */
+	int S2_IS_GREATER = -1 ;
+	/** Semantic constant indicating that the strings are equal. */
+	int EQUAL = 0 ;
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span>Generated by the Android Gradle plugin 3.1.3</div></body></html>

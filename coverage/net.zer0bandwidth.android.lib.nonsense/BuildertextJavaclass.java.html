@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BuildertextJavaclass.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zer0bandwidth.android.lib.nonsense</a> &gt; <span class="el_source">BuildertextJavaclass.java</span></div><h1>BuildertextJavaclass.java</h1><pre class="source lang-java linenums">package net.zer0bandwidth.android.lib.nonsense;
+
+import android.content.Context;
+
+import net.zer0bandwidth.android.lib.R;
+
+import java.util.Random;
+
+/**
+ * Makes up silly sound-alikes for a certain successful actor whose name is
+ * apparently amusing to some people. Who can tell what will capture the fickle
+ * imagination of the Internet?
+ *
+ * &lt;p&gt;This class makes use of several array resources:&lt;/p&gt;
+ *
+ * &lt;ul&gt;
+ *     &lt;li&gt;{@link R.array#asNonsenseBenedict}&lt;/li&gt;
+ *     &lt;li&gt;{@link R.array#asNonsensePrefixBene}&lt;/li&gt;
+ *     &lt;li&gt;{@link R.array#asNonsenseSuffixDict}&lt;/li&gt;
+ *     &lt;li&gt;{@link R.array#asNonsenseCumberbatch}&lt;/li&gt;
+ *     &lt;li&gt;{@link R.array#asNonsensePrefixCumber}&lt;/li&gt;
+ *     &lt;li&gt;{@link R.array#asNonsenseSuffixBatch}&lt;/li&gt;
+ * &lt;/ul&gt;
+ *
+ * &lt;p&gt;Applications using this class may define competing resources which will
+ * override the defaults when the APK is compiled.&lt;/p&gt;
+ *
+ * @since zer0bandwidth-net/android 0.1.5 (#33)
+ * @see &lt;a href=&quot;http://imgur.com/gallery/IhTQW&quot;&gt;Imgur (gallery)&lt;/a&gt;
+ */
+public class BuildertextJavaclass
+implements NonsenseGenerator
+{
+	/** The internal RNG of the builder. */
+<span class="fc" id="L35">	protected static final Random RANDOM = new Random() ;</span>
+
+	/** A context in which the string resources are available. */
+<span class="fc" id="L38">	protected Context m_ctx = null ;</span>
+
+	/** Indicates whether the resource arrays are cached. */
+<span class="fc" id="L41">	protected boolean m_bCached = false ;</span>
+
+	/** Caches one of the resource arrays. */
+<span class="fc" id="L44">	protected String[] m_asBenedict = null ;</span>
+	/** Caches one of the resource arrays. */
+<span class="fc" id="L46">	protected String[] m_asPrefixBene = null ;</span>
+	/** Caches one of the resource arrays. */
+<span class="fc" id="L48">	protected String[] m_asSuffixDict = null ;</span>
+	/** Caches one of the resource arrays. */
+<span class="fc" id="L50">	protected String[] m_asCumberbatch = null ;</span>
+	/** Caches one of the resource arrays. */
+<span class="fc" id="L52">	protected String[] m_asPrefixCumber = null ;</span>
+	/** Caches one of the resource arrays. */
+<span class="fc" id="L54">	protected String[] m_asSuffixBatch = null ;</span>
+
+	public BuildertextJavaclass( Context ctx )
+<span class="fc" id="L57">	{ this.setContext(ctx) ; }</span>
+
+	@Override
+	public NonsenseGenerator setContext( Context ctx )
+<span class="fc" id="L61">	{ m_ctx = ctx ; return this ; }</span>
+
+	/**
+	 * Caches the resource arrays in this instance.
+	 * Consumed by {@link #getString()}, so that we don't bother building arrays
+	 * until the first time the class is actually used.
+	 * @return (fluid)
+	 */
+	protected BuildertextJavaclass cacheArrays()
+	{
+<span class="fc bfc" id="L71" title="All 2 branches covered.">		if( m_bCached ) return this ; // trivially; it's already been done</span>
+<span class="fc" id="L72">		m_asBenedict = m_ctx.getResources()</span>
+<span class="fc" id="L73">				.getStringArray( R.array.asNonsenseBenedict ) ;</span>
+<span class="fc" id="L74">		m_asPrefixBene = m_ctx.getResources()</span>
+<span class="fc" id="L75">				.getStringArray( R.array.asNonsensePrefixBene ) ;</span>
+<span class="fc" id="L76">		m_asSuffixDict = m_ctx.getResources()</span>
+<span class="fc" id="L77">				.getStringArray( R.array.asNonsenseSuffixDict ) ;</span>
+<span class="fc" id="L78">		m_asCumberbatch = m_ctx.getResources()</span>
+<span class="fc" id="L79">				.getStringArray( R.array.asNonsenseCumberbatch ) ;</span>
+<span class="fc" id="L80">		m_asPrefixCumber = m_ctx.getResources()</span>
+<span class="fc" id="L81">				.getStringArray( R.array.asNonsensePrefixCumber ) ;</span>
+<span class="fc" id="L82">		m_asSuffixBatch = m_ctx.getResources()</span>
+<span class="fc" id="L83">				.getStringArray( R.array.asNonsenseSuffixBatch ) ;</span>
+<span class="fc" id="L84">		m_bCached = true ;</span>
+<span class="fc" id="L85">		return this ;</span>
+	}
+
+	@Override
+	public String getString()
+	{
+<span class="fc" id="L91">		StringBuilder sb = new StringBuilder() ;</span>
+<span class="fc" id="L92">		this.cacheArrays() ;</span>
+<span class="fc" id="L93">		int nCogTotal = m_asBenedict.length</span>
+				+ m_asPrefixBene.length + m_asSuffixDict.length ;
+<span class="fc" id="L95">		int nCogRandom = RANDOM.nextInt( nCogTotal ) ;</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">		if( nCogRandom &lt; m_asBenedict.length )</span>
+		{ // Use one of the whole-word replacements.
+<span class="fc" id="L98">			sb.append( m_asBenedict[nCogRandom] ) ;</span>
+		}
+		else
+		{
+<span class="fc" id="L102">			sb.append( m_asPrefixBene[</span>
+<span class="fc" id="L103">					RANDOM.nextInt( m_asPrefixBene.length ) ] ) ;</span>
+<span class="fc" id="L104">			sb.append( m_asSuffixDict[</span>
+<span class="fc" id="L105">					RANDOM.nextInt( m_asSuffixDict.length ) ] ) ;</span>
+		}
+<span class="fc" id="L107">		sb.append( &quot; &quot; ) ;</span>
+<span class="fc" id="L108">		int nSurTotal = m_asCumberbatch.length</span>
+				+ m_asPrefixCumber.length + m_asSuffixBatch.length ;
+<span class="fc" id="L110">		int nSurRandom = RANDOM.nextInt( nSurTotal ) ;</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">		if( nSurRandom &lt; m_asCumberbatch.length )</span>
+		{ // Use one of the whole-word replacements.
+<span class="fc" id="L113">			sb.append( m_asCumberbatch[nSurRandom] ) ;</span>
+		}
+		else
+		{
+<span class="fc" id="L117">			sb.append( m_asPrefixCumber[</span>
+<span class="fc" id="L118">					RANDOM.nextInt( m_asPrefixCumber.length ) ] ) ;</span>
+<span class="fc" id="L119">			sb.append( m_asSuffixBatch[</span>
+<span class="fc" id="L120">					RANDOM.nextInt( m_asSuffixBatch.length ) ] ) ;</span>
+		}
+
+<span class="fc" id="L123">		return sb.toString() ;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span>Generated by the Android Gradle plugin 3.1.3</div></body></html>

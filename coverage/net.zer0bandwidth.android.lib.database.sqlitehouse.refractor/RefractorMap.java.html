@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RefractorMap.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=0;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">debugAndroidTest</a> &gt; <a href="index.source.html" class="el_package">net.zer0bandwidth.android.lib.database.sqlitehouse.refractor</a> &gt; <span class="el_source">RefractorMap.java</span></div><h1>RefractorMap.java</h1><pre class="source lang-java linenums">package net.zer0bandwidth.android.lib.database.sqlitehouse.refractor;
+
+import net.zer0bandwidth.android.lib.database.sqlitehouse.exceptions.IntrospectionException;
+
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+
+/**
+ * Provides a mapping of Java classes to their {@link Refractor}
+ * implementations. The initializer will define a default mapping, which can be
+ * overridden or extended by putting new entries into the map.
+ * @since zer0bandwidth-net/android 0.1.4 (#26)
+ */
+public class RefractorMap
+extends HashMap&lt;Class&lt;?&gt;,Class&lt;? extends Refractor&gt;&gt;
+{
+	public static HashMap&lt;Class&lt;?&gt;,Class&lt;? extends Refractor&gt;&gt;
+<span class="fc" id="L18">			DEFAULT_MAPPING = new HashMap&lt;&gt;() ;</span>
+
+	static
+	{
+		// Boolean types...
+<span class="fc" id="L23">		DEFAULT_MAPPING.put( boolean.class, BooleanLens.class ) ;</span>
+<span class="fc" id="L24">		DEFAULT_MAPPING.put( Boolean.class, BooleanLens.class ) ;</span>
+
+		// Integer types...
+<span class="fc" id="L27">		DEFAULT_MAPPING.put( int.class, IntegerLens.class ) ;</span>
+<span class="fc" id="L28">		DEFAULT_MAPPING.put( Integer.class, IntegerLens.class ) ;</span>
+<span class="fc" id="L29">		DEFAULT_MAPPING.put( long.class, LongLens.class ) ;</span>
+<span class="fc" id="L30">		DEFAULT_MAPPING.put( Long.class, LongLens.class ) ;</span>
+<span class="fc" id="L31">		DEFAULT_MAPPING.put( short.class, ShortLens.class ) ;</span>
+<span class="fc" id="L32">		DEFAULT_MAPPING.put( Short.class, ShortLens.class ) ;</span>
+
+		// Real-number types...
+<span class="fc" id="L35">		DEFAULT_MAPPING.put( double.class, DoubleLens.class ) ;</span>
+<span class="fc" id="L36">		DEFAULT_MAPPING.put( Double.class, DoubleLens.class ) ;</span>
+<span class="fc" id="L37">		DEFAULT_MAPPING.put( float.class, FloatLens.class ) ;</span>
+<span class="fc" id="L38">		DEFAULT_MAPPING.put( Float.class, FloatLens.class ) ;</span>
+
+		// String types...
+<span class="fc" id="L41">		DEFAULT_MAPPING.put( char.class, CharacterLens.class ) ;</span>
+<span class="fc" id="L42">		DEFAULT_MAPPING.put( Character.class, CharacterLens.class ) ;</span>
+<span class="fc" id="L43">		DEFAULT_MAPPING.put( String.class, StringLens.class ) ;</span>
+
+		// Date/time types...
+<span class="fc" id="L46">		DEFAULT_MAPPING.put( java.util.Date.class, DateLens.class ) ;</span>
+<span class="fc" id="L47">		DEFAULT_MAPPING.put( java.sql.Date.class, SQLDateLens.class ) ;</span>
+<span class="fc" id="L48">		DEFAULT_MAPPING.put( GregorianCalendar.class, GregorianCalendarLens.class ) ;</span>
+
+		// Other types...
+<span class="fc" id="L51">	}</span>
+
+	/**
+	 * Gets the default refractor class for the specified data class.
+	 * @param cls the data class
+	 * @return the default refractor for that class
+	 * @since zer0bandwidth-net/android 0.1.7 (#50)
+	 */
+	public static Class&lt;? extends Refractor&gt; getRefractorFor( Class&lt;?&gt; cls )
+<span class="fc" id="L60">	{ return DEFAULT_MAPPING.get(cls) ; }</span>
+
+	/**
+	 * Initializes the instance with the default mapping.
+	 */
+	public RefractorMap()
+	{
+<span class="fc" id="L67">		super( DEFAULT_MAPPING.size() ) ;</span>
+<span class="fc" id="L68">		this.init() ;</span>
+<span class="fc" id="L69">	}</span>
+
+	/**
+	 * Wipes out all current entries and restores the default mapping.
+	 * @return (fluid)
+	 */
+	public RefractorMap init()
+	{
+<span class="fc" id="L77">		this.clear() ;</span>
+<span class="fc" id="L78">		this.putAll( DEFAULT_MAPPING ) ;</span>
+<span class="fc" id="L79">		return this ;</span>
+	}
+
+	/**
+	 * Discovers the SQLite column type for a given class, by calling the
+	 * class's refractor.
+	 * @param cls the class to be refracted
+	 * @return the SQLite column type given by that class's refractor
+	 * @throws IntrospectionException if the refractor can't be instantiated
+	 */
+	public String getSQLiteColumnTypeFor( Class&lt;?&gt; cls )
+	throws IntrospectionException
+	{
+<span class="fc" id="L92">		Class&lt;? extends Refractor&gt; clsRefractor = this.get(cls) ;</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">		if( clsRefractor == null )</span>
+		{
+<span class="nc" id="L95">			throw new IntrospectionException( String.format(</span>
+					&quot;Could not resolve refractor for class [%s].&quot;,
+<span class="nc" id="L97">					cls.getCanonicalName() ) ) ;</span>
+		}
+<span class="fc" id="L99">		try { return clsRefractor.newInstance().getSQLiteDataType() ; }</span>
+<span class="nc" id="L100">		catch( Exception x )</span>
+		{
+<span class="nc" id="L102">			throw new IntrospectionException( String.format(</span>
+					&quot;Could not instantiate refractor [%s]&quot;,
+<span class="nc" id="L104">					clsRefractor.getCanonicalName() ) ) ;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.7.9.201702052155</span>Generated by the Android Gradle plugin 3.1.3</div></body></html>
