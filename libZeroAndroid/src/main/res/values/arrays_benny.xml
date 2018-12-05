@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- see http://imgur.com/gallery/IhTQW -->
+
+    <!-- Three-syllable whole-word replacements for "Benedict". -->
+    <string-array name="asNonsenseBenedict">
+
+        <item>Benedict</item>
+
+        <item>Bailiwick</item>
+        <item>Beanie</item>
+        <item>Beelzebub</item>
+        <item>Benadryl</item>
+        <item>Benefit</item>
+        <item>Billiardball</item>
+        <item>Bonaparte</item>
+        <item>Budapest</item>
+        <item>Buildertext</item>
+        <item>Burgerking</item>
+        <item>Catchersmitt</item>
+        <item>Pinkiepie</item>
+        <item>Scissorkick</item>
+
+    </string-array>
+
+    <!-- Two-syllable prefix replacements for "Bene-". -->
+    <string-array name="asNonsensePrefixBene">
+
+        <item>Bene</item>
+
+        <item>Bailey</item>
+        <item>Benching</item>
+        <item>Bendy</item>
+        <item>Bengal</item>
+        <item>Benji</item>
+        <item>Benny</item>
+        <item>Billiards</item>
+        <item>Blender</item>
+        <item>Blubber</item>
+        <item>Bopping</item>
+        <item>Brewski</item>
+        <item>Brody</item>
+        <item>Broken</item>
+        <item>Broski</item>
+        <item>Builder</item>
+        <item>Bunsen</item>
+        <item>Penne</item>
+        <item>Puffin</item>
+        <item>Wretched</item>
+
+    </string-array>
+
+    <!-- Single-syllable suffix replacements for "-dict". -->
+    <string-array name="asNonsenseSuffixDict">
+
+        <item>dict</item>
+
+        <item>bag</item>
+        <item>brick</item>
+        <item>butt</item>
+        <item>chick</item>
+        <item>chit</item>
+        <item>click</item> <item>clicked</item>
+        <item>evict</item>
+        <item>fit</item>
+        <item>flick</item> <item>flicked</item>
+        <item>glut</item>
+        <item>hick</item>
+        <item>kick</item> <item>kicked</item>
+        <item>lick</item> <item>licked</item>
+        <item>mix</item> <item>mixed</item>
+        <item>next</item>
+        <item>nick</item> <item>nicked</item>
+        <item>pick</item> <item>picked</item>
+        <item>pit</item>
+        <item>quick</item>
+        <item>sick</item>
+        <item>sit</item>
+        <item>slick</item>
+        <item>speck</item>
+        <item>spit</item>
+        <item>stick</item>
+        <item>text</item>
+        <item>thick</item>
+        <item>tick</item> <item>ticked</item>
+        <item>wick</item> <item>wicked</item>
+
+    </string-array>
+
+    <!-- Three-syllable whole-word replacements for "Cumberbatch". -->
+    <string-array name="asNonsenseCumberbatch">
+
+        <item>Cumberbatch</item>
+
+        <item>Bandersnatch</item>
+        <item>Calldispatch</item>
+        <item>Candygram</item>
+        <item>Cuttlefish</item>
+        <item>Humperdinck</item>
+        <item>Javaclass</item>
+        <item>Johnnycash</item>
+        <item>Luckycatch</item>
+        <item>Namemismatch</item>
+        <item>Numbercrunch</item>
+        <item>Slippingclutch</item>
+        <item>Underpass</item>
+        <item>Uptoscratch</item>
+
+    </string-array>
+
+    <!-- Two-syllable prefix replacements for "Cumber-" -->
+    <string-array name="asNonsensePrefixCumber">
+
+        <item>Cumber</item>
+
+        <item>Carrot</item>
+        <item>Chunky</item>
+        <item>Clumsy</item>
+        <item>Coding</item>
+        <item>Compass</item>
+        <item>Cover</item>
+        <item>Cowboy</item>
+        <item>Cunning</item>
+        <item>Cupboard</item>
+        <item>Custard</item>
+        <item>Flubber</item>
+        <item>Humper</item>
+        <item>Lumber</item>
+        <item>Number</item>
+        <item>Slumber</item>
+        <item>Thumper</item>
+        <item>Thunder</item>
+        <item>Under</item>
+
+    </string-array>
+
+    <!-- Single-syllable suffix replacements for "-batch". -->
+    <string-array name="asNonsenseSuffixBatch">
+
+        <item>batch</item>
+
+        <item>bath</item>
+        <item>catch</item>
+        <item>clash</item>
+        <item>class</item>
+        <item>clutch</item>
+        <item>crack</item> <item>cracked</item>
+        <item>crash</item>
+        <item>crunch</item>
+        <item>dash</item>
+        <item>death</item>
+        <item>fetch</item>
+        <item>finch</item>
+        <item>flash</item>
+        <item>glass</item>
+        <item>grass</item>
+        <item>hash</item>
+        <item>hatch</item>
+        <item>latch</item>
+        <item>lunch</item>
+        <item>mash</item>
+        <item>match</item>
+        <item>maths</item> <!-- British, you see. -->
+        <item>munch</item>
+        <item>patch</item>
+        <item>ranch</item>
+        <item>rash</item>
+        <item>sash</item>
+        <item>scratch</item>
+        <item>slash</item>
+        <item>splash</item>
+        <item>splat</item>
+        <item>sprat</item>
+        <item>stash</item>
+        <item>task</item>
+        <item>thatch</item>
+        <item>tracks</item>
+        <item>trap</item>
+        <item>witch</item>
+        <item>wretch</item>
+
+    </string-array>
+
+</resources>

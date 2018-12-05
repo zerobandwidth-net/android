@@ -1,0 +1,13 @@
+<resources>
+
+    <string name="app_name">android_lib</string>
+
+    <string name="app_name_and_version_format">%1$s %2$s</string>
+
+    <!-- see net.zer0bandwidth.android.lib.ui.MultitapAlertCompatDialog -->
+    <string name="label_btnMultitapPositive_LTR">%1$s (%2$s)</string>
+    <string name="label_btnMultitapPositive_RTL">(%2$s) %1$s</string>
+
+    <string name="title_diaShare_default">Share to&#8230;</string>
+
+</resources>

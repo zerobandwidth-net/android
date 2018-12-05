@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Styles for zer0bandwidth-net apps.
+    See also https://developer.android.com/training/material/theme.html
+    Since zer0bandwidth-net/android 0.0.1 (#5)
+-->
+<resources>
+
+    <style name="Theme.Zerobandwidth" parent="Theme.AppCompat">
+
+        <item name="colorPrimary">@color/ZPrimary</item>
+        <item name="colorPrimaryDark">@color/ZPrimary</item>
+        <item name="colorAccent">@color/ZAccent</item>
+
+        <item name="colorButtonNormal">@color/ZButtonNormal</item>
+
+    </style>
+
+</resources>

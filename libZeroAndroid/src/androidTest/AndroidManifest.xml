@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="net.zer0bandwidth.android_lib">
+
+    <application>
+        <activity android:name="net.zer0bandwidth.android.lib.services.SingletonServiceTest$FirstContext"/>
+        <activity android:name="net.zer0bandwidth.android.lib.services.SingletonServiceTest$SecondContext"/>
+        <service android:name="net.zer0bandwidth.android.lib.services.SingletonService" android:enabled="true"/>
+    </application>
+
+
+</manifest>

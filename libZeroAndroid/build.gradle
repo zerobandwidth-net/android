@@ -1,0 +1,124 @@
+apply plugin: 'com.android.library'
+
+/*
+ * UNIT TESTING
+ *
+ * This file contains a desperate effort to get jUnit output to show up in
+ * Android Studio's test results panes, with little success.
+ *
+ * Research so far:
+ *  - https://github.com/kelemen/netbeans-gradle-project/issues/126
+ *  - http://stackoverflow.com/questions/33850781/how-to-get-android-logging-output-displayed-with-junit-tests-using-native-junit
+ *  - http://stackoverflow.com/questions/3963708/gradle-how-to-display-test-results-in-the-console-in-real-time
+ *  - http://stackoverflow.com/questions/9356543/logging-while-testing-through-gradle
+ *
+ * This has met with... "severely-limited success".
+ *
+ * (#44) TEST COVERAGE REPORTS
+ *
+ * Meanwhile, there has been some success in creating a build configuration that
+ * produces a test coverage report. To set this up, do the following:
+ *
+ * 1. Tap the build configuration list and select "Edit Configurations..."
+ * 2. Create a configuration under the "Android Instrumented Tests" type.
+ * 3. Edit the following on the "General" tab:
+ *     3a. Module -> android_lib
+ *     3b. Test: -> All in package
+ *     3c. Package: -> net.zer0bandwidth.android.lib
+ * 4. In the "Before launch:" task list, add a new item for "Run Gradle Task".
+ *     4a. Gradle project: -> (folder icon) -> android:android_lib
+ *     4b. Tasks: -> createDebugCoverageReport
+ * 5. Save the new build configuration.
+ * 6. Execute the new build configuration. You should see the
+ *    "createDebugCoverageReport" task being executed before the unit tests run.
+ *
+ * To have a separate configuration that doesn't generate a report, make a copy
+ * of the configuration described above, then remove the "Run Gradle Task"
+ * pre-build item.
+ *
+ * (#52,#53,#54) ADJUSTMENTS FOR ANDROID STUDIO 3 AND GRADLE 4
+ *
+ * During the upgrade process from previous versions of Android Studio and
+ * Gradle, the "coverage runner" that is configured in AS for Gradle projects
+ * might be changed silently to "IntelliJ IDEA". In order to get the coverage
+ * reports to work, this must be changed to "JaCoCo" in the DEFAULT build
+ * configuration for Gradle projects.
+ */
+
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
+android {
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 27
+        versionCode 100
+        versionName "1.0.0-dev"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            testCoverageEnabled = true       // For code coverage reports. (#44)
+        }
+    }
+
+    // jacoco {  }       // (#44/#52) Deprecated; moved to project-level config.
+
+    testOptions.unitTests.all {
+        testLogging {
+            events TestLogEvent.PASSED,
+                    TestLogEvent.FAILED,
+                    TestLogEvent.SKIPPED,
+                    TestLogEvent.STANDARD_OUT,
+                    TestLogEvent.STANDARD_ERROR
+            exceptionFormat TestExceptionFormat.FULL
+            showCauses true
+            showExceptions true
+            showStackTraces true
+            showStandardStreams true
+        }
+    }
+}
+
+dependencies {
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    api 'com.android.support:appcompat-v7:27.1.1'
+    api 'com.android.support:support-annotations:27.1.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test:rules:1.0.2'
+    androidTestImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
+}
+
+ext { // (#59) Configure for upload to jCenter
+    bintrayRepo = "android"     // bintray repo name under zerobandwidth-net org
+    bintrayName = "net.zer0bandwidth.android.lib"        // bintray package name
+    publishedGroupId = "net.zer0bandwidth.android"        // group ID for import
+    artifact = "lib"                                   // artifact ID for import
+    libraryName = "libZeroAndroid"                          // local module name
+    libraryVersion = android.defaultConfig.versionName
+    libraryDescription = "zer0bandwidth.net fundamental Android library"
+    siteUrl = 'https://http://zerobandwidth-net.github.io/android/'
+    gitUrl = 'https://github.com/zerobandwidth-net/android.git'
+    developerId = 'zerobandwidth-net'             // belongs to the organization
+    developerName = 'zer0bandwidth.net'
+    developerEmail = 'pasha.paterson@gmail.com'
+    licenseName = 'MIT License'
+    licenseUrl = 'https://github.com/zerobandwidth-net/android/blob/master/LICENSE'
+    allLicenses = ["MIT"]
+}
+
+// (#59) update jCenter on release
+repositories { mavenCentral() } // (#59) required for below for some reason
+if( project.rootProject.file('local.properties').exists()) {
+    apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+    // Relative path allows the library to be used from a local view as well.
+    apply from: project(":libZeroAndroid").file('../bintrayv1.gradle')
+}

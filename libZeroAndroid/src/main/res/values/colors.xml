@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Standard colors for zer0bandwidth-net apps.
+    See also https://developer.android.com/training/material/theme.html
+    Since zer0bandwidth-net/android 0.0.1 (#5)
+-->
+<resources>
+
+    <color name="ZStatusBarBG">#000000</color>
+    <color name="ZPrimary">#df9212</color>
+    <color name="ZPrimaryText">#ffffff</color>
+    <color name="ZSecondary">#ad720e</color>
+    <color name="ZSecondaryText">#c8c8c8</color>
+    <color name="ZAccent">#888803</color>
+
+    <color name="ZButtonNormal">#434343</color>
+    <color name="ZButtonPrimary">#2979ff</color>
+    <color name="ZButtonSuccess">#008a00</color>
+    <color name="ZButtonInfo">#8b004f</color>
+    <color name="ZButtonWarning">#ad4300</color>
+    <color name="ZButtonDanger">#ad0000</color>
+
+</resources>

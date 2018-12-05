@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        The list of dangerous Android permissions that will be required by the
+        app. These may be processed by the PermissionCheckpoint.
+
+        See http://stackoverflow.com/a/36937109
+
+        Since zer0bandwidth-net/android 0.0.3 (#10)
+    -->
+    <string-array name="asDangerousPermissionsRequired">
+        <!-- <item>android.permission.READ_CALENDAR</item> -->
+        <!-- <item>android.permission.WRITE_CALENDAR</item> -->
+        <!-- <item>android.permission.CAMERA</item> -->
+        <!-- <item>android.permission.READ_CONTACTS</item> -->
+        <!-- <item>android.permission.WRITE_CONTACTS</item> -->
+        <!-- <item>android.permission.GET_ACCOUNTS</item> -->
+        <!-- <item>android.permission.ACCESS_FINE_LOCATION</item> -->
+        <!-- <item>android.permission.ACCESS_COARSE_LOCATION</item> -->
+        <!-- <item>android.permission.RECORD_AUDIO</item> -->
+        <!-- <item>android.permission.READ_PHONE_STATE</item> -->
+        <!-- <item>android.permission.CALL_PHONE</item> -->
+        <!-- <item>android.permission.READ_CALL_LOG</item> -->
+        <!-- <item>android.permission.WRITE_CALL_LOG</item> -->
+        <!-- <item>android.permission.ADD_VOICEMAIL</item> -->
+        <!-- <item>android.permission.USE_SIP</item> -->
+        <!-- <item>android.permission.PROCESS_OUTGOING_CALLS</item> -->
+        <!-- <item>android.permission.BODY_SENSORS</item> -->
+        <!-- <item>android.permission.SEND_SMS</item> -->
+        <!-- <item>android.permission.RECEIVE_SMS</item> -->
+        <!-- <item>android.permission.READ_SMS</item> -->
+        <!-- <item>android.permission.RECEIVE_WAP_PUSH</item> -->
+        <!-- <item>android.permission.RECEIVE_MMS</item> -->
+        <!-- <item>android.permission.READ_EXTERNAL_STORAGE</item> -->
+        <!-- <item>android.permission.WRITE_EXTERNAL_STORAGE</item> -->
+    </string-array>
+
+    <string name="diaAnnounce_title">Special Permission Required</string>
+    <string name="diaAnnounce_message">
+        This application also requires the "WRITE_SETTINGS" permission, which
+        can be enabled only in the application manager. Please tap OK to open
+        the application manager and administer this setting.
+    </string>
+
+</resources>
