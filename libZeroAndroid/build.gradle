@@ -12,7 +12,7 @@ apply plugin: 'com.android.library'
  *  - http://stackoverflow.com/questions/3963708/gradle-how-to-display-test-results-in-the-console-in-real-time
  *  - http://stackoverflow.com/questions/9356543/logging-while-testing-through-gradle
  *
- * Unfortunately none of it has worked yet. ;_;
+ * This has met with... "severely-limited success".
  *
  * (#44) TEST COVERAGE REPORTS
  *
@@ -55,8 +55,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 27
-        versionCode 30
-        versionName "0.3.0"
+        versionCode 100
+        versionName "1.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -95,4 +95,30 @@ dependencies {
     androidTestImplementation 'com.android.support.test:rules:1.0.2'
     androidTestImplementation 'junit:junit:4.12'
     testImplementation 'junit:junit:4.12'
+}
+
+ext { // (#59) Configure for upload to jCenter
+    bintrayRepo = "android"     // bintray repo name under zerobandwidth-net org
+    bintrayName = "net.zer0bandwidth.android.lib"        // bintray package name
+    publishedGroupId = "net.zer0bandwidth.android"        // group ID for import
+    artifact = "lib"                                   // artifact ID for import
+    libraryName = "libZeroAndroid"                          // local module name
+    libraryVersion = android.defaultConfig.versionName
+    libraryDescription = "zer0bandwidth.net fundamental Android library"
+    siteUrl = 'https://http://zerobandwidth-net.github.io/android/'
+    gitUrl = 'https://github.com/zerobandwidth-net/android.git'
+    developerId = 'zerobandwidth-net'             // belongs to the organization
+    developerName = 'zer0bandwidth.net'
+    developerEmail = 'pasha.paterson@gmail.com'
+    licenseName = 'MIT License'
+    licenseUrl = 'https://github.com/zerobandwidth-net/android/blob/master/LICENSE'
+    allLicenses = ["MIT"]
+}
+
+// (#59) update jCenter on release
+repositories { mavenCentral() } // (#59) required for below for some reason
+if( project.rootProject.file('local.properties').exists()) {
+    apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+    // Relative path allows the library to be used from a local view as well.
+    apply from: project(":libZeroAndroid").file('../bintrayv1.gradle')
 }
