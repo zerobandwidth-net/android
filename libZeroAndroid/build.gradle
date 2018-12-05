@@ -119,5 +119,6 @@ ext { // (#59) Configure for upload to jCenter
 repositories { mavenCentral() } // (#59) required for below for some reason
 if( project.rootProject.file('local.properties').exists()) {
     apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
-    apply from: project.rootProject.file('bintrayv1.gradle')
+    // Relative path allows the library to be used from a local view as well.
+    apply from: project(":libZeroAndroid").file('../bintrayv1.gradle')
 }
