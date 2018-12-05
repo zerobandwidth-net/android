@@ -98,7 +98,6 @@ dependencies {
 }
 
 ext { // (#59) Configure for upload to jCenter
-
     bintrayRepo = "android"     // bintray repo name under zerobandwidth-net org
     bintrayName = "net.zer0bandwidth.android.lib"        // bintray package name
     publishedGroupId = "net.zer0bandwidth.android"        // group ID for import
