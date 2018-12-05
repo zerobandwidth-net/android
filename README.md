@@ -84,26 +84,39 @@ Pages](http://zerobandwidth-net.github.io/android/) or its
     * `MenuItemUpdater` allows an activity to update the icon and/or text of a
       menu item dynamically in response to runtime conditions.
 
-### Using the Library ###
+### Using the Library via jCenter ###
+
+As of version 1.0.0, the library is now available via the jCenter repository.
+
+```
+dependencies {
+    // ...other stuff...
+    implementation 'net.zer0bandwidth.android:lib:1.0.0'
+}
+```
+
+### Using the Library as a Local Import ###
+
+As with prior versions, the library may also be loaded from a local view.
 
 Clone this repository to your development environment, and then add the
 following to your global `gradle.properties` file:
 
-```lib_zeroAndroid=/full/path/to/local/zerobandwidth/android/android_lib/```
+```libZeroAndroid=/full/path/to/local/zerobandwidth/android/libZeroAndroid/```
 
 In the app's `settings.gradle`, ensure that a mapping to the module is included:
 
 ```
-    include 'lib_zeroAndroid'
-    project('lib_zeroAndroid').projectDir = new File( lib_zeroAndroid )
+    include 'libZeroAndroid'
+    project('libZeroAndroid').projectDir = new File( libZeroAndroid )
 ```
 
 Then, in the app's `build.gradle`, add a dependency on that module:
 
 ```
     dependencies {
-        // ...
-        compile project(':lib_zeroAndroid')
+        // ...other stuff...
+        compile project(':libZeroAndroid')
     }
 ```
 
