@@ -908,6 +908,41 @@ extends SQLitePortal
 		return this ;
 	}
 
+	/** @since zer0bandwidth-net/android [NEXT] (#62) */
+	@Override
+	public synchronized DSC openDB()
+	{//noinspection unchecked
+		return ((DSC)( super.openDB() )) ;
+	}
+
+	/** @since zer0bandwidth-net/android [NEXT] (#62) */
+	@Override
+	public synchronized DSC openDB( ConnectionListener l )
+	{//noinspection unchecked
+		return((DSC)( super.openDB(l) )) ;
+	}
+
+	/** @since zer0bandwidth-net/android [NEXT] (#62) */
+	@Override
+	public synchronized DSC openDB( boolean bReadOnly )
+	{//noinspection unchecked
+		return ((DSC)( super.openDB(bReadOnly) )) ;
+	}
+
+	/** @since zer0bandwidth-net/android [NEXT] (#62) */
+	@Override
+	public synchronized DSC openDB( boolean bReadOnly, ConnectionListener l )
+	{//noinspection unchecked
+		return ((DSC)( super.openDB( bReadOnly, l ) )) ;
+	}
+
+	/** @since zer0bandwidth-net/android [NEXT] (#62) */
+	@Override
+	public synchronized DSC closeDB()
+	{//noinspection unchecked
+		return ((DSC)( super.closeDB() )) ;
+	}
+
 /// Query Commands /////////////////////////////////////////////////////////////
 
 	/**

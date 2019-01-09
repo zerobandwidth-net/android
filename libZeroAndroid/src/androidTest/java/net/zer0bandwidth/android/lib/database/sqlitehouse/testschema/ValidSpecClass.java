@@ -42,4 +42,13 @@ extends SQLiteHouse<ValidSpecClass>
 
 	public SQLiteDatabase getDB()
 	{ return m_db ; }
+
+	/**
+	 * A method that simply does something silly. Used to verify polymorphism of
+	 * an instance that is used in a chain of method calls.
+	 * @return silly string, because everyone loves silly string
+	 * @since zer0bandwidth-net/android [NEXT] (#62)
+	 */
+	public String beSilly()
+	{ return "LOOBAMAFOO!" ; }
 }

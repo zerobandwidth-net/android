@@ -820,4 +820,33 @@ public class SQLiteHouseTest
 		catch( SchematicException x ) { xSchema = x ; }
 		assertNotNull( xSchema ) ;
 	}
+
+	/**
+	 * Verifies that the several methods that were inherited from
+	 * {@link SQLitePortal} and trivially overridden in {@link SQLiteHouse}
+	 * actually return an instance of the instantiated class, rather than
+	 * {@code SQLitePortal}.
+	 * The test steps themselves are trivial; if this test method
+	 * <i>compiles</i>, then the test has passed.
+	 * @since zer0bandwidth-net/android [NEXT] (#62)
+	 */
+	@Test
+	public void testOverriddenMethodPolymorphism()
+	{
+		ValidSpecClass dbh = ValidSpecClass.getTestInstance() ;
+		SQLitePortal.ConnectionListener l = new SQLitePortal.ConnectionListener()
+		{
+			@Override
+			public void onDatabaseConnected( SQLitePortal dbh ) {}
+		};
+
+		assertEquals( "LOOBAMAFOO!", dbh.openDB().beSilly() ) ;
+		assertEquals( "LOOBAMAFOO!", dbh.closeDB().beSilly() ) ;
+		assertEquals( "LOOBAMAFOO!", dbh.openDB(true).beSilly() ) ;
+		assertEquals( "LOOBAMAFOO!", dbh.closeDB().beSilly() ) ;
+		assertEquals( "LOOBAMAFOO!", dbh.openDB(l).beSilly() ) ;
+		assertEquals( "LOOBAMAFOO!", dbh.closeDB().beSilly() ) ;
+		assertEquals( "LOOBAMAFOO!", dbh.openDB( true, l ).beSilly() ) ;
+		assertEquals( "LOOBAMAFOO!", dbh.closeDB().beSilly() ) ;
+	}
 }
