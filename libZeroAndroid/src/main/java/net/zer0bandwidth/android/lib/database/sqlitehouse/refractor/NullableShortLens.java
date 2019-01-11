@@ -8,13 +8,13 @@ import android.support.annotation.NonNull;
 import net.zer0bandwidth.android.lib.database.SQLiteSyntax;
 
 /**
- * Marshals long integer values which are stored as {@link Long} objects and
+ * Marshals short integer values which are stored as {@link Short} objects and
  * thus might or might not be {@code null}.
  * @since zer0bandwidth-net/android [NEXT] (#63)
  */
-public class NullableLongLens
-extends NullableNumericLens<Long>
-implements Refractor<Long>
+public class NullableShortLens
+extends NullableNumericLens<Short>
+implements Refractor<Short>
 {
 	@Override
 	public String getSQLiteDataType()
@@ -22,15 +22,15 @@ implements Refractor<Long>
 
 	@Override
 	protected void addNonNullToContentValues(
-			ContentValues vals, String sKey, @NonNull Long val )
+			ContentValues vals, String sKey, @NonNull Short val )
 	{ vals.put( sKey, val ) ; }
 
 	@Override
 	protected void addNonNullToBundle(
-			Bundle bndl, String sKey, @NonNull Long val )
-	{ bndl.putLong( sKey, val ) ; }
+			Bundle bndl, String sKey, @NonNull Short val )
+	{ bndl.putShort( sKey, val ) ; }
 
 	@Override
-	protected Long getNonNullFromCursor( Cursor crs, int nColumn )
-	{ return crs.getLong(nColumn) ; }
+	protected Short getNonNullFromCursor( Cursor crs, int nColumn )
+	{ return crs.getShort(nColumn) ; }
 }
