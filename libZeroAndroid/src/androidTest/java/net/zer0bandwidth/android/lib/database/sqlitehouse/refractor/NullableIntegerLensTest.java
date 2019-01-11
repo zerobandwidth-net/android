@@ -23,38 +23,38 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
- * Exercises {@link NullableLongLens}.
+ * Exercises {@link NullableIntegerLens}.
  * @since zer0bandwidth-net/android [NEXT] (#63)
  */
 @RunWith( JUnit4.class )
-public class NullableLongLensTest
+public class NullableIntegerLensTest
 {
 	/**
-	 * A schematic class that contains a nullable long integer field.
+	 * A schematic class that contains a nullable integer field.
 	 * @since zer0bandwidth-net/android [NEXT] (#63)
-	 * @see NullableLongLensTest
+	 * @see NullableIntegerLensTest
 	 */
-	@SQLiteTable("nullong_test")
+	@SQLiteTable("nullint_test")
 	private static class Model
-	implements SQLightable
+			implements SQLightable
 	{
 		@SQLiteColumn( name="test_id", is_nullable=false )
 		@SQLitePrimaryKey
 		public String m_sID ;
 
 		@SQLiteColumn( name="test_int" )
-		public Long m_nLongish = null ;
+		public Integer m_nInty = null ;
 
 		public Model() {}
 
-		public Model( Long n )
+		public Model( Integer n )
 		{
 			m_sID = UUID.randomUUID().toString() ;
-			m_nLongish = n ;
+			m_nInty = n ;
 		}
 	}
 
-	protected NullableLongLens m_lens = new NullableLongLens() ;
+	protected NullableIntegerLens m_lens = new NullableIntegerLens() ;
 
 	@Test
 	public void testGetSQLiteDataType()
@@ -71,8 +71,8 @@ public class NullableLongLensTest
 	public void testToSQLiteString()
 	{
 		assertEquals( SQLITE_NULL, m_lens.toSQLiteString(null) ) ;
-		assertEquals( "0", m_lens.toSQLiteString(0L) ) ;
-		assertEquals( "63", m_lens.toSQLiteString( 63L ) ) ;
+		assertEquals( "0", m_lens.toSQLiteString(0) ) ;
+		assertEquals( "63", m_lens.toSQLiteString( 63 ) ) ;
 	}
 
 	@Test
@@ -80,13 +80,13 @@ public class NullableLongLensTest
 	throws Exception // any exception means failure
 	{
 		Field fld = Model.Reflection.reflect( Model.class )
-				.getField( "test_int" ) ;
+		                            .getField( "test_int" ) ;
 
 		Model o = new Model( null ) ;
 		assertNull( m_lens.getValueFrom( o, fld ) ) ;
-		o.m_nLongish = 63L ;
+		o.m_nInty = 63 ;
 		assertNotNull( m_lens.getValueFrom( o, fld ) ) ;
-		assertEquals( 63L, m_lens.getValueFrom( o, fld ).longValue() ) ;
+		assertEquals( 63, m_lens.getValueFrom( o, fld ).intValue() ) ;
 	}
 
 	@Test
@@ -95,8 +95,8 @@ public class NullableLongLensTest
 		ContentValues vals = new ContentValues() ;
 		m_lens.addToContentValues( vals, "foo", null ) ;
 		assertNull( vals.get("foo") ) ;
-		m_lens.addToContentValues( vals, "foo", 63L ) ;
-		assertEquals( 63L, vals.getAsLong("foo").longValue() ) ;
+		m_lens.addToContentValues( vals, "foo", 63 ) ;
+		assertEquals( 63, vals.getAsInteger("foo").intValue() ) ;
 	}
 
 	@Test
@@ -105,8 +105,8 @@ public class NullableLongLensTest
 		Bundle bndl = new Bundle() ;
 		m_lens.addToBundle( bndl, "foo", null ) ;
 		assertNull( bndl.get("foo") ) ;
-		m_lens.addToBundle( bndl, "foo", 63L ) ;
-		assertEquals( 63L, bndl.getLong("foo") ) ;
+		m_lens.addToBundle( bndl, "foo", 63 ) ;
+		assertEquals( 63, bndl.getInt("foo") ) ;
 	}
 
 	@Test
@@ -117,10 +117,10 @@ public class NullableLongLensTest
 		MockCursor crs = new MockCursor(vals) ;
 		crs.moveToFirst() ;
 		assertNull( m_lens.fromCursor( crs, "foo" ) ) ;
-		vals.put( "foo", 63L ) ;
+		vals.put( "foo", 63 ) ;
 		crs = new MockCursor(vals) ;
 		crs.moveToFirst() ;
-		assertEquals( 63L, m_lens.fromCursor( crs, "foo" ).longValue() ) ;
+		assertEquals( 63, m_lens.fromCursor( crs, "foo" ).intValue() ) ;
 	}
 
 	@Test
@@ -129,7 +129,7 @@ public class NullableLongLensTest
 		Bundle bndl = new Bundle() ;
 		bndl.putString( "foo", null ) ;
 		assertNull( m_lens.fromBundle( bndl, "foo" ) ) ;
-		bndl.putLong( "foo", 63L ) ;
-		assertEquals( 63L, m_lens.fromBundle( bndl, "foo" ).longValue() ) ;
+		bndl.putInt( "foo", 63 ) ;
+		assertEquals( 63, m_lens.fromBundle( bndl, "foo" ).intValue() ) ;
 	}
 }

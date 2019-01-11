@@ -23,43 +23,45 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
- * Exercises {@link NullableLongLens}.
+ * Exercises {@link NullableFloatLens}.
  * @since zer0bandwidth-net/android [NEXT] (#63)
  */
 @RunWith( JUnit4.class )
-public class NullableLongLensTest
+public class NullableFloatLensTest
 {
+	private static final double EPSILON = 0.000001 ;
+
 	/**
-	 * A schematic class that contains a nullable long integer field.
+	 * A schematic class that contains a nullable single-precision
+	 * floating-point field.
 	 * @since zer0bandwidth-net/android [NEXT] (#63)
-	 * @see NullableLongLensTest
+	 * @see NullableFloatLensTest
 	 */
-	@SQLiteTable("nullong_test")
-	private static class Model
-	implements SQLightable
+	@SQLiteTable("nullfloat_test")
+	private static class Model implements SQLightable
 	{
 		@SQLiteColumn( name="test_id", is_nullable=false )
 		@SQLitePrimaryKey
 		public String m_sID ;
 
-		@SQLiteColumn( name="test_int" )
-		public Long m_nLongish = null ;
+		@SQLiteColumn( name="test_val" )
+		public Float m_rValue = null ;
 
 		public Model() {}
 
-		public Model( Long n )
+		public Model( Float r )
 		{
 			m_sID = UUID.randomUUID().toString() ;
-			m_nLongish = n ;
+			m_rValue = r ;
 		}
 	}
 
-	protected NullableLongLens m_lens = new NullableLongLens() ;
+	protected NullableFloatLens m_lens = new NullableFloatLens() ;
 
 	@Test
 	public void testGetSQLiteDataType()
 	{
-		assertEquals( SQLiteSyntax.SQLITE_TYPE_INT,
+		assertEquals( SQLiteSyntax.SQLITE_TYPE_REAL,
 				m_lens.getSQLiteDataType() ) ;
 	}
 
@@ -71,8 +73,8 @@ public class NullableLongLensTest
 	public void testToSQLiteString()
 	{
 		assertEquals( SQLITE_NULL, m_lens.toSQLiteString(null) ) ;
-		assertEquals( "0", m_lens.toSQLiteString(0L) ) ;
-		assertEquals( "63", m_lens.toSQLiteString( 63L ) ) ;
+		assertEquals( "0.0", m_lens.toSQLiteString( 0.0f ) ) ;
+		assertEquals( "6.3", m_lens.toSQLiteString( 6.3f ) ) ;
 	}
 
 	@Test
@@ -80,13 +82,13 @@ public class NullableLongLensTest
 	throws Exception // any exception means failure
 	{
 		Field fld = Model.Reflection.reflect( Model.class )
-				.getField( "test_int" ) ;
+                .getField( "test_val" ) ;
 
 		Model o = new Model( null ) ;
 		assertNull( m_lens.getValueFrom( o, fld ) ) ;
-		o.m_nLongish = 63L ;
+		o.m_rValue = 6.33f ;
 		assertNotNull( m_lens.getValueFrom( o, fld ) ) ;
-		assertEquals( 63L, m_lens.getValueFrom( o, fld ).longValue() ) ;
+		assertEquals( 6.33f, m_lens.getValueFrom( o, fld ), EPSILON ) ;
 	}
 
 	@Test
@@ -95,8 +97,8 @@ public class NullableLongLensTest
 		ContentValues vals = new ContentValues() ;
 		m_lens.addToContentValues( vals, "foo", null ) ;
 		assertNull( vals.get("foo") ) ;
-		m_lens.addToContentValues( vals, "foo", 63L ) ;
-		assertEquals( 63L, vals.getAsLong("foo").longValue() ) ;
+		m_lens.addToContentValues( vals, "foo", 6.333f ) ;
+		assertEquals( 6.333, vals.getAsFloat("foo"), EPSILON ) ;
 	}
 
 	@Test
@@ -105,8 +107,8 @@ public class NullableLongLensTest
 		Bundle bndl = new Bundle() ;
 		m_lens.addToBundle( bndl, "foo", null ) ;
 		assertNull( bndl.get("foo") ) ;
-		m_lens.addToBundle( bndl, "foo", 63L ) ;
-		assertEquals( 63L, bndl.getLong("foo") ) ;
+		m_lens.addToBundle( bndl, "foo", 6.3333f ) ;
+		assertEquals( 6.3333f, bndl.getFloat("foo"), EPSILON ) ;
 	}
 
 	@Test
@@ -117,10 +119,10 @@ public class NullableLongLensTest
 		MockCursor crs = new MockCursor(vals) ;
 		crs.moveToFirst() ;
 		assertNull( m_lens.fromCursor( crs, "foo" ) ) ;
-		vals.put( "foo", 63L ) ;
+		vals.put( "foo", 6.33333f ) ;
 		crs = new MockCursor(vals) ;
 		crs.moveToFirst() ;
-		assertEquals( 63L, m_lens.fromCursor( crs, "foo" ).longValue() ) ;
+		assertEquals( 6.33333f, m_lens.fromCursor( crs, "foo" ), EPSILON ) ;
 	}
 
 	@Test
@@ -129,7 +131,8 @@ public class NullableLongLensTest
 		Bundle bndl = new Bundle() ;
 		bndl.putString( "foo", null ) ;
 		assertNull( m_lens.fromBundle( bndl, "foo" ) ) ;
-		bndl.putLong( "foo", 63L ) ;
-		assertEquals( 63L, m_lens.fromBundle( bndl, "foo" ).longValue() ) ;
+		bndl.putFloat( "foo", 6.36363f ) ;
+		assertEquals( 6.36363f, m_lens.fromBundle( bndl, "foo" ), EPSILON ) ;
 	}
+
 }

@@ -25,17 +25,17 @@ extends HashMap<Class<?>,Class<? extends Refractor>>
 
 		// Integer types...
 		DEFAULT_MAPPING.put( int.class, IntegerLens.class ) ;
-		DEFAULT_MAPPING.put( Integer.class, IntegerLens.class ) ;
+		DEFAULT_MAPPING.put( Integer.class, NullableIntegerLens.class ) ;//(#63)
 		DEFAULT_MAPPING.put( long.class, LongLens.class ) ;
-		DEFAULT_MAPPING.put( Long.class, LongLens.class ) ;
+		DEFAULT_MAPPING.put( Long.class, NullableLongLens.class ) ;     // (#63)
 		DEFAULT_MAPPING.put( short.class, ShortLens.class ) ;
-		DEFAULT_MAPPING.put( Short.class, ShortLens.class ) ;
+		DEFAULT_MAPPING.put( Short.class, NullableShortLens.class ) ;   // (#63)
 
 		// Real-number types...
 		DEFAULT_MAPPING.put( double.class, DoubleLens.class ) ;
-		DEFAULT_MAPPING.put( Double.class, DoubleLens.class ) ;
+		DEFAULT_MAPPING.put( Double.class, NullableDoubleLens.class ) ; // (#63)
 		DEFAULT_MAPPING.put( float.class, FloatLens.class ) ;
-		DEFAULT_MAPPING.put( Float.class, FloatLens.class ) ;
+		DEFAULT_MAPPING.put( Float.class, NullableFloatLens.class ) ;   // (#63)
 
 		// String types...
 		DEFAULT_MAPPING.put( char.class, CharacterLens.class ) ;
